@@ -9,11 +9,12 @@ const ResourcesPage = lazy(() => import('./ResourcesPage').then((module) => ({ d
 const FilesPage = lazy(() => import('./FilesPage').then((module) => ({ default: module.FilesPage })));
 const SettingsPage = lazy(() => import('./SettingsPage').then((module) => ({ default: module.SettingsPage })));
 const AuditPage = lazy(() => import('./AuditPage').then((module) => ({ default: module.AuditPage })));
+const ComponentsPage = lazy(() => import('./ComponentsPage').then((module) => ({ default: module.ComponentsPage })));
 type Session = { user: string; expiresAt: number };
 const pages = [
   { key: 'overview', label: '工作台' }, { key: 'resources', label: '资源管理' },
   { key: 'files', label: '文件管理' }, { key: 'settings', label: '系统设置' },
-  { key: 'audit', label: '操作日志' }, { key: 'account', label: '当前账户' },
+  { key: 'audit', label: '操作日志' }, { key: 'components', label: '组件与交互' }, { key: 'account', label: '当前账户' },
 ];
 function getPage() { const value = window.location.hash.slice(1); return pages.some((page) => page.key === value) ? value : 'overview'; }
 const fallbackSettings: Settings = { siteName: 'WorkerKit', description: '你的应用工作台', contactEmail: '', pageSize: 20, showWelcome: true };
@@ -33,6 +34,7 @@ function Console({ session, onLogout }: { session: Session; onLogout: () => Prom
       {page === 'files' && <FilesPage />}
       {page === 'settings' && <SettingsPage onSaved={setSavedSettings} />}
       {page === 'audit' && <AuditPage />}
+      {page === 'components' && <ComponentsPage />}
       {page === 'account' && <><PageHeader title="当前账户" description="查看当前管理员身份与会话信息。" /><Card title="账户信息" style={{ maxWidth: 820 }}><Descriptions column={1} items={[
         { key: 'name', label: '用户名', children: session.user }, { key: 'role', label: '访问权限', children: <Tag color="blue">管理员</Tag> },
         { key: 'expiry', label: '会话到期时间', children: formatTime(new Date(session.expiresAt * 1000).toISOString()) },

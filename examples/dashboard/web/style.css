@@ -16,6 +16,11 @@
 .file-list-toolbar { margin-bottom: 16px; }
 .file-symbol { display: inline-grid; place-items: center; width: 32px; height: 36px; color: var(--wk-color-primary-text); background: var(--wk-color-primary-bg); border-radius: 6px; }
 .connection-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--wk-color-success); margin-top: 7px; }
+.demo-stack { display: flex; width: 100%; }
+.demo-stack > .ant-space-item { width: 100%; min-width: 0; }
+.demo-toolbar { justify-content: flex-start; gap: 8px; }
+.demo-confirm-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-top: 24px; }
+.demo-state-preview { min-height: 200px; margin-top: 24px; }
 @media (max-width: 575px) {
   .welcome-panel { padding: 22px; }
   .welcome-panel h2 { font-size: 24px; }

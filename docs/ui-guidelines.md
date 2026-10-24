@@ -55,6 +55,8 @@ import '@pengzhendong/worker-kit/web/styles.css';
 
 ## 验收
 
+演示应用左侧的“组件与交互”提供可操作的参考：页面组合、弹窗表单与确认、数据状态与消息反馈。源码在 `examples/dashboard/web/ComponentsPage.tsx`，组合了共享的 `PageHeader`、`StatCard`、布局尺寸与 Ant Design 原生组件。可搜索、批量启停、选择文件、模拟失败与重试，并通过“重置演示”还原。示例只操作页面内的临时数据，文件只展示元信息，不会上传。
+
 修改共享界面后运行 `npm run check` 和 `npm run test:ui`。设计选择由人工判断；截图测试检查已确认的外观有没有意外变化，滚动和导航由行为断言检查。初始基准不代表最终审美已经通过用户验收。
 
 新增公共组件时先复用现有 token 和 Ant Design 组件；只有真实消费需求重复出现后才提取新的公共封装。不为了规范引入另一套组件库或业务 DSL。

@@ -37,6 +37,7 @@ export function Icon({ name }: { name: string }) {
     settings: 'M4 6h16 M4 12h16 M4 18h16 M8 3v6 M16 9v6 M10 15v6',
     audit: 'M6 3h12v18H6z M9 7h6 M9 11h6 M9 15h4',
     account: 'M16 7a4 4 0 1 1-8 0a4 4 0 0 1 8 0 M4 21v-2a8 8 0 0 1 16 0v2',
+    components: 'M3 3h6v6H3z M14 3h7v6h-7z M3 14h6v7H3z M14 14h7v7h-7z',
   };
   return <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name] ?? paths.overview} /></svg>;
 }
