@@ -1,8 +1,5 @@
 * { box-sizing: border-box; }
 body { margin: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-.ant-menu { padding-inline: 10px; }
-.ant-menu-item { margin-block: 5px !important; height: 44px !important; }
-.ant-menu-title-content { margin-inline-start: 12px !important; }
 .welcome-panel { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 28px 32px; border-radius: 14px; margin-bottom: 24px; overflow: hidden; background: linear-gradient(115deg, #eaf0ff, #f4f7ff 65%, #e6edff); color: #253b73; border: 1px solid #e1e8fb; }
 .welcome-panel h2 { font-size: 28px; margin: 10px 0; letter-spacing: -.8px; }
 .welcome-panel p { margin: 0; line-height: 1.8; color: #5a6d97; font-size: 13px; }
