@@ -1,0 +1,12 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "worker-kit-test",
+  "main": "../examples/dashboard/server/index.ts",
+  "compatibility_date": "2026-10-19",
+  "compatibility_flags": ["nodejs_compat"],
+  "ratelimits": [{
+    "name": "ADMIN_LOGIN_RATE_LIMITER",
+    "namespace_id": "2026102402",
+    "simple": { "limit": 5, "period": 60 }
+  }]
+}

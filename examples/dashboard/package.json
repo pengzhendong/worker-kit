@@ -1,0 +1,20 @@
+{
+  "name": "@worker-kit/dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@pengzhendong/worker-kit": "file:../..",
+    "hono": "4.13.13",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "antd": "6.6.7"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "types": "wrangler types",
+    "build": "vite build",
+    "deploy": "npm run build && wrangler deploy",
+    "deploy:dry-run": "wrangler deploy --dry-run --config dist/dashboard/wrangler.json"
+  }
+}
