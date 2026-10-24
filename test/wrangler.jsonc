@@ -4,6 +4,9 @@
   "main": "../examples/dashboard/server/index.ts",
   "compatibility_date": "2026-10-19",
   "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [{ "binding": "DB", "database_name": "workerkit-test", "migrations_dir": "../examples/dashboard/migrations" }],
+  "kv_namespaces": [{ "binding": "SETTINGS" }],
+  "r2_buckets": [{ "binding": "FILES" }],
   "ratelimits": [{
     "name": "ADMIN_LOGIN_RATE_LIMITER",
     "namespace_id": "2026102402",

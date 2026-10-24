@@ -1,11 +1,15 @@
 {
   "name": "@pengzhendong/worker-kit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Shared Cloudflare Workers foundations, consumed as a Git submodule.",
-  "engines": { "node": ">=22.12.0" },
-  "workspaces": ["examples/dashboard"],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "workspaces": [
+    "examples/dashboard"
+  ],
   "exports": {
     "./server": "./src/server/index.ts",
     "./web": "./src/web/index.ts",
@@ -31,12 +35,24 @@
     "@cloudflare/vite-plugin": "^1.65.0"
   },
   "peerDependenciesMeta": {
-    "react": { "optional": true },
-    "react-dom": { "optional": true },
-    "antd": { "optional": true },
-    "vite": { "optional": true },
-    "@vitejs/plugin-react": { "optional": true },
-    "@cloudflare/vite-plugin": { "optional": true }
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "antd": {
+      "optional": true
+    },
+    "vite": {
+      "optional": true
+    },
+    "@vitejs/plugin-react": {
+      "optional": true
+    },
+    "@cloudflare/vite-plugin": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.65.0",

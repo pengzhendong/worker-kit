@@ -14,5 +14,8 @@
     "namespace_id": "2026102401",
     "simple": { "limit": 5, "period": 60 }
   }],
+  "d1_databases": [{ "binding": "DB", "database_name": "workerkit-dashboard", "migrations_dir": "migrations" }],
+  "kv_namespaces": [{ "binding": "SETTINGS" }],
+  "r2_buckets": [{ "binding": "FILES" }],
   "observability": { "enabled": true }
 }

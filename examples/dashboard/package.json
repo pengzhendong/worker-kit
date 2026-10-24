@@ -1,6 +1,6 @@
 {
   "name": "@worker-kit/dashboard",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "dependencies": {
@@ -11,7 +11,9 @@
     "antd": "6.6.7"
   },
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
+    "dev": "npm run db:local && vite --host 127.0.0.1",
+    "db:local": "wrangler d1 migrations apply DB --local",
+    "db:remote": "wrangler d1 migrations apply DB --remote",
     "types": "wrangler types",
     "build": "vite build",
     "deploy": "npm run build && wrangler deploy",
