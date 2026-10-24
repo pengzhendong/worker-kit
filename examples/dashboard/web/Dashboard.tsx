@@ -27,7 +27,8 @@ function Console({ session, onLogout }: { session: Session; onLogout: () => Prom
   useEffect(() => { document.title = `${pages.find((entry) => entry.key === page)?.label ?? '工作台'} · ${settings.siteName}`; }, [page, settings.siteName]);
   function navigate(next: string) { setPage(next); window.location.hash = next; }
   return <AdminShell title={settings.siteName} username={session.user} activeKey={page} onNavigate={navigate}
-    items={pages.map((entry) => ({ ...entry, icon: <Icon name={entry.key} /> }))} onLogout={onLogout}>
+    items={pages.filter((entry) => !['settings', 'account'].includes(entry.key)).map((entry) => ({ ...entry, icon: <Icon name={entry.key} /> }))}
+    userMenuItems={['account', 'settings'].map((key) => ({ ...pages.find((entry) => entry.key === key)!, icon: <Icon name={key} /> }))} onLogout={onLogout}>
     <Suspense fallback={<Flex justify="center" style={{ padding: 80 }}><Spin size="large" /></Flex>}>
       {page === 'overview' && <OverviewPage onNavigate={navigate} showWelcome={settings.showWelcome} />}
       {page === 'resources' && <ResourcesPage defaultPageSize={settings.pageSize} />}

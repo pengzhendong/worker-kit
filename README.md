@@ -127,7 +127,9 @@ Hono 负责 Cookie 签名和凭据比较。会话默认 12 小时；更改用户
 
 入口导入 `@pengzhendong/worker-kit/web/styles.css` 完成基础重置。Provider 接受标准 Ant Design `theme` 配置，默认 token、布局尺寸与 `IconBox` 可从 `/web` 导出使用。共享界面遵守[界面约定](docs/ui-guidelines.md)，业务 CSS 通过 Provider 的主题变量适配深色模式。
 
-`AdminShell` 使用完整视口高度：侧栏和顶栏保持在原位，主内容区独立滚动；矮窗口中侧栏可单独滚动，窄屏采用 Drawer 导航；切换 `activeKey` 时内容回到顶部。布局实现参考 Ant Design 官方的[固定侧栏示例](https://github.com/ant-design/ant-design/blob/master/components/layout/demo/fixed-sider.tsx)与[固定顶栏示例](https://github.com/ant-design/ant-design/blob/master/components/layout/demo/fixed.tsx)，使用明确的 Flex 滚动分区适配本项目。
+`AdminShell` 使用完整视口高度：侧栏和顶栏保持在原位，主内容区独立滚动；矮窗口中侧栏导航区可单独滚动，品牌和底部用户入口保持固定，窄屏采用 Drawer 导航；切换 `activeKey` 时内容回到顶部。布局实现参考 Ant Design 官方的[固定侧栏示例](https://github.com/ant-design/ant-design/blob/master/components/layout/demo/fixed-sider.tsx)与[固定顶栏示例](https://github.com/ant-design/ant-design/blob/master/components/layout/demo/fixed.tsx)，使用明确的 Flex 滚动分区适配本项目。
+
+`username` 显示在侧栏底部，点击向上展开用户菜单。可选的 `userMenuItems` 与 `items` 使用相同的 `{ key, label, icon? }` 结构，选中时调用 `onNavigate(key)`；退出项由共享组件提供，调用 `onLogout`。示例将“当前账户”和“系统设置”放入用户菜单，顶部保留当前页面名称和主题切换。手机导航抽屉使用同一用户入口。
 
 `createApiClient()` 返回普通请求函数，保留状态码、业务错误码和请求 ID，通过 `ApiClientError` 返回失败。401 后显示登录页还是跳转，由业务决定。它不会自动重试写请求。
 

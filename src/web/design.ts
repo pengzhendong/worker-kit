@@ -29,6 +29,8 @@ export const workerKitLayout = {
   pagePadding: 32,
   mobilePagePadding: 16,
   navigationHeight: 44,
+  accountHeight: 56,
+  avatarSize: 32,
   iconSize: 20,
   iconGap: 12,
   pageTitleSize: 28,

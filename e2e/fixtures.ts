@@ -28,6 +28,7 @@ export const test = base.extend<ConsoleOptions>({
     await page.addInitScript((dark) => {
       if (!localStorage.getItem('workerkit.theme')) localStorage.setItem('workerkit.theme', dark ? 'dark' : 'light');
     }, dark);
+    let signedOut = scenario === 'logged-out';
     const pending: Route[] = [];
     const unexpected: string[] = [];
     const pageErrors: string[] = [];
@@ -35,12 +36,16 @@ export const test = base.extend<ConsoleOptions>({
     await page.route('**/api/**', async (route) => {
       const { pathname } = new URL(route.request().url());
       const respond = (json: unknown, status = 200) => route.fulfill({ status, json });
+      if (pathname === '/api/auth/logout' && route.request().method() === 'POST') {
+        signedOut = true;
+        return route.fulfill({ status: 204 });
+      }
       if (route.request().method() !== 'GET') {
         unexpected.push(`${route.request().method()} ${pathname}`);
         return respond({ error: { code: 'unmocked', message: '未声明的测试请求' } }, 500);
       }
       if (pathname === '/api/auth/session') {
-        return scenario === 'logged-out'
+        return signedOut
           ? respond({ error: { code: 'unauthorized', message: '请先登录' } }, 401)
           : respond({ user: 'admin', expiresAt: Date.parse(date) / 1000 + 43200 });
       }

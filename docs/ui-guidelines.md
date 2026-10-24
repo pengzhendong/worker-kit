@@ -27,7 +27,8 @@ import '@pengzhendong/worker-kit/web/styles.css';
 | 操作控件 | 默认高 32 px，小号 24 px，大号 40 px | Ant Design control token |
 | 卡片圆角 | 基础 token 10 px，由组件算法派生 | `workerKitTokens` |
 | 导航项 | 高 44 px，图标容器 20 × 20，图文间距 12 px，中心线对齐 | `AdminShell`、`IconBox` |
-| 顶栏账户区 | 图标按钮和退出按钮高 32 px，图标、用户名和按钮共用垂直中心线 | `AdminShell` 的 Flex 布局 |
+| 顶栏主题切换 | 图标按钮高 32 px，与顶栏共用垂直中心线；不重复显示账户操作 | `AdminShell` 的 Flex 布局 |
+| 侧栏用户入口 | 固定在底部，按钮高 56 px，头像 32 px；头像、用户名和展开图标居中 | `AdminShell` 的账户菜单 |
 | 页面边距 | ≥768 px 时 32 px，否则 16 px；内容最大宽 1440 px | `AdminShell` |
 | 文件上传 | 示例使用 88 px 横条，文件列表紧随其后 | `workerKitLayout.uploadHeight` |
 
@@ -40,8 +41,9 @@ import '@pengzhendong/worker-kit/web/styles.css';
 - `AdminShell` 占满 100dvh，顶栏高 64 px；页面外层不产生滚动。
 - 顶栏使用正常行高与直接居中的 Flex 子项，避免 64 px 行高传入嵌套包装层后造成按钮基线偏移。
 - ≥1024 px 显示 232 px 侧栏。主内容独立滚动，侧栏和顶栏位置保持不变。
-- 矮窗口中的侧栏独立滚动，底部导航仍可到达；滚动侧栏不能带动主内容。
-- <1024 px 使用 Drawer 导航。内容滚到任意位置后仍能打开；选中页面后关闭抽屉。
+- 矮窗口中的侧栏导航区独立滚动，品牌和底部用户入口保持固定；滚动导航不能带动主内容。
+- 当前用户只显示在侧栏底部；点击向上展开账户菜单，支持键盘操作、Escape 和点击外部关闭。账户页面与设置入口由消费应用通过 `userMenuItems` 传入，退出调用 `onLogout`。不显示无操作的工作空间占位文案。
+- <1024 px 使用 Drawer 导航，底部保留相同的用户入口。内容滚到任意位置后仍能打开；主导航或账户菜单选中页面后均关闭抽屉。
 - `activeKey` 变化后主内容回到顶部。
 - 窄屏工具栏与表单应换行。宽表格在容器内部横向滚动，不能撑宽整个页面。
 

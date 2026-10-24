@@ -33,16 +33,21 @@ test('short desktop lets the sidebar scroll independently', async ({ page }, inf
   await openDashboard(page);
   const content = page.locator(region('content'));
   const sidebar = page.locator(region('sidebar'));
+  const navigation = sidebar.locator(region('sidebar-navigation'));
+  const account = sidebar.locator(region('account'));
+  const accountBefore = await box(account);
   await wheel(content, 350);
   await expect.poll(() => content.evaluate((node) => node.scrollTop)).toBeGreaterThan(100);
   const before = await content.evaluate((node) => node.scrollTop);
   const header = await box(page.locator(region('header')));
-  await wheel(sidebar, 700);
-  await expect.poll(() => sidebar.evaluate((node) => node.scrollTop)).toBeGreaterThan(50);
+  await wheel(navigation, 700);
+  await expect.poll(() => navigation.evaluate((node) => node.scrollTop)).toBeGreaterThan(0);
+  expect(await box(account)).toEqual(accountBefore);
+  await expect(account.getByRole('button', { name: '用户菜单，admin' })).toBeInViewport();
   expect(await content.evaluate((node) => node.scrollTop)).toBe(before);
   expect(await box(page.locator(region('header')))).toEqual(header);
-  await expect(sidebar.getByRole('menuitem', { name: '当前账户', exact: true })).toBeInViewport();
-  await info.attach('independent-scroll-positions', { body: JSON.stringify({ content: before, sidebar: await sidebar.evaluate((node) => node.scrollTop), header }), contentType: 'application/json' });
+  await expect(sidebar.getByRole('menuitem', { name: '组件与交互', exact: true })).toBeInViewport();
+  await info.attach('independent-scroll-positions', { body: JSON.stringify({ content: before, navigation: await navigation.evaluate((node) => node.scrollTop), account: accountBefore, header }), contentType: 'application/json' });
 });
 
 test('navigation icons and labels share a center line', async ({ page }, info) => {
@@ -58,25 +63,23 @@ test('navigation icons and labels share a center line', async ({ page }, info) =
   }
 });
 
-test('header controls share a center line in both themes', async ({ page }, info) => {
+test('header only keeps a centered theme control in both themes', async ({ page }, info) => {
   await openDashboard(page);
   const header = page.locator(region('header'));
-  const account = header.getByRole('group', { name: '账户操作', exact: true });
-  const toggle = account.getByRole('button', { name: /切换到.*模式/ });
+  await expect(header.getByText('admin', { exact: true })).toHaveCount(0);
+  await expect(header.getByRole('button', { name: /退出/ })).toHaveCount(0);
+  const toggle = header.getByRole('button', { name: /切换到.*模式/ });
   const measurements = [];
   for (let pass = 0; pass < 2; pass++) {
     const headerBox = await box(header);
     const controls = {
       themeButton: await box(toggle),
       themeIcon: await box(toggle.locator('svg')),
-      username: await box(account.getByText('admin', { exact: true })),
-      logout: await box(account.getByRole('button', { name: /^退\s*出$/ })),
     };
     const centers = Object.values(controls).map((bounds) => bounds.y + bounds.height / 2);
     expect(Math.max(...centers) - Math.min(...centers)).toBeLessThanOrEqual(1);
     for (const center of centers) expect(Math.abs(center - headerBox.y - headerBox.height / 2)).toBeLessThanOrEqual(1);
     expect(controls.themeButton.height).toBe(32);
-    expect(controls.logout.height).toBe(32);
     measurements.push({ header: headerBox, controls, centers });
     if (pass === 0) await toggle.click();
   }
