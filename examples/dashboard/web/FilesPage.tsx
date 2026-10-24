@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { App, Button, Card, Input, Popconfirm, Space, Table, Tag, Typography, Upload } from 'antd';
 import { PageHeader, workerKitLayout } from '@pengzhendong/worker-kit/web';
 import { api, formatBytes, formatTime, Icon, QueryError, useQuery } from './data';
+import type { CursorList } from '@pengzhendong/worker-kit/contracts';
 import type { FileItem } from './data';
 
 export function FilesPage() {
   const [cursor, setCursor] = useState(''); const [history, setHistory] = useState<string[]>([]); const [search, setSearch] = useState(''); const [uploading, setUploading] = useState(false);
-  const { data, error, loading, refresh } = useQuery<{ items: FileItem[]; cursor: string | null; maxBytes: number }>(`/api/admin/files?cursor=${encodeURIComponent(cursor)}`);
+  const { data, error, loading, refresh } = useQuery<CursorList<FileItem> & { maxBytes: number }>(`/api/admin/files?cursor=${encodeURIComponent(cursor)}`);
   const { message } = App.useApp();
   const items = data?.items.filter((item) => item.name.toLowerCase().includes(search.toLowerCase()));
   async function remove(file: FileItem) {

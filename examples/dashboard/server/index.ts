@@ -1,6 +1,7 @@
 import { bodyLimit } from 'hono/body-limit';
 import type { Context } from 'hono';
-import { ApiError, createAdminAuth, createFileRoutes, createServer, createSettingsRoutes } from '@pengzhendong/worker-kit/server';
+import { ApiError, createAdminAuth, createFileRoutes, createServer, createSettingsRoutes, readPageQuery } from '@pengzhendong/worker-kit/server';
+import type { BatchResult, FieldIssue, PageList } from '@pengzhendong/worker-kit/contracts';
 import type { AdminBindings, WorkerEnv } from '@pengzhendong/worker-kit/server';
 
 export interface Bindings extends AdminBindings { DB: D1Database; SETTINGS: KVNamespace; FILES: R2Bucket }
@@ -46,42 +47,51 @@ app.get('/api/admin/overview', async (c) => {
 const boundedJson = bodyLimit({ maxSize: 16_384, onError: () => { throw new ApiError(413, 'body_too_large', '请求过大'); } });
 app.use('/api/admin/resources', boundedJson);
 app.use('/api/admin/resources/*', boundedJson);
-function filters(c: C) {
-  const q = (c.req.query('q') ?? '').trim().slice(0, 100);
-  const status = c.req.query('status') ?? ''; const kind = c.req.query('kind') ?? '';
+const resourceSort = { name: 'name COLLATE NOCASE', status: 'status', updated_at: 'updated_at' } as const;
+function resourceQuery(c: C) {
+  const query = readPageQuery(new URL(c.req.url).searchParams, {
+    sortFields: ['name', 'status', 'updated_at'] as const,
+    filterFields: ['status', 'kind'] as const,
+    defaultSort: { field: 'updated_at', order: 'desc' },
+  });
+  const { q, filters: { status, kind } } = query;
+  if (status && !['enabled', 'disabled'].includes(status)) throw new ApiError(400, 'invalid_query', '资源状态无效');
+  if (kind && !['订阅源', '存储', '任务', '配置'].includes(kind)) throw new ApiError(400, 'invalid_query', '资源类型无效');
   const clauses: string[] = []; const args: string[] = [];
   if (q) { clauses.push('(name LIKE ? OR description LIKE ? OR address LIKE ?)'); args.push(`%${q}%`, `%${q}%`, `%${q}%`); }
   if (status) { clauses.push('status = ?'); args.push(status); }
   if (kind) { clauses.push('kind = ?'); args.push(kind); }
-  return { where: clauses.length ? `WHERE ${clauses.join(' AND ')}` : '', args };
+  // Only values from this closed map enter SQL. All user values use bindings.
+  const orderBy = `${resourceSort[query.sort!.field]} ${query.sort!.order === 'asc' ? 'ASC' : 'DESC'}, id ASC`;
+  return { ...query, where: clauses.length ? `WHERE ${clauses.join(' AND ')}` : '', args, orderBy };
 }
 app.get('/api/admin/resources', async (c) => {
-  const { where, args } = filters(c);
-  const page = Math.max(1, Math.min(10000, Math.trunc(Number(c.req.query('page')) || 1)));
-  const pageSize = Math.max(1, Math.min(100, Math.trunc(Number(c.req.query('pageSize')) || 20)));
+  const { where, args, page, pageSize, offset, orderBy } = resourceQuery(c);
   const [count, rows] = await Promise.all([
     c.env.DB.prepare(`SELECT COUNT(*) AS total FROM resources ${where}`).bind(...args).first<{ total: number }>(),
-    c.env.DB.prepare(`SELECT * FROM resources ${where} ORDER BY updated_at DESC, id LIMIT ? OFFSET ?`).bind(...args, pageSize, (page - 1) * pageSize).all<Resource>(),
+    c.env.DB.prepare(`SELECT * FROM resources ${where} ORDER BY ${orderBy} LIMIT ? OFFSET ?`).bind(...args, pageSize, offset).all<Resource>(),
   ]);
-  return c.json({ items: rows.results, total: count?.total ?? 0, page, pageSize });
+  return c.json({ items: rows.results, total: count?.total ?? 0, page, pageSize } satisfies PageList<Resource>);
 });
 app.get('/api/admin/resources/export', async (c) => {
-  const { where, args } = filters(c);
-  const rows = await c.env.DB.prepare(`SELECT * FROM resources ${where} ORDER BY updated_at DESC, id LIMIT 10000`).bind(...args).all<Resource>();
+  const { where, args, orderBy } = resourceQuery(c);
+  const rows = await c.env.DB.prepare(`SELECT * FROM resources ${where} ORDER BY ${orderBy} LIMIT 10000`).bind(...args).all<Resource>();
   return new Response(JSON.stringify(rows.results, null, 2), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Content-Disposition': 'attachment; filename="resources.json"', 'Cache-Control': 'no-store' } });
 });
 async function resourceInput(c: C) {
   let input: unknown;
   try { input = await c.req.json(); } catch { throw new ApiError(400, 'invalid_json', '请求 JSON 无效'); }
-  if (!input || typeof input !== 'object') throw new ApiError(400, 'invalid_resource', '请填写资源信息');
+  if (!input || typeof input !== 'object' || Array.isArray(input)) throw new ApiError(400, 'invalid_resource', '请填写资源信息');
   const body = input as Record<string, unknown>;
-  if (typeof body.name !== 'string' || !body.name.trim() || body.name.length > 80 ||
-      !['订阅源', '存储', '任务', '配置'].includes(String(body.kind)) || !['enabled', 'disabled'].includes(String(body.status)) ||
-      typeof body.address !== 'string' || body.address.length > 2000 || typeof body.description !== 'string' || body.description.length > 1000) {
-    throw new ApiError(400, 'invalid_resource', '请检查名称、类型、状态和内容长度');
-  }
-  if (body.address && !/^https?:\/\//i.test(body.address)) throw new ApiError(400, 'invalid_address', '地址必须以 http:// 或 https:// 开头');
-  return { name: body.name.trim(), kind: String(body.kind), status: String(body.status), address: body.address, description: body.description };
+  const fields: FieldIssue[] = [];
+  if (typeof body.name !== 'string' || !body.name.trim() || body.name.length > 80) fields.push({ path: ['name'], message: '名称不能为空，且不能超过 80 个字符' });
+  if (typeof body.kind !== 'string' || !['订阅源', '存储', '任务', '配置'].includes(body.kind)) fields.push({ path: ['kind'], message: '请选择有效的资源类型' });
+  if (typeof body.status !== 'string' || !['enabled', 'disabled'].includes(body.status)) fields.push({ path: ['status'], message: '请选择有效的资源状态' });
+  if (typeof body.address !== 'string' || body.address.length > 2000) fields.push({ path: ['address'], message: '地址必须是文本，且不能超过 2000 个字符' });
+  else if (body.address && !/^https?:\/\//i.test(body.address)) fields.push({ path: ['address'], message: '地址必须以 http:// 或 https:// 开头' });
+  if (typeof body.description !== 'string' || body.description.length > 1000) fields.push({ path: ['description'], message: '描述必须是文本，且不能超过 1000 个字符' });
+  if (fields.length) throw new ApiError(422, 'validation_failed', '请检查表单内容', fields);
+  return { name: (body.name as string).trim(), kind: String(body.kind), status: String(body.status), address: body.address as string, description: body.description as string };
 }
 app.post('/api/admin/resources', async (c) => {
   const data = await resourceInput(c); const id = crypto.randomUUID(); const now = new Date().toISOString();
@@ -108,14 +118,17 @@ app.delete('/api/admin/resources/:id', async (c) => {
 app.post('/api/admin/resources/batch', async (c) => {
   let body: { ids?: unknown; status?: unknown };
   try { body = await c.req.json(); } catch { throw new ApiError(400, 'invalid_json', '请求 JSON 无效'); }
-  if (!body || !Array.isArray(body.ids) || !body.ids.length || body.ids.length > 100 || body.ids.some((id) => typeof id !== 'string' || id.length > 100) || !['enabled', 'disabled'].includes(String(body.status))) {
+  if (!body || !Array.isArray(body.ids) || !body.ids.length || body.ids.length > 100 || body.ids.some((id) => typeof id !== 'string' || !id.trim() || id.length > 100) || !['enabled', 'disabled'].includes(String(body.status))) {
     throw new ApiError(400, 'invalid_batch', '请选择 1–100 条资源和有效状态');
   }
   const ids = [...new Set(body.ids as string[])]; const placeholders = ids.map(() => '?').join(',');
   const result = await c.env.DB.batch([
-    c.env.DB.prepare(`UPDATE resources SET status=?, updated_at=? WHERE id IN (${placeholders})`).bind(body.status, new Date().toISOString(), ...ids), auditStatement(c, 'resource.batch', `${String(body.status)} · ${ids.length} 项`),
+    c.env.DB.prepare(`UPDATE resources SET status=?, updated_at=? WHERE id IN (${placeholders}) RETURNING id`).bind(body.status, new Date().toISOString(), ...ids), auditStatement(c, 'resource.batch', `${String(body.status)} · 请求 ${ids.length} 项`),
   ]);
-  return c.json({ updated: result[0]?.meta.changes ?? 0 });
+  const changed = new Set((result[0]?.results as { id: string }[]).map((row) => row.id));
+  const succeeded = ids.filter((id) => changed.has(id));
+  const failed = ids.filter((id) => !changed.has(id)).map((id) => ({ id, code: 'resource_not_found', message: '资源不存在或已被删除' }));
+  return c.json({ succeeded, failed, updated: succeeded.length } satisfies BatchResult & { updated: number });
 });
 app.get('/api/admin/audit', async (c) => {
   const page = Math.max(1, Math.min(10000, Math.trunc(Number(c.req.query('page')) || 1)));

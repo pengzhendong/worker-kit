@@ -3,6 +3,7 @@ import { HTTPException } from 'hono/http-exception';
 import { requestId } from 'hono/request-id';
 import { secureHeaders } from 'hono/secure-headers';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
+import type { ApiFailure, FieldIssue } from '../contracts';
 
 export type WorkerEnv<Bindings extends object = Record<string, unknown>> = {
   Bindings: Bindings;
@@ -14,6 +15,7 @@ export class ApiError extends Error {
     public readonly status: ContentfulStatusCode,
     public readonly code: string,
     message: string,
+    public readonly fields?: FieldIssue[],
   ) {
     super(message);
     this.name = 'ApiError';
@@ -53,7 +55,8 @@ export function createServer<Bindings extends object>(options: {
     // Error messages, URLs, bodies and bindings may contain credentials.
     if (status >= 500) console.error(JSON.stringify({ event: 'request_error', code, requestId: c.get('requestId') }));
     c.header('Cache-Control', 'no-store');
-    return c.json({ error: { code, message: status < 500 ? error.message : '服务暂时不可用' }, requestId: c.get('requestId') }, status);
+    const fields = status < 500 && error instanceof ApiError && error.fields?.length ? error.fields : undefined;
+    return c.json({ error: { code, message: status < 500 ? error.message : '服务暂时不可用', ...(fields ? { fields } : {}) }, requestId: c.get('requestId') } satisfies ApiFailure, status);
   });
   app.notFound((c) => c.json({ error: { code: 'not_found', message: '接口不存在' }, requestId: c.get('requestId') }, 404));
   return app;

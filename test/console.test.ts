@@ -42,7 +42,7 @@ describe('persisted console features', () => {
   });
 
   it('rejects invalid resource input and unknown IDs', async () => {
-    expect((await request('/resources', 'POST', { name: '' })).status).toBe(400);
+    expect((await request('/resources', 'POST', { name: '' })).status).toBe(422);
     expect((await request('/resources/missing', 'DELETE')).status).toBe(404);
     expect((await request('/resources/batch', 'POST', { ids: [], status: 'enabled' })).status).toBe(400);
   });

@@ -58,7 +58,7 @@ export const test = base.extend<ConsoleOptions>({
       if (pathname === '/api/admin/resources') {
         if (scenario === 'error') return respond({ error: { code: 'unavailable', message: '暂时无法加载资源，请重试' } }, 503);
         if (scenario === 'loading') { pending.push(route); return; }
-        return respond({ items: scenario === 'empty' ? [] : resources, total: scenario === 'empty' ? 0 : resources.length });
+        return respond({ items: scenario === 'empty' ? [] : resources, total: scenario === 'empty' ? 0 : resources.length, page: 1, pageSize: 20 });
       }
       if (pathname === '/api/admin/files') return respond({ items: files, cursor: null, maxBytes: 10 * 1024 * 1024 });
       if (pathname === '/api/admin/audit') return respond({ items: activity, total: activity.length });

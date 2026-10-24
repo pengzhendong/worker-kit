@@ -3,6 +3,8 @@ import { bodyLimit } from 'hono/body-limit';
 import type { Context, MiddlewareHandler } from 'hono';
 import { ApiError } from './app';
 import type { WorkerEnv } from './app';
+import type { CursorList } from '../contracts';
+import { readCursorQuery } from './query';
 
 export interface FileInfo { key: string; name: string; size: number; uploadedAt: string; contentType: string }
 
@@ -27,8 +29,9 @@ export function createFileRoutes<B extends object>(options: {
   const info = (object: R2Object): FileInfo => ({ key: object.key, name: object.customMetadata?.name ?? object.key.slice(prefix.length), size: object.size,
     uploadedAt: object.uploaded.toISOString(), contentType: object.httpMetadata?.contentType ?? 'application/octet-stream' });
   app.get('/', async (c: C) => {
-    const list = await options.bucket(c.env).list({ prefix, limit: 100, cursor: c.req.query('cursor'), include: ['customMetadata', 'httpMetadata'] });
-    return c.json({ items: list.objects.map(info), cursor: list.truncated ? list.cursor : null, maxBytes });
+    const query = readCursorQuery(new URL(c.req.url).searchParams);
+    const list = await options.bucket(c.env).list({ prefix, limit: query.pageSize, cursor: query.cursor, include: ['customMetadata', 'httpMetadata'] });
+    return c.json({ items: list.objects.map(info), cursor: list.truncated ? list.cursor : null, maxBytes } satisfies CursorList<FileInfo> & { maxBytes: number });
   });
   app.post('/', limit, async (c: C) => {
     let form: FormData;

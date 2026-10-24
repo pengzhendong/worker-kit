@@ -1,4 +1,4 @@
-export { ApiClientError, createApiClient } from './api';
+export { ApiClientError, createApiClient, getFormErrors } from './api';
 export { WorkerKitProvider, useWorkerKitTheme } from './provider';
 export { AdminShell } from './layout';
 export type { NavigationItem } from './layout';

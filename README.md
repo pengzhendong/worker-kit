@@ -8,6 +8,7 @@
 
 | 入口 | 能力 |
 | --- | --- |
+| `@pengzhendong/worker-kit/contracts` | 无运行时依赖的管理端契约：页码/游标列表、字段错误、批量逐项结果 |
 | `@pengzhendong/worker-kit/server` | Hono 应用、统一 JSON 错误、请求 ID、结构化日志、安全响应头、可选单管理员认证、可复用 KV 设置路由与 R2 文件路由 |
 | `@pengzhendong/worker-kit/web` | React/Ant Design 后台布局、移动端导航、主题、登录页、页面标题、统计卡片、API 客户端 |
 | `@pengzhendong/worker-kit/tooling/vite` | React 与 Cloudflare Vite 插件组合 |
@@ -132,6 +133,14 @@ Hono 负责 Cookie 签名和凭据比较。会话默认 12 小时；更改用户
 `username` 显示在侧栏底部，点击向上展开用户菜单。可选的 `userMenuItems` 与 `items` 使用相同的 `{ key, label, icon? }` 结构，选中时调用 `onNavigate(key)`；退出项由共享组件提供，调用 `onLogout`。示例将“当前账户”和“系统设置”放入用户菜单，顶部保留当前页面名称和主题切换。手机导航抽屉使用同一用户入口。
 
 `createApiClient()` 返回普通请求函数，保留状态码、业务错误码和请求 ID，通过 `ApiClientError` 返回失败。401 后显示登录页还是跳转，由业务决定。它不会自动重试写请求。
+
+## 管理端接入约定
+
+[管理端接入契约 v1](docs/admin-contract.md) 定义了页码与游标列表、允许的筛选排序、字段校验错误和批量逐项结果。服务端使用 `readPageQuery` / `readCursorQuery` 校验查询；前端使用 `getFormErrors` 将后端错误映射到表单并保留草稿。资源管理与文件列表已经接入，资源表格支持服务端排序，批量操作展示失败明细并保留失败项。
+
+本次对资源字段校验改用 HTTP 422；列表查询改为拒绝未知参数、重复参数和非法分页。原错误结构、列表响应及文件接口保持兼容，批量接口保留旧 `updated` 计数字段并增加逐项结果。兼容边界和升级方法见契约文档。
+
+已在 Honeybee 独立副本验证 submodule 接入、现有认证复用与旧业务适配，范围和补丁见[接入记录](docs/honeybee-integration.md)。原项目未迁移或部署。
 
 ## 可操作的示例功能
 
