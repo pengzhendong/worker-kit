@@ -1,8 +1,10 @@
 import { test as base, expect } from '@playwright/test';
 import type { Page, Route } from '@playwright/test';
 import type { Resource, FileItem, AuditEvent, Settings } from '../examples/dashboard/web/data';
+import { dashboardModules } from '../examples/dashboard/modules';
+import { listModulePermissions } from '../src/modules';
 
-export type ConsoleOptions = { dark: boolean; scenario: 'populated' | 'empty' | 'error' | 'loading' | 'logged-out' };
+export type ConsoleOptions = { dark: boolean; scenario: 'populated' | 'empty' | 'error' | 'loading' | 'logged-out'; grants: string[] };
 const date = '2026-10-24T12:00:00.000Z';
 export const resources: Resource[] = [
   { id: 'subscription', name: '示例订阅源', kind: '订阅源', status: 'enabled', address: 'https://example.com/feed', description: '用于展示配置清单', created_at: date, updated_at: date },
@@ -23,7 +25,8 @@ const settings: Settings = { siteName: 'WorkerKit', description: '你的应用�
 export const test = base.extend<ConsoleOptions>({
   dark: [false, { option: true }],
   scenario: ['populated', { option: true }],
-  page: async ({ page, dark, scenario }, use) => {
+  grants: [listModulePermissions(dashboardModules), { option: true }],
+  page: async ({ page, dark, scenario, grants }, use) => {
     await page.clock.setFixedTime(new Date(date));
     await page.addInitScript((dark) => {
       if (!localStorage.getItem('workerkit.theme')) localStorage.setItem('workerkit.theme', dark ? 'dark' : 'light');
@@ -49,6 +52,7 @@ export const test = base.extend<ConsoleOptions>({
           ? respond({ error: { code: 'unauthorized', message: '请先登录' } }, 401)
           : respond({ user: 'admin', expiresAt: Date.parse(date) / 1000 + 43200 });
       }
+      if (pathname === '/api/admin/access') return respond({ permissions: grants });
       if (pathname === '/api/admin/settings') return respond({ values: settings, updatedAt: date });
       if (pathname === '/api/admin/overview') return respond({
         user: 'admin', runtime: 'Cloudflare Workers', now: date, total: resources.length, enabled: 3,

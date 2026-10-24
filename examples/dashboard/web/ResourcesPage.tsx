@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import type { Key } from 'react';
 import { Alert, App, Button, Card, Col, Form, Input, Modal, Popconfirm, Row, Select, Space, Table, Tag, Typography } from 'antd';
-import { getFormErrors, PageHeader } from '@pengzhendong/worker-kit/web';
+import { getFormErrors, PageHeader, useModuleAccess } from '@pengzhendong/worker-kit/web';
 import { api, formatTime, jsonRequest, QueryError, useQuery } from './data';
 import type { BatchResult, PageList, Sort } from '@pengzhendong/worker-kit/contracts';
 import type { Resource } from './data';
 
 export function ResourcesPage({ defaultPageSize }: { defaultPageSize: number }) {
+  const { can } = useModuleAccess();
   const [search, setSearch] = useState(''); const [status, setStatus] = useState<string>(); const [kind, setKind] = useState<string>();
   const [page, setPage] = useState(1); const [pageSize, setPageSize] = useState(defaultPageSize || 20); const [selected, setSelected] = useState<Key[]>([]);
   const [open, setOpen] = useState(false); const [editing, setEditing] = useState<Resource | null>(null); const [saving, setSaving] = useState(false);
@@ -42,7 +43,7 @@ export function ResourcesPage({ defaultPageSize }: { defaultPageSize: number }) 
     finally { setBatching(false); }
   }
   return <>
-    <PageHeader title="资源管理" description="管理应用的配置清单，支持查询、编辑与批量变更。" actions={<><Button href={`/api/admin/resources/export?${query}`}>导出 JSON</Button><Button type="primary" onClick={() => edit(null)}>＋ 新增资源</Button></>} />
+    <PageHeader title="资源管理" description="管理应用的配置清单，支持查询、编辑与批量变更。" actions={<>{can('resources:export') && <Button href={`/api/admin/resources/export?${query}`}>导出 JSON</Button>}{can('resources:create') && <Button type="primary" onClick={() => edit(null)}>＋ 新增资源</Button>}</>} />
     <QueryError error={error} retry={refresh} />
     <Card>
       <div className="table-toolbar"><Space wrap><Input.Search aria-label="搜索资源" placeholder="搜索名称、描述或地址" allowClear onSearch={(value) => { setSearch(value); setPage(1); }} style={{ width: 270 }} />
@@ -50,19 +51,19 @@ export function ResourcesPage({ defaultPageSize }: { defaultPageSize: number }) 
         <Select aria-label="资源状态" placeholder="全部状态" allowClear value={status} style={{ width: 130 }} options={[{ value: 'enabled', label: '已启用' }, { value: 'disabled', label: '已停用' }]} onChange={(value) => { setStatus(value); setPage(1); }} /></Space><Button onClick={refresh}>刷新</Button></div>
       {failedBatch.length > 0 && <Alert type="warning" showIcon closable onClose={() => setFailedBatch([])} title="部分资源未更新" description={<div style={{ maxHeight: 160, overflowY: 'auto' }}>{failedBatch.map((failure) => <div key={failure.id}>{data?.items.find((item) => item.id === failure.id)?.name ?? failure.id}：{failure.message}</div>)}</div>} style={{ marginBottom: 16 }} />}
       {selected.length > 0 && <div className="selection-bar"><Space wrap><Typography.Text>已选 {selected.length} 项</Typography.Text><Button size="small" loading={batching} onClick={() => void batch('enabled')}>批量启用</Button><Button size="small" loading={batching} onClick={() => void batch('disabled')}>批量停用</Button><Button size="small" type="text" disabled={batching} onClick={() => setSelected([])}>取消选择</Button></Space></div>}
-      <Table<Resource> rowKey="id" loading={loading} locale={error ? { emptyText: '资源未能加载，请重试' } : undefined} dataSource={data?.items} scroll={{ x: 900 }} rowSelection={{ selectedRowKeys: selected, onChange: setSelected, getCheckboxProps: () => ({ disabled: batching }) }} onChange={(_, __, sorter, extra) => {
+      <Table<Resource> rowKey="id" loading={loading} locale={error ? { emptyText: '资源未能加载，请重试' } : undefined} dataSource={data?.items} scroll={{ x: 900 }} rowSelection={can('resources:batch') ? { selectedRowKeys: selected, onChange: setSelected, getCheckboxProps: () => ({ disabled: batching }) } : undefined} onChange={(_, __, sorter, extra) => {
         if (extra.action !== 'sort') return;
         const value = Array.isArray(sorter) ? sorter[0] : sorter;
         if (value?.order && (value.columnKey === 'name' || value.columnKey === 'updated_at')) setSort({ field: value.columnKey, order: value.order === 'ascend' ? 'asc' : 'desc' });
         else setSort({ field: 'updated_at', order: 'desc' });
         setPage(1);
       }} pagination={{ current: page, pageSize, total: data?.total, showSizeChanger: true, showTotal: (total) => `共 ${total} 项`, onChange: (next, size) => { setPage(next); setPageSize(size); } }} columns={[
-        { title: '名称 / 描述', dataIndex: 'name', key: 'name', sorter: true, sortOrder: sort.field === 'name' ? (sort.order === 'asc' ? 'ascend' : 'descend') : null, width: 260, render: (_, row) => <Space orientation="vertical" size={2}><Button type="link" style={{ padding: 0, height: 'auto', fontWeight: 600 }} onClick={() => edit(row)}>{row.name}</Button><Typography.Text type="secondary" ellipsis style={{ maxWidth: 220, fontSize: 12 }}>{row.description || '暂无描述'}</Typography.Text></Space> },
+        { title: '名称 / 描述', dataIndex: 'name', key: 'name', sorter: true, sortOrder: sort.field === 'name' ? (sort.order === 'asc' ? 'ascend' : 'descend') : null, width: 260, render: (_, row) => <Space orientation="vertical" size={2}>{can('resources:update') ? <Button type="link" style={{ padding: 0, height: 'auto', fontWeight: 600 }} onClick={() => edit(row)}>{row.name}</Button> : <Typography.Text strong>{row.name}</Typography.Text>}<Typography.Text type="secondary" ellipsis style={{ maxWidth: 220, fontSize: 12 }}>{row.description || '暂无描述'}</Typography.Text></Space> },
         { title: '类型', dataIndex: 'kind', width: 100, render: (value: string) => <Tag color={value === '订阅源' ? 'blue' : value === '存储' ? 'purple' : 'default'}>{value}</Tag> },
         { title: '状态', dataIndex: 'status', width: 100, render: (value: string) => <Tag color={value === 'enabled' ? 'green' : 'default'}>{value === 'enabled' ? '已启用' : '已停用'}</Tag> },
         { title: '地址', dataIndex: 'address', ellipsis: true, render: (value: string) => <Typography.Text type="secondary">{value || '—'}</Typography.Text> },
         { title: '更新时间', dataIndex: 'updated_at', key: 'updated_at', sorter: true, sortOrder: sort.field === 'updated_at' ? (sort.order === 'asc' ? 'ascend' : 'descend') : null, width: 185, render: formatTime },
-        { title: '操作', key: 'actions', width: 120, fixed: 'right', render: (_, row) => <Space><Button type="link" size="small" onClick={() => edit(row)}>编辑</Button><Popconfirm title="删除这条资源配置？" description="删除后无法恢复。" okText="删除" cancelText="取消" onConfirm={() => remove(row)}><Button type="link" size="small" danger>删除</Button></Popconfirm></Space> },
+        ...(can('resources:update') || can('resources:delete') ? [{ title: '操作', key: 'actions', width: 120, fixed: 'right' as const, render: (_: unknown, row: Resource) => <Space>{can('resources:update') && <Button type="link" size="small" onClick={() => edit(row)}>编辑</Button>}{can('resources:delete') && <Popconfirm title="删除这条资源配置？" description="删除后无法恢复。" okText="删除" cancelText="取消" onConfirm={() => remove(row)}><Button type="link" size="small" danger>删除</Button></Popconfirm>}</Space> }] : []),
       ]} />
     </Card>
     <Modal title={editing ? '编辑资源' : '新增资源'} open={open} onCancel={() => setOpen(false)} onOk={() => form.submit()} confirmLoading={saving} okText="保存" cancelText="取消" width={580}>

@@ -11,6 +11,7 @@
     "examples/dashboard"
   ],
   "exports": {
+    "./modules": "./src/modules/index.ts",
     "./contracts": "./src/contracts/index.ts",
     "./server": "./src/server/index.ts",
     "./web": "./src/web/index.ts",

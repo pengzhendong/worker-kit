@@ -9,6 +9,7 @@
 | 入口 | 能力 |
 | --- | --- |
 | `@pengzhendong/worker-kit/contracts` | 无运行时依赖的管理端契约：页码/游标列表、字段错误、批量逐项结果 |
+| `@pengzhendong/worker-kit/modules` | 无框架依赖的模块声明、菜单排序、静态页面路径、操作权限标识与访问判断 |
 | `@pengzhendong/worker-kit/server` | Hono 应用、统一 JSON 错误、请求 ID、结构化日志、安全响应头、可选单管理员认证、可复用 KV 设置路由与 R2 文件路由 |
 | `@pengzhendong/worker-kit/web` | React/Ant Design 后台布局、移动端导航、主题、登录页、页面标题、统计卡片、API 客户端 |
 | `@pengzhendong/worker-kit/tooling/vite` | React 与 Cloudflare Vite 插件组合 |
@@ -68,7 +69,7 @@ git submodule add <worker-kit-repository> framework
 
 纯 API 项目只引用服务端入口；workspace 开发安装仍可能包含本库自测所需的开发依赖，但 React 和 Ant Design 不会进入服务端构建。前端项目应显式声明 React、React DOM、Ant Design、Vite、`@vitejs/plugin-react`、`@cloudflare/vite-plugin` 和 Wrangler；具体经过验证的版本见本仓库 `package.json`。`peerDependencies` 表达兼容范围，父项目的 lockfile 固定实际解析结果。
 
-完整的前后端接入方式见 `examples/dashboard/`。复制它的业务入口、页面、migrations 目录和配置到父项目后，将示例中的 `file:../..` 依赖改成上面的 workspace 版本依赖，并把 Wrangler schema 路径改为父项目的 `./node_modules/wrangler/config-schema.json`。示例中的 Worker 名和限流 namespace ID 也由父项目重新指定。
+完整的前后端接入方式见 `examples/dashboard/`。复制它的业务入口、页面、`modules.ts` 声明、migrations 目录和配置到父项目后，将示例中的 `file:../..` 依赖改成上面的 workspace 版本依赖，并把 Wrangler schema 路径改为父项目的 `./node_modules/wrangler/config-schema.json`。示例中的 Worker 名和限流 namespace ID 也由父项目重新指定。
 
 ## 服务端接入
 
@@ -136,6 +137,12 @@ Hono 负责 Cookie 签名和凭据比较。会话默认 12 小时；更改用户
 
 `createApiClient()` 返回普通请求函数，保留状态码、业务错误码和请求 ID，通过 `ApiClientError` 返回失败。401 后显示登录页还是跳转，由业务决定。它不会自动重试写请求。
 
+## 模块与操作权限
+
+项目用 `defineModules()` 集中声明模块 ID、名称、图标、页面路径、菜单位置与顺序、可用性和操作权限。`getModuleNavigation()` 派生菜单，`resolveModule()` 与 `canAccessModule()` 检查页面；前端通过 `ModuleAccessProvider` / `useModuleAccess` 控制操作入口，服务端通过 `createModuleAccess().require()` 校验相同的 `模块:操作` 标识。前后端分别装配普通 React 页面和 Hono 路由，公共声明不导入它们。
+
+示例已经接入资源、文件、设置和操作日志的逐操作校验。菜单隐藏不代替接口鉴权，未授权操作返回 403；模块停用后不出菜单、不解析页面且不允许接口操作。单管理员由服务端明确授予已启用操作，尚无多用户角色管理。接入方法与边界见[模块与权限](docs/modules.md)。开发工具中的同名页签可查看实际声明及当前授权结果。
+
 ## 管理端接入约定
 
 [管理端接入契约 v1](docs/admin-contract.md) 定义了页码与游标列表、允许的筛选排序、字段校验错误和批量逐项结果。服务端使用 `readPageQuery` / `readCursorQuery` 校验查询；前端使用 `getFormErrors` 将后端错误映射到表单并保留草稿。资源管理与文件列表已经接入，资源表格支持服务端排序，批量操作展示失败明细并保留失败项。
@@ -153,7 +160,7 @@ Hono 负责 Cookie 签名和凭据比较。会话默认 12 小时；更改用户
 - 操作日志：D1 记录资源、文件与设置变更，可按操作筛选和分页。它不是全量 HTTP 访问日志。
 - 当前账户：当前身份、会话期限和退出。
 - 组件与交互：页面组合、搜索筛选与批量启停、本地文件选择、弹窗校验与失败重试、删除确认与还原、加载/空/错误状态、消息与通知。所有操作仅使用页面内的临时数据，支持重置，不写入业务 API 或存储。
-- 开发工具：仅本地开发展示，按“本地调试、项目工具、按需扩展”介绍已有工具，并提供实际入口或可复制的检查命令。
+- 开发工具：仅本地开发展示，按“本地调试、项目工具、模块与权限、按需扩展”介绍已有工具、实际模块声明与授权结果，并提供入口或可复制的检查命令。
 
 共享文件模块 `createFileRoutes({ bucket, prefix?, maxBytes?, onChange? })` 和设置模块 `createSettingsRoutes({ store, defaults, key?, onChange? })` 可直接被消费项目导入。两者必须挂在已认证的路径下，并由业务选择自己的绑定。设置模块只接收 defaults 声明过的键和相同类型的值，适合非机密应用偏好；KV 不是全局强一致配置事务。
 

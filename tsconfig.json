@@ -12,6 +12,7 @@
     "src",
     "test",
     "examples/dashboard/server",
+    "examples/dashboard/modules.ts",
     "examples/dashboard/web",
     "examples/dashboard/vite.config.ts",
     "examples/dashboard/worker-configuration.d.ts",

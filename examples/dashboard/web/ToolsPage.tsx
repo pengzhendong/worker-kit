@@ -1,6 +1,7 @@
 import { Alert, Button, Card, Col, Flex, Row, Space, Tabs, Tag, Typography, theme } from 'antd';
-import { PageHeader } from '@pengzhendong/worker-kit/web';
+import { PageHeader, useModuleAccess } from '@pengzhendong/worker-kit/web';
 import { Icon } from './data';
+import { ModulesPanel } from './ModulesPanel';
 
 const explorer = '/cdn-cgi/local/explorer';
 const docs = 'https://developers.cloudflare.com/workers/local-development/local-explorer/';
@@ -33,11 +34,11 @@ const commands = [
   { title: '部署前检查', command: 'npm run deploy:dry-run', description: '先完成构建，再检查部署产物和绑定。只检查，不发布到 Cloudflare。' },
 ];
 const projectPages = [
-  { key: 'resources', title: '资源管理', description: '通过业务接口编辑 D1 配置，支持筛选、排序、批量变更和导出。' },
-  { key: 'settings', title: '系统设置', description: '编辑 KV 中声明过的应用设置，并保留字段校验和操作记录。' },
-  { key: 'files', title: '文件管理', description: '管理当前应用的私有 R2 文件，支持上传、认证下载和删除。' },
-  { key: 'audit', title: '操作日志', description: '查看谁修改了资源、文件或应用设置；用于追溯业务变更。' },
-  { key: 'components', title: '组件与交互', description: '体验列表、弹窗、表单和状态反馈，使用临时数据，不写入业务存储。' },
+  { key: 'resources', description: '通过业务接口编辑 D1 配置，支持筛选、排序、批量变更和导出。' },
+  { key: 'settings', description: '编辑 KV 中声明过的应用设置，并保留字段校验和操作记录。' },
+  { key: 'files', description: '管理当前应用的私有 R2 文件，支持上传、认证下载和删除。' },
+  { key: 'audit', description: '查看谁修改了资源、文件或应用设置；用于追溯业务变更。' },
+  { key: 'components', description: '体验列表、弹窗、表单和状态反馈，使用临时数据，不写入业务存储。' },
 ];
 const optionalTools = [
   { title: 'Durable Objects', description: '浏览对象的 SQLite 表，查询和编辑对象内部数据。', requirement: 'SQLite 类型的 Durable Object 绑定' },
@@ -61,6 +62,7 @@ function ToolCards({ tools }: { tools: readonly Tool[] }) {
 }
 
 export function ToolsPage({ onNavigate }: { onNavigate: (key: string) => void }) {
+  const { modules, canOpen } = useModuleAccess();
   return <>
     <PageHeader title="开发工具" description="已有工具的用途、入口与使用时机，一处查阅。" actions={<Button type="primary" href={`${explorer}/`} target="_blank" rel="noopener noreferrer">打开 Local Explorer ↗</Button>} />
     <Alert type="info" showIcon title="当前是本地开发环境" description="D1、KV、R2 面板连接当前示例的本地存储，编辑会改变本地预览数据。工具在新标签页打开。" style={{ marginBottom: 24 }} />
@@ -72,8 +74,9 @@ export function ToolsPage({ onNavigate }: { onNavigate: (key: string) => void })
       </Space> },
       { key: 'project', label: '项目工具', children: <Space orientation="vertical" size={24} className="demo-stack">
         <section aria-label="项目检查命令"><Typography.Title level={4} style={{ margin: '0 0 8px' }}>检查与构建</Typography.Title><Typography.Paragraph type="secondary">以下命令在 WorkerKit 仓库根目录运行。点击复制命令，再到终端执行。</Typography.Paragraph><Card styles={{ body: { padding: '4px 20px' } }}>{commands.map((item) => <div key={item.command} className="tool-command"><div><Typography.Text strong>{item.title}</Typography.Text><Typography.Paragraph type="secondary" style={{ margin: '4px 0 0', fontSize: 13 }}>{item.description}</Typography.Paragraph></div><Typography.Paragraph code copyable style={{ margin: 0, overflowWrap: 'anywhere' }}>{item.command}</Typography.Paragraph></div>)}</Card></section>
-        <section aria-label="应用内管理工具"><Typography.Title level={4} style={{ margin: '0 0 16px' }}>应用内管理</Typography.Title><Row gutter={[16, 16]}>{projectPages.map((item) => <Col key={item.key} xs={24} md={12}><Card style={{ height: '100%' }}><Typography.Title level={5} style={{ margin: '0 0 8px' }}>{item.title}</Typography.Title><Typography.Paragraph type="secondary">{item.description}</Typography.Paragraph><Button onClick={() => onNavigate(item.key)}>打开{item.title}</Button></Card></Col>)}</Row></section>
+        <section aria-label="应用内管理工具"><Typography.Title level={4} style={{ margin: '0 0 16px' }}>应用内管理</Typography.Title><Row gutter={[16, 16]}>{projectPages.filter((item) => canOpen(item.key)).map((item) => { const label = modules.find((module) => module.id === item.key)!.label; return <Col key={item.key} xs={24} md={12}><Card style={{ height: '100%' }}><Typography.Title level={5} style={{ margin: '0 0 8px' }}>{label}</Typography.Title><Typography.Paragraph type="secondary">{item.description}</Typography.Paragraph><Button onClick={() => onNavigate(item.key)}>打开{label}</Button></Card></Col>; })}</Row></section>
       </Space> },
+      { key: 'modules', label: '模块与权限', children: <ModulesPanel onNavigate={onNavigate} /> },
       { key: 'more', label: '按需扩展', children: <Space orientation="vertical" size={24} className="demo-stack">
         <Typography.Paragraph type="secondary" style={{ margin: 0 }}>Local Explorer 还支持以下能力。当前示例没有配置这些资源或处理函数，配置后可在原生面板中使用。</Typography.Paragraph>
         <Row gutter={[16, 16]}>{optionalTools.map((item) => <Col key={item.title} xs={24} md={12}><Card style={{ height: '100%' }}><Flex align="center" justify="space-between" gap={8} wrap><Typography.Title level={5} style={{ margin: 0 }}>{item.title}</Typography.Title><Tag>当前未配置</Tag></Flex><Typography.Paragraph style={{ margin: '12px 0 8px' }}>{item.description}</Typography.Paragraph><Typography.Text type="secondary" style={{ fontSize: 13 }}>需要：{item.requirement}</Typography.Text></Card></Col>)}</Row>

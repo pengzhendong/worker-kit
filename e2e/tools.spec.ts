@@ -29,6 +29,14 @@ test('tools describe native capabilities, commands and optional bindings', async
   await expect(page.getByRole('button', { name: '打开组件与交互', exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize()!.width);
   await screenshot(page, 'tools-project.png');
+  await page.getByRole('tab', { name: '模块与权限', exact: true }).click();
+  const resource = page.getByRole('region', { name: '资源管理模块声明', exact: true });
+  await expect(resource.getByText('/resources', { exact: true })).toBeVisible();
+  await expect(resource.getByText('resources:delete', { exact: true })).toBeVisible();
+  await expect(resource.getByText('已授予', { exact: true })).toHaveCount(6);
+  await expect(page.getByRole('region', { name: '开发工具模块声明', exact: true }).getByText('仅开发环境', { exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize()!.width);
+  await screenshot(page, 'tools-modules.png');
   await page.getByRole('tab', { name: '按需扩展', exact: true }).click();
   await expect(page.getByText('当前未配置', { exact: true })).toHaveCount(5);
   await expect(page.getByRole('link', { name: '打开 Cloudflare 控制台 ↗', exact: true })).toHaveAttribute('href', 'https://dash.cloudflare.com/');

@@ -7,12 +7,13 @@ export interface Resource { id: string; name: string; kind: string; status: 'ena
 export interface AuditEvent { id: string; actor: string; action: string; target: string; created_at: string }
 export interface FileItem { key: string; name: string; size: number; uploadedAt: string; contentType: string }
 export interface Settings { siteName: string; description: string; contactEmail: string; pageSize: number; showWelcome: boolean }
-export interface Overview { user: string; runtime: string; now: string; total: number; enabled: number; files: number; filesTruncated: boolean; bytes: number; recent: Resource[]; activity: AuditEvent[]; bindings: { name: string; detail: string; status: string }[] }
+export interface Overview { user: string; runtime: string; now: string; total: number | null; enabled: number | null; files: number | null; filesTruncated: boolean; bytes: number | null; recent: Resource[]; activity: AuditEvent[]; bindings: { name: string; detail: string; status: string }[] }
 
-export function useQuery<T>(path: string) {
+export function useQuery<T>(path: string | null) {
   const [data, setData] = useState<T>(); const [error, setError] = useState(''); const [loading, setLoading] = useState(true); const [version, setVersion] = useState(0);
   const refresh = useCallback(() => setVersion((value) => value + 1), []);
   useEffect(() => {
+    if (path === null) { setData(undefined); setError(''); setLoading(false); return; }
     const controller = new AbortController(); setLoading(true); setError('');
     api<T>(path, { signal: controller.signal }).then((result) => { if (!controller.signal.aborted) setData(result); }).catch((failure: unknown) => {
       if (!controller.signal.aborted) setError(failure instanceof Error ? failure.message : '请求失败');
