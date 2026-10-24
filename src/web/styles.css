@@ -1,0 +1,4 @@
+/* Import once at the application entry, alongside WorkerKitProvider. */
+html, body, #root { min-height: 100%; margin: 0; }
+body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+*, *::before, *::after { box-sizing: border-box; }

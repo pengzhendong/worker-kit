@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { App, Button, Card, Input, Popconfirm, Space, Table, Tag, Typography, Upload } from 'antd';
-import { PageHeader } from '@pengzhendong/worker-kit/web';
+import { PageHeader, workerKitLayout } from '@pengzhendong/worker-kit/web';
 import { api, formatBytes, formatTime, Icon, QueryError, useQuery } from './data';
 import type { FileItem } from './data';
 
@@ -16,7 +16,7 @@ export function FilesPage() {
   return <>
     <PageHeader title="文件管理" description="上传、下载与整理当前应用的私有文件。" actions={<Button onClick={refresh}>刷新</Button>} />
     <QueryError error={error} retry={refresh} />
-    <div className="file-upload"><Upload.Dragger height={88} multiple={false} disabled={uploading} showUploadList={false} beforeUpload={(file) => {
+    <div className="file-upload"><Upload.Dragger height={workerKitLayout.uploadHeight} multiple={false} disabled={uploading} showUploadList={false} beforeUpload={(file) => {
       if (file.size > (data?.maxBytes ?? 10 * 1024 * 1024)) { void message.error('单个文件不能超过 10 MB'); return Upload.LIST_IGNORE; } return true;
     }} customRequest={async ({ file, onSuccess, onError }) => {
       setUploading(true);

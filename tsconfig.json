@@ -1,5 +1,22 @@
 {
   "extends": "./src/tooling/tsconfig.json",
-  "compilerOptions": { "types": ["node", "vitest/globals", "vite/client", "@cloudflare/vitest-plugin/types"] },
-  "include": ["src", "test", "examples/dashboard/server", "examples/dashboard/web", "examples/dashboard/vite.config.ts", "examples/dashboard/worker-configuration.d.ts", "vitest.config.ts"]
+  "compilerOptions": {
+    "types": [
+      "node",
+      "vitest/globals",
+      "vite/client",
+      "@cloudflare/vitest-plugin/types"
+    ]
+  },
+  "include": [
+    "src",
+    "test",
+    "examples/dashboard/server",
+    "examples/dashboard/web",
+    "examples/dashboard/vite.config.ts",
+    "examples/dashboard/worker-configuration.d.ts",
+    "vitest.config.ts",
+    "e2e",
+    "playwright.config.ts"
+  ]
 }

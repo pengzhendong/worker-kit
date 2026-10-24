@@ -1,0 +1,60 @@
+# WorkerKit 界面约定
+
+这是共享组件与消费应用共同遵守的约定。默认值在 `src/web/design.ts`，由组件直接使用；修改公共约定时同时修改本文件、行为测试与经过人工检查的截图。业务内容、导航和数据仍由消费应用决定。
+
+## 接入与主题
+
+```tsx
+import { WorkerKitProvider } from '@pengzhendong/worker-kit/web';
+import '@pengzhendong/worker-kit/web/styles.css';
+
+<WorkerKitProvider theme={{ token: { colorPrimary: '#315bd6' } }}>
+  <Application />
+</WorkerKitProvider>
+```
+
+样式表只在应用入口导入一次，负责页面 margin、字体和 box-sizing 的基础重置。`WorkerKitProvider` 使用 Ant Design 的明暗主题算法，并持久化用户选择。应用可通过标准 `ThemeConfig` 覆盖品牌 token；保持尺寸与交互约定，避免每页单独覆盖 `.ant-*` 的布局。
+
+组件文案默认使用 Ant Design 的 zh-CN，空状态、分页和确认按钮保持中文；应用可通过 Provider 的 `locale` 属性传入其他 Ant Design locale。业务文案由消费项目负责。
+
+浅色品牌色为 #315bd6；深色模式采用 #7c9cff 作为品牌基础色，并为实色按钮采用深色文字，保证图标、链接和按钮不会直接沿用浅色模式的低亮度蓝色。颜色定义分别在 `workerKitTokens` 与 `workerKitDarkTokens` 中。
+
+| 项目 | 默认约定 | 执行位置 |
+| --- | --- | --- |
+| 基础文字 | 14 px，行高 1.6，系统字体 | `workerKitTokens` |
+| 页面标题 | 28 px，标题到说明 8 px，标题区到内容 24 px | `PageHeader` |
+| 常用间距 | 以 4 px 为单位，优先 8 / 12 / 16 / 24 / 32 | Ant Design spacing token 与组件 |
+| 操作控件 | 默认高 32 px，小号 24 px，大号 40 px | Ant Design control token |
+| 卡片圆角 | 基础 token 10 px，由组件算法派生 | `workerKitTokens` |
+| 导航项 | 高 44 px，图标容器 20 × 20，图文间距 12 px，中心线对齐 | `AdminShell`、`IconBox` |
+| 页面边距 | ≥768 px 时 32 px，否则 16 px；内容最大宽 1440 px | `AdminShell` |
+| 文件上传 | 示例使用 88 px 横条，文件列表紧随其后 | `workerKitLayout.uploadHeight` |
+
+图标优先使用同一组 SVG，采用 currentColor。自定义图标组件应传递 className、style 与 aria 属性；`IconBox` 已处理导航图标的容器对齐。只有图标的按钮必须有可访问名称，必要时配 Tooltip。选中、成功、危险等状态都应有文字，不能仅用颜色表达。
+
+业务 CSS 可使用 Provider 生成的 `--wk-color-primary`、`--wk-color-primary-bg`、`--wk-color-primary-text`、`--wk-color-primary-border`、`--wk-color-surface`、`--wk-color-text-secondary`、`--wk-color-success`。它们来自当前 Ant Design 主题，随明暗模式和品牌设置一起变化。禁止给深色模式继续套用固定浅色底。
+
+## 布局与滚动
+
+- `AdminShell` 占满 100dvh，顶栏高 64 px；页面外层不产生滚动。
+- ≥1024 px 显示 232 px 侧栏。主内容独立滚动，侧栏和顶栏位置保持不变。
+- 矮窗口中的侧栏独立滚动，底部导航仍可到达；滚动侧栏不能带动主内容。
+- <1024 px 使用 Drawer 导航。内容滚到任意位置后仍能打开；选中页面后关闭抽屉。
+- `activeKey` 变化后主内容回到顶部。
+- 窄屏工具栏与表单应换行。宽表格在容器内部横向滚动，不能撑宽整个页面。
+
+## 页面与数据状态
+
+- 公共页面标题使用 `PageHeader`，主要操作放在 actions 区，次要操作放在列表工具栏。
+- 统计使用 `StatCard`；未取得数据时使用占位值，不能伪造在线状态或业务数量。
+- 加载中保留明确的 Spin、Skeleton 或按钮 loading 状态，写操作避免重复提交。
+- 空列表展示空状态，保留创建或上传入口；空数据不显示为请求失败。
+- 请求失败展示可读错误和重试入口；有旧数据时保留旧内容。不能静默替换为“0 条”。
+- 文件上传与删除等操作需要成功/失败反馈。不可恢复的删除必须确认。
+- 先检查默认、加载、空、失败、窄屏和深色模式，再为新页面建立截图基准。
+
+## 验收
+
+修改共享界面后运行 `npm run check` 和 `npm run test:ui`。设计选择由人工判断；截图测试检查已确认的外观有没有意外变化，滚动和导航由行为断言检查。初始基准不代表最终审美已经通过用户验收。
+
+新增公共组件时先复用现有 token 和 Ant Design 组件；只有真实消费需求重复出现后才提取新的公共封装。不为了规范引入另一套组件库或业务 DSL。
