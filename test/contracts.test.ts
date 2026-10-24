@@ -46,14 +46,18 @@ describe('validation errors across the HTTP boundary', () => {
     const response = await app.request('/failure', {}, {});
     expect(JSON.stringify(await response.json())).not.toContain('private');
     const client = createApiClient({ fetcher: (async () => Response.json({ error: { code: 'unauthorized', message: '请先登录', fields: [{ path: ['name'], message: 'ignored' }] } }, { status: 401, headers: { 'X-Request-Id': 'header-id' } })) as typeof fetch });
-    try { await client('/form'); } catch (error) { expect(getFormErrors(error)).toEqual([]); expect(error).toMatchObject({ requestId: 'header-id' }); }
+    const error: unknown = await client('/form').catch((failure: unknown) => failure);
+    expect(error).toMatchObject({ status: 401, requestId: 'header-id' });
+    expect(getFormErrors(error)).toEqual([]);
   });
   it('ignores malformed or unsafe field paths in a response', async () => {
     const client = createApiClient({ fetcher: (async () => Response.json({ error: { code: 'validation_failed', message: 'invalid', fields: [
       null, { path: [], message: 'empty' }, { path: ['__proto__'], message: 'unsafe' }, { path: ['items', -1], message: 'negative' },
       { path: 'name', message: 'not an array' }, { path: ['name'], message: ['not text'] }, { path: ['name'], message: '有效错误' },
     ] } }, { status: 422 })) as typeof fetch });
-    try { await client('/form'); } catch (error) { expect(getFormErrors(error)).toEqual([{ name: ['name'], errors: ['有效错误'] }]); }
+    const error: unknown = await client('/form').catch((failure: unknown) => failure);
+    expect(error).toMatchObject({ status: 422 });
+    expect(getFormErrors(error)).toEqual([{ name: ['name'], errors: ['有效错误'] }]);
   });
 });
 

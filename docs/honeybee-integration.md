@@ -4,7 +4,7 @@
 
 ## 接入范围
 
-- 在消费项目根目录增加 `vendor/worker-kit` Git submodule，父项目使用 `file:vendor/worker-kit` 依赖和一份自己的 lockfile。
+- 在消费项目根目录增加 `vendor/worker-kit` Git submodule，父项目使用 `file:vendor/worker-kit` 依赖和一份自己的 lockfile；验证固定在共享库提交 `64194dc`。工具链要求 Node ≥22.12。
 - 通过独立 Worker 入口增加 `GET /api/admin/history` 和 `POST /api/admin/history/restore`；其他请求及 `VmessProxyService` 继续交给原 Worker。
 - 原认证模块只导出已有的 `getAuthConfig` 与 `isAuthenticated`，供适配层复用。新端点沿用 Honeybee 的签名 Cookie 和来源检查，不替换登录系统，也不沿用旧的本地免登录开关。
 - 新列表将 Honeybee 原有的、有数量上限的历史索引转换为 `PageList<T>`，支持页码、搜索和声明过的排序。没有扫描整个 KV；响应省略内部 KV 键、哈希和订阅链接。
@@ -15,7 +15,7 @@
 
 原 `node --test` 会递归发现 submodule 下的库测试，以及命名包含 test 的脚本。这些测试需要库自己的 workerd 环境，不能由消费项目的 Node 测试器运行。副本改为 `node --test test/*.test.js`，共享库和消费应用各自运行自己的检查。
 
-WorkerKit 提供的是 TypeScript 源码入口，由 Wrangler/Vite/esbuild 编译。Honeybee 的新增适配代码用独立 tsconfig 检查，契约测试由 esbuild 编译后在 Node 中运行。测试保留动态 import 分块，避免 Node 提前加载 Cloudflare sockets；真实 Worker 构建和 dry-run 使用 Cloudflare 的原生环境。
+WorkerKit 提供的是 TypeScript 源码入口，由 Wrangler/Vite/esbuild 编译。Honeybee 的新增适配代码用独立 tsconfig 检查，契约测试由 esbuild 编译后在 Node 中运行。测试保留动态 import 分块，避免 Node 提前加载 Cloudflare sockets；真实 Worker 构建和 dry-run 使用 Cloudflare 的原生环境。本地源码 file 依赖会把共享库的开发工具信息纳入父项目 lockfile，本次没有另建子模块安装目录或第二份消费项目 lockfile。
 
 ## 验证方法
 
@@ -39,6 +39,6 @@ npx wrangler deploy --dry-run --config wrangler.workerkit.jsonc
 
 ## 补丁与下一步
 
-接入补丁在 `examples/integrations/honeybee.patch`，基于 2026-10-24 当时的本地工作区快照，包含 submodule、父项目依赖、薄适配层、前端调用和测试。它尚未应用到原 Honeybee 仓库。应用前先在匹配的工作区副本使用 `git apply --check`。
+接入补丁在 `examples/integrations/honeybee.patch`，基于 2026-10-24 当时的本地工作区快照，包含 submodule、父项目依赖、薄适配层、前端调用和测试。它尚未应用到原 Honeybee 仓库。补丁已在匹配快照的另一份干净副本通过 `git apply --check`。实际应用前仍应在匹配的工作区副本检查。
 
 WorkerKit 尚未建立远程仓库，所以验证副本的 submodule URL 使用本机仓库路径。发布远程仓库后应替换 URL，并保留经过验证的 Git 提交固定版本。正式迁移还需将新入口与实际 Wrangler 配置合并、进行浏览器验收，再单独部署。
