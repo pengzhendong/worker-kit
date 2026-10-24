@@ -25,6 +25,8 @@
 
 测试启动独立的 Vite 前端服务（127.0.0.1:4174），渲染 `examples/dashboard` 的实际入口和页面。API 仅在 Playwright 中拦截，未知 API 请求和浏览器未捕获异常会使测试失败。它不启动 Workers、不读取 `.dev.vars`、不修改本地 D1/KV/R2，也没有生产代码中的测试路由或免登录开关。真实鉴权与存储行为仍由 workerd 测试验证。
 
+独立测试不会验证已经打开的 5173 开发进程。修改 package.json 的 exports 或依赖后，应重启实际预览，必要时在 `examples/dashboard` 下运行 `npm run dev -- --force`，清除旧的包解析与预构建缓存。交付时还要打开实际预览页面，检查前端模块和真实 API；不能只用首页 HTML 的 200 状态判断可用。
+
 ## 日常运行
 
 启动 Docker，然后在仓库根目录运行：
