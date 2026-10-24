@@ -53,6 +53,8 @@ Durable Objects 的 SQLite 面板、Workflows、邮件、定时任务和 Flagshi
 
 健康探测、错误边界和预检的适用范围见[应用生命周期与运行检查](lifecycle-and-operations.md)。
 
+API 中心是正式应用模块，提供接口列表、文档与访问令牌；与仅开发环境提供的工具目录分开。详见[API 中心](api-center.md)。
+
 ## 开发与生产边界
 
 开发页面使用 `import.meta.env.DEV` 条件加载，生产中不显示导航，不保留对应页面或本地调试链接。构建后的 `scripts/check-production-ui.mjs` 检查前端产物，发现开发页面或调试地址时使 `npm run check` 失败。

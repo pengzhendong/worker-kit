@@ -1,14 +1,18 @@
 import { bodyLimit } from 'hono/body-limit';
 import type { Context } from 'hono';
-import { ApiError, createAdminAuth, createModuleAccess, createFileRoutes, createServer, createSettingsRoutes, readPageQuery, runHealthChecks } from '@pengzhendong/worker-kit/server';
+import { ApiError, apiKeyInfo, createApiKeys, createAdminAuth, createModuleAccess, createFileRoutes, createServer, createSettingsRoutes, readPageQuery, runHealthChecks } from '@pengzhendong/worker-kit/server';
+import { openAPIRouteHandler } from '@pengzhendong/worker-kit/openapi';
 import type { BatchResult, FieldIssue, PageList } from '@pengzhendong/worker-kit/contracts';
 import { listModulePermissions } from '@pengzhendong/worker-kit/modules';
 import type { ModuleDefinition, ModulePermission } from '@pengzhendong/worker-kit/modules';
 import { dashboardModules } from '../modules';
 import type { AdminBindings, WorkerEnv } from '@pengzhendong/worker-kit/server';
 import { inspectAuditRetention, pruneAuditEvents } from './audit-retention';
+import { installApiDescriptions, tokenEndpoint, tokenPermissions } from './api-description';
+import { d1ApiKeyStore, listApiKeys } from './api-key-store';
+import { validateSettings } from './settings-validation';
 
-export interface Bindings extends AdminBindings { DB: D1Database; SETTINGS: KVNamespace; FILES: R2Bucket; AUDIT_RETENTION_DAYS?: string }
+export interface Bindings extends AdminBindings { DB: D1Database; SETTINGS: KVNamespace; FILES: R2Bucket; API_KEY_RATE_LIMITER: AdminBindings['ADMIN_LOGIN_RATE_LIMITER']; AUDIT_RETENTION_DAYS?: string }
 type C = Context<WorkerEnv<Bindings>>;
 type Resource = { id: string; name: string; kind: string; status: 'enabled' | 'disabled'; address: string; description: string; created_at: string; updated_at: string };
 export function createDashboard(options: {
@@ -17,18 +21,73 @@ export function createDashboard(options: {
 } = {}) {
   const modules = options.modules ?? dashboardModules;
   const app = createServer<Bindings>();
+  const ownerPermissions = (user: string) => options.resolvePermissions ? options.resolvePermissions(user) : listModulePermissions(modules);
   const access = createModuleAccess<Bindings>({ modules, resolvePermissions: (c) => {
+    const key = c.get('apiKey');
+    if (key) return key.permissions;
     const user = c.get('adminUser');
     if (!user) return null;
     // The single administrator is explicitly granted active actions by the application policy.
-    return options.resolvePermissions ? options.resolvePermissions(user) : listModulePermissions(modules);
+    return ownerPermissions(user);
   } });
   const requirePermission = (permission: ModulePermission<typeof dashboardModules[number]>) => access.require(permission);
   const auth = createAdminAuth<Bindings>({ allowWeakLocalPassword: true });
+  installApiDescriptions(app, listModulePermissions(modules));
   app.get('/health', (c) => { c.header('Cache-Control', 'no-store'); return c.json({ ok: true, service: 'worker-kit-dashboard' }); });
   app.route('/api/auth', auth.routes);
-  app.use('/api/admin/*', auth.requireAdmin);
+  app.use('/api/admin/*', async (c, next) => {
+    c.header('Cache-Control', 'no-store');
+    // Presence of Authorization chooses this scheme. Invalid keys never fall back to a Cookie.
+    if (c.req.header('Authorization') !== undefined) {
+      const url = new URL(c.req.url);
+      if (url.protocol !== 'https:' && !(url.protocol === 'http:' && ['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname))) throw new ApiError(503, 'https_required', '访问令牌需要 HTTPS');
+      const keys = createApiKeys({ store: d1ApiKeyStore(c.env.DB) });
+      const key = await keys.verify(c.req.header('Authorization'));
+      if (key.owner !== c.env.ADMIN_USERNAME) throw new ApiError(401, 'invalid_api_key', '访问令牌无效或已失效');
+      if (!tokenEndpoint(c.req.method, new URL(c.req.url).pathname)) throw new ApiError(403, 'browser_session_required', '此接口仅支持浏览器登录');
+      const current = await ownerPermissions(key.owner);
+      if (!current || !Array.isArray(current) || current.some((value) => typeof value !== 'string')) throw new ApiError(401, 'invalid_api_key', '访问令牌所属身份已失效');
+      if (!c.env.API_KEY_RATE_LIMITER || typeof c.env.API_KEY_RATE_LIMITER.limit !== 'function') throw new ApiError(503, 'rate_limit_unconfigured', '令牌限流尚未配置');
+      const limit = await c.env.API_KEY_RATE_LIMITER.limit({ key: key.id });
+      if (!limit.success) { c.header('Retry-After', '60'); throw new ApiError(429, 'api_key_limited', '访问令牌请求过于频繁'); }
+      c.set('apiKey', { id: key.id, owner: key.owner, permissions: key.permissions.filter((permission) => tokenPermissions.includes(permission) && current.includes(permission)) });
+      await next();
+      if (c.res.status < 400 && (!key.lastUsedAt || Date.parse(key.lastUsedAt) < Date.now() - 60_000)) await keys.used(key.id);
+      return;
+    }
+    return auth.requireAdmin(c, next);
+  });
   app.get('/api/admin/access', async (c) => c.json({ permissions: await access.permissions(c) }));
+  const browserOnly = async (c: C, next: () => Promise<void>) => { if (c.get('apiKey')) throw new ApiError(403, 'browser_session_required', '此接口仅支持浏览器登录'); await next(); };
+  app.get('/api/admin/openapi.json', browserOnly, requirePermission('api:read'), openAPIRouteHandler(app, {
+    excludeStaticFile: false, excludeMethods: ['OPTIONS', 'HEAD'],
+    documentation: { openapi: '3.1.0', info: { title: 'WorkerKit API', version: '0.2.0', description: '当前应用的接口。Cookie 写操作要求同源 Origin；Bearer Token 仅能访问显式开放的业务接口。' }, servers: [{ url: '/' }], components: { securitySchemes: { cookieAuth: { type: 'apiKey', in: 'cookie', name: 'workerkit_session', description: '通过登录接口设置，HttpOnly；无需复制 Cookie。' }, bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'Opaque API Key' } } } },
+  }));
+  app.get('/api/admin/api-keys', browserOnly, requirePermission('api:tokens'), async (c) => {
+    const query = readPageQuery(new URL(c.req.url).searchParams);
+    const result = await listApiKeys(c.env.DB, c.get('adminUser')!, query.page, query.pageSize);
+    const grants = await access.permissions(c);
+    return c.json({ items: result.rows.map(apiKeyInfo), total: result.total, page: query.page, pageSize: query.pageSize, grantablePermissions: tokenPermissions.filter((permission) => grants.includes(permission)) });
+  });
+  app.post('/api/admin/api-keys', browserOnly, requirePermission('api:issue'), bodyLimit({ maxSize: 8192 }), async (c) => {
+    let input: unknown;
+    try { input = await c.req.json(); } catch { throw new ApiError(400, 'invalid_json', '请求 JSON 无效'); }
+    if (!input || typeof input !== 'object' || Array.isArray(input)) throw new ApiError(422, 'invalid_api_key', '令牌配置无效');
+    const body = input as { name: string; permissions: string[]; expiresInDays: number };
+    const grants = await access.permissions(c);
+    const keys = createApiKeys({ store: d1ApiKeyStore(c.env.DB) });
+    return c.json(await keys.issue({ owner: c.get('adminUser')!, name: body.name, permissions: body.permissions, expiresInDays: body.expiresInDays }, tokenPermissions.filter((permission) => grants.includes(permission))), 201);
+  });
+  app.delete('/api/admin/api-keys/:id', browserOnly, requirePermission('api:revoke'), async (c) => {
+    const id = c.req.param('id'), owner = c.get('adminUser')!, at = new Date().toISOString();
+    const existing = await c.env.DB.withSession('first-primary').prepare('SELECT id FROM api_keys WHERE id = ? AND owner = ?').bind(id, owner).first();
+    if (!existing) throw new ApiError(404, 'api_key_not_found', '访问令牌不存在');
+    await c.env.DB.batch([
+      c.env.DB.prepare('UPDATE api_keys SET revoked_at = COALESCE(revoked_at, ?) WHERE id = ? AND owner = ?').bind(at, id, owner),
+      c.env.DB.prepare('INSERT INTO audit_events VALUES (?, ?, ?, ?, ?)').bind(crypto.randomUUID(), owner, 'api-key.revoke', id, at),
+    ]);
+    return c.body(null, 204);
+  });
   app.get('/api/admin/diagnostics', requirePermission('overview:diagnose'), async (c) => {
     const result = await runHealthChecks([
       { name: 'D1', check: () => c.env.DB.prepare('SELECT 1').first() },
@@ -55,7 +114,7 @@ export function createDashboard(options: {
 
   function auditStatement(c: C, action: string, target: string) {
     return c.env.DB.prepare('INSERT INTO audit_events(id, actor, action, target, created_at) VALUES(?, ?, ?, ?, ?)')
-      .bind(crypto.randomUUID(), c.get('adminUser') ?? 'admin', action, target.slice(0, 500), new Date().toISOString());
+      .bind(crypto.randomUUID(), c.get('apiKey') ? `token:${c.get('apiKey')!.id}` : c.get('adminUser')!, action, target.slice(0, 500), new Date().toISOString());
   }
   async function recordChange(c: C, event: { action: string; target: string }) {
     // KV/R2 writes cannot share a transaction with D1. Audit failure does not undo a successful write.
@@ -65,6 +124,7 @@ export function createDashboard(options: {
   app.route('/api/admin/settings', createSettingsRoutes<Bindings>({
     store: (env) => env.SETTINGS,
     defaults: { siteName: 'WorkerKit', description: '你的应用工作台', contactEmail: '', pageSize: 20, showWelcome: true },
+    validate: validateSettings,
     onChange: recordChange,
   }));
   app.route('/api/admin/files', createFileRoutes<Bindings>({ bucket: (env) => env.FILES, onChange: recordChange }));
@@ -78,7 +138,7 @@ export function createDashboard(options: {
       can('audit:read') ? c.env.DB.prepare('SELECT * FROM audit_events ORDER BY created_at DESC, id LIMIT 7').all() : null,
       can('files:read') ? c.env.FILES.list({ prefix: 'uploads/', limit: 1000 }) : null, can('settings:read') ? c.env.SETTINGS.get('workerkit:settings') : null,
     ]);
-    return c.json({ user: c.get('adminUser'), runtime: 'Cloudflare Workers', now: new Date().toISOString(),
+    return c.json({ user: c.get('adminUser') ?? c.get('apiKey')?.owner, runtime: 'Cloudflare Workers', now: new Date().toISOString(),
       total: summary?.total ?? null, enabled: summary?.enabled ?? null,
       files: files?.objects.length ?? null, filesTruncated: files?.truncated ?? false, bytes: files?.objects.reduce((sum, object) => sum + object.size, 0) ?? null,
       recent: recent?.results ?? [], activity: activity?.results ?? [],

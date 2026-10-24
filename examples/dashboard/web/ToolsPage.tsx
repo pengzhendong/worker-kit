@@ -37,6 +37,7 @@ const commands = [
   { title: '升级后完整校验', command: 'npm run upgrade:check', description: '依次执行项目检查、预检和界面回归；需要 Docker，不部署或应用远程迁移。' },
 ];
 const projectPages = [
+  { key: 'api', description: '搜索应用接口、查阅 Scalar 文档，并生成或撤销有明确权限和有效期的访问令牌。' },
   { key: 'resources', description: '通过业务接口编辑 D1 配置，支持筛选、排序、批量变更和导出。' },
   { key: 'settings', description: '编辑 KV 中声明过的应用设置，并保留字段校验和操作记录。' },
   { key: 'files', description: '管理当前应用的私有 R2 文件，支持上传、认证下载和删除。' },

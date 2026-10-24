@@ -11,7 +11,7 @@
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*", "/health"]
   },
-  "ratelimits": [{
+  "ratelimits": [{ "name": "API_KEY_RATE_LIMITER", "namespace_id": "2026102403", "simple": { "limit": 120, "period": 60 } }, {
     "name": "ADMIN_LOGIN_RATE_LIMITER",
     "namespace_id": "2026102401",
     "simple": { "limit": 5, "period": 60 }

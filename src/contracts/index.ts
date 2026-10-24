@@ -28,3 +28,4 @@ export interface BatchResult<Id extends string | number = string> {
   succeeded: Id[];
   failed: { id: Id; code: string; message: string }[];
 }
+export type { ApiKeyInfo } from './api-keys';

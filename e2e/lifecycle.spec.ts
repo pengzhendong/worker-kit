@@ -118,3 +118,19 @@ test('file downloads pass through the session client and produce the expected fi
   const received = page.waitForEvent('download'); await page.getByRole('link', { name: '下载', exact: true }).first().click();
   const file = await received; expect(file.suggestedFilename()).toBe('使用说明.txt'); expect(await readFile((await file.path())!, 'utf8')).toBe('session-scoped download');
 });
+
+test('resource export uses the session client and downloads JSON while keeping the application open', async ({ page }) => {
+  await page.route('**/api/admin/resources/export?*', (route) => route.fulfill({ contentType: 'application/json', body: '[{"id":"exported"}]' }));
+  await openDashboard(page, 'resources');
+  const received = page.waitForEvent('download'); await page.getByRole('link', { name: '导出 JSON', exact: true }).click();
+  const file = await received; expect(file.suggestedFilename()).toBe('resources.json'); expect(JSON.parse(await readFile((await file.path())!, 'utf8'))).toEqual([{ id: 'exported' }]);
+  await expect(page.getByRole('heading', { name: '资源管理', exact: true })).toBeVisible();
+});
+
+test('an expired resource export returns to login without navigating to an error document', async ({ page }) => {
+  await page.route('**/api/admin/resources/export?*', (route) => route.fulfill({ status: 401, json: { error: { code: 'unauthorized', message: 'expired' } } }));
+  await openDashboard(page, 'resources'); await page.getByRole('link', { name: '导出 JSON', exact: true }).click();
+  await expect(page.getByLabel('用户名', { exact: true })).toBeVisible();
+  await expect(page.getByText('登录已过期，请重新登录', { exact: true })).toHaveCount(1);
+  await expect(page).toHaveURL(/#\/?resources$/);
+});

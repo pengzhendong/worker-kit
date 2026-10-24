@@ -10,8 +10,9 @@
 | --- | --- |
 | `@pengzhendong/worker-kit/contracts` | 无运行时依赖的管理端契约：页码/游标列表、字段错误、批量逐项结果 |
 | `@pengzhendong/worker-kit/modules` | 无框架依赖的模块声明、菜单排序、静态页面路径、操作权限标识与访问判断 |
-| `@pengzhendong/worker-kit/server` | Hono 应用、统一 JSON 错误、请求 ID、结构化日志、安全响应头、可选单管理员认证、KV 设置路由、R2 文件路由、有时限的健康检查组合器 |
+| `@pengzhendong/worker-kit/server` | Hono 应用、统一 JSON 错误、请求 ID、结构化日志、安全响应头、可选单管理员认证、KV 设置路由、R2 文件路由、有时限的健康检查组合器、可替换存储的 opaque API Key 服务 |
 | `@pengzhendong/worker-kit/web` | React/Ant Design 后台布局、移动端导航、主题、登录页、页面标题、统计卡片、会话与请求取消、API 客户端、无缓存查询 hook、页面错误边界 |
+| `@pengzhendong/worker-kit/openapi` | 可选 hono-openapi 原生描述、Schema 适配与文档生成 |
 | `@pengzhendong/worker-kit/tooling/vite` | React 与 Cloudflare Vite 插件组合 |
 | `@pengzhendong/worker-kit/tooling/tsconfig.json` | 可继承的 TypeScript 基础配置 |
 | `@pengzhendong/worker-kit/tooling/doctor` | 离线只读预检：依赖、submodule、原生配置、绑定与迁移文件 |
@@ -146,6 +147,12 @@ Hono 负责 Cookie 签名和凭据比较。会话默认 12 小时；更改用户
 
 示例已经接入资源、文件、设置和操作日志的逐操作校验。菜单隐藏不代替接口鉴权，未授权操作返回 403；模块停用后不出菜单、不解析页面且不允许接口操作。单管理员由服务端明确授予已启用操作，尚无多用户角色管理。接入方法与边界见[模块与权限](docs/modules.md)。开发工具中的同名页签可查看实际声明及当前授权结果。
 
+## API 中心与访问令牌
+
+正式后台提供接口目录、Scalar 交互文档和访问令牌。接口列表与文档共用受保护的 OpenAPI；Token 支持名称、权限、1–365 天有效期、最近使用和撤销，完整密钥仅创建时返回一次，D1 仅存摘要。Token 与管理员会话分别认证，不能用于生成其他 Token。接入、绑定、迁移和权限边界见[API 中心](docs/api-center.md)。
+
+使用可选 `/openapi` 入口需由父项目声明 hono-openapi；Scalar 属于示例前端依赖，不进入共享 server/web 入口。当前 dashboard 新增 `0002_api_keys.sql` 和独立 `API_KEY_RATE_LIMITER` 绑定，消费项目需显式接入，不自动开放旧业务接口。
+
 ## 管理端接入约定
 
 [管理端接入契约 v1](docs/admin-contract.md) 定义了页码与游标列表、允许的筛选排序、字段校验错误和批量逐项结果。服务端使用 `readPageQuery` / `readCursorQuery` 校验查询；前端使用 `getFormErrors` 将后端错误映射到表单并保留草稿。资源管理与文件列表已经接入，资源表格支持服务端排序，批量操作展示失败明细并保留失败项。
@@ -161,6 +168,7 @@ Hono 负责 Cookie 签名和凭据比较。会话默认 12 小时；更改用户
 - 文件管理：私有 R2 文件上传、游标分页、当前页搜索、认证下载、删除。默认单文件最大 10 MB；文件只在当前应用的 `uploads/` 前缀中操作。
 - 系统设置：KV 保存应用名称、描述、联系邮箱、分页和欢迎区域偏好；名称会更新导航与页面标题。
 - 操作日志：D1 记录资源、文件与设置变更，可按操作筛选和分页。它不是全量 HTTP 访问日志。
+- API 中心：27 个操作的搜索、方法与分组筛选、Scalar 文档与同源调试、访问令牌生成和撤销。
 - 当前账户：当前身份、会话期限和退出。
 - 组件与交互：页面组合、搜索筛选与批量启停、本地文件选择、弹窗校验与失败重试、删除确认与还原、加载/空/错误状态、消息与通知。所有操作仅使用页面内的临时数据，支持重置，不写入业务 API 或存储。
 - 开发工具：仅本地开发展示，按“本地调试、项目工具、模块与权限、运行与恢复、按需扩展”介绍已有工具、实际声明与授权、只读依赖诊断、错误恢复演示及检查命令。
@@ -202,7 +210,7 @@ npm ci
 npm run check
 ```
 
-这会使用父项目记录的提交。CI 不应执行 `git submodule update --remote`，以免构建时浮动升级。
+这会使用父项目记录的提交。仓库根 overrides 固定了开发工具链的兼容安全补丁；npm 不会把 submodule 中的 overrides 应用到父项目，沿用这些工具版本时需在父项目同步，见功能回顾。CI 不应执行 `git submodule update --remote`，以免构建时浮动升级。
 
 WorkerKit 自身还运行 `npm run test:ui`：使用固定 Linux/Chromium 容器检查滚动、图标对齐、上传区域、移动导航、主题持久化，并比较关键页面与状态的截图。需要本地 Docker；CI 使用相同镜像。基准必须人工查看后更新，不能自动接受差异。详见[界面回归检查](docs/visual-testing.md)。消费项目可沿用该测试方式，选择自己的业务页面与固定数据建立基准。
 
@@ -218,6 +226,8 @@ npm run deploy
 ```
 
 部署由业务应用发起，共享库本身不部署。这个仓库的 CI 仅检查和 dry-run，不自动发布。
+
+本轮功能检查、开源方案比较与已知限制见[功能回顾](docs/feature-review.md)。
 
 ## 第一版边界
 

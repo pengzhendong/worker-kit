@@ -14,6 +14,7 @@ const ResourcesPage = lazy(() => import('./ResourcesPage').then((module) => ({ d
 const FilesPage = lazy(() => import('./FilesPage').then((module) => ({ default: module.FilesPage })));
 const SettingsPage = lazy(() => import('./SettingsPage').then((module) => ({ default: module.SettingsPage })));
 const AuditPage = lazy(() => import('./AuditPage').then((module) => ({ default: module.AuditPage })));
+const ApiCenterPage = lazy(() => import('./ApiCenterPage').then((module) => ({ default: module.ApiCenterPage })));
 const ComponentsPage = lazy(() => import('./ComponentsPage').then((module) => ({ default: module.ComponentsPage })));
 const ToolsPage = import.meta.env.DEV ? lazy(() => import('./ToolsPage').then((module) => ({ default: module.ToolsPage }))) : null;
 type Session = { user: string; expiresAt: number };
@@ -45,6 +46,7 @@ function Console({ session, onLogout }: { session: Session; onLogout: () => Prom
     files: () => <FilesPage />,
     settings: () => <SettingsPage onSaved={setSavedSettings} />,
     audit: () => <AuditPage />,
+    api: () => <ApiCenterPage />,
     components: () => <ComponentsPage />,
     account: () => <><PageHeader title="当前账户" description="查看当前管理员身份与会话信息。" /><Card title="账户信息" style={{ maxWidth: 820 }}><Descriptions column={1} items={[
       { key: 'name', label: '用户名', children: session.user }, { key: 'role', label: '访问权限', children: <Tag color="blue">管理员</Tag> },

@@ -1,3 +1,6 @@
+import { Hono } from 'hono';
+import { generateSpecs } from '@pengzhendong/worker-kit/openapi';
+import { installApiDescriptions } from '../examples/dashboard/server/api-description';
 import { test as base, expect } from '@playwright/test';
 import type { Page, Route } from '@playwright/test';
 import type { Resource, FileItem, AuditEvent, Settings } from '../examples/dashboard/web/data';
@@ -21,6 +24,10 @@ const activity: AuditEvent[] = [
   { id: '2', actor: 'admin', action: 'file.upload', target: '使用说明.txt', created_at: date },
 ];
 const settings: Settings = { siteName: 'WorkerKit', description: '你的应用工作台', contactEmail: 'admin@example.com', pageSize: 20, showWelcome: true };
+
+const documentedApp = new Hono<any>();
+installApiDescriptions(documentedApp);
+const apiDocument = generateSpecs(documentedApp, { includeEmptyPaths: true, excludeStaticFile: false, documentation: { info: { title: 'WorkerKit API', version: '0.2.0' }, openapi: '3.1.0', servers: [{ url: '/' }], components: { securitySchemes: { cookieAuth: { type: 'apiKey', in: 'cookie', name: 'workerkit_session' }, bearerAuth: { type: 'http', scheme: 'bearer' } } } } });
 
 export const test = base.extend<ConsoleOptions>({
   dark: [false, { option: true }],
@@ -55,6 +62,8 @@ export const test = base.extend<ConsoleOptions>({
       if (pathname === '/api/admin/access') return respond({ permissions: grants });
       if (pathname === '/api/admin/diagnostics') return respond({ ok: true, checks: [{ name: 'D1', status: 'ok', durationMs: 3 }, { name: 'KV', status: 'ok', durationMs: 2 }, { name: 'R2', status: 'ok', durationMs: 1 }] });
       if (pathname === '/api/admin/audit/retention') return respond({ enabled: false, days: null, before: null, eligible: 0, batchLimit: 1000 });
+      if (pathname === '/api/admin/openapi.json') return respond(await apiDocument);
+      if (pathname === '/api/admin/api-keys') return respond({ items: [], total: 0, page: 1, pageSize: 10, grantablePermissions: ['resources:read'] });
       if (pathname === '/api/admin/settings') return respond({ values: settings, updatedAt: date });
       if (pathname === '/api/admin/overview') return respond({
         user: 'admin', runtime: 'Cloudflare Workers', now: date, total: resources.length, enabled: 3,
@@ -82,7 +91,7 @@ export { expect };
 export async function openDashboard(page: Page, section = 'overview') {
   await page.goto(`/#${section}`);
   await expect(page.locator('[data-workerkit-shell]')).toBeVisible();
-  await expect(page.getByRole('heading', { name: { overview: '工作台', resources: '资源管理', files: '文件管理', components: '组件与交互', tools: '开发工具' }[section] ?? section, exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: { overview: '工作台', resources: '资源管理', files: '文件管理', components: '组件与交互', tools: '开发工具', api: 'API 中心' }[section] ?? section, exact: true })).toBeVisible();
   await expect(page.locator('.ant-spin-spinning')).toHaveCount(0);
   await page.evaluate(() => document.fonts.ready);
 }

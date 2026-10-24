@@ -1,4 +1,4 @@
 {
-  "bindings": { "DB": "d1", "SETTINGS": "kv", "FILES": "r2", "ADMIN_LOGIN_RATE_LIMITER": "ratelimit" },
+  "bindings": { "DB": "d1", "SETTINGS": "kv", "FILES": "r2", "ADMIN_LOGIN_RATE_LIMITER": "ratelimit", "API_KEY_RATE_LIMITER": "ratelimit" },
   "secrets": ["ADMIN_USERNAME", "ADMIN_PASSWORD", "ADMIN_SESSION_SECRET"]
 }

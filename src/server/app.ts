@@ -7,7 +7,7 @@ import type { ApiFailure, FieldIssue } from '../contracts';
 
 export type WorkerEnv<Bindings extends object = Record<string, unknown>> = {
   Bindings: Bindings;
-  Variables: { requestId: string; adminUser?: string };
+  Variables: { requestId: string; adminUser?: string; apiKey?: { id: string; owner: string; permissions: readonly string[] } };
 };
 
 export class ApiError extends Error {

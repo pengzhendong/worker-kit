@@ -13,6 +13,7 @@ export function ResourcesPage({ defaultPageSize }: { defaultPageSize: number }) 
   const [open, setOpen] = useState(false); const [editing, setEditing] = useState<Resource | null>(null); const [saving, setSaving] = useState(false);
   const [sort, setSort] = useState<Sort<'name' | 'updated_at'>>({ field: 'updated_at', order: 'desc' });
   const [batching, setBatching] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [failedBatch, setFailedBatch] = useState<BatchResult['failed']>([]);
   const [form] = Form.useForm(); const { message } = App.useApp();
   const query = new URLSearchParams({ q: search, status: status ?? '', kind: kind ?? '', page: String(page), pageSize: String(pageSize), sort: sort.field, order: sort.order });
@@ -45,8 +46,17 @@ export function ResourcesPage({ defaultPageSize }: { defaultPageSize: number }) 
       if (isRequestCancelled(failure)) return; void message.error(failure instanceof Error ? failure.message : '操作失败'); }
     finally { setBatching(false); }
   }
+  async function exportResources() {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const blob = await api<Blob>(`/api/admin/resources/export?${query}`, { responseType: 'blob' });
+      const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'resources.json'; anchor.click(); URL.revokeObjectURL(url);
+    } catch (failure) { if (!isRequestCancelled(failure)) void message.error(failure instanceof Error ? failure.message : '导出失败'); }
+    finally { setExporting(false); }
+  }
   return <>
-    <PageHeader title="资源管理" description="管理应用的配置清单，支持查询、编辑与批量变更。" actions={<>{can('resources:export') && <Button href={`/api/admin/resources/export?${query}`}>导出 JSON</Button>}{can('resources:create') && <Button type="primary" onClick={() => edit(null)}>＋ 新增资源</Button>}</>} />
+    <PageHeader title="资源管理" description="管理应用的配置清单，支持查询、编辑与批量变更。" actions={<>{can('resources:export') && <Button href={`/api/admin/resources/export?${query}`} loading={exporting} onClick={(event) => { event.preventDefault(); void exportResources(); }}>导出 JSON</Button>}{can('resources:create') && <Button type="primary" onClick={() => edit(null)}>＋ 新增资源</Button>}</>} />
     <QueryError error={error} retry={refresh} />
     <Card>
       <div className="table-toolbar"><Space wrap><Input.Search aria-label="搜索资源" placeholder="搜索名称、描述或地址" allowClear onSearch={(value) => { setSearch(value); setPage(1); }} style={{ width: 270 }} />

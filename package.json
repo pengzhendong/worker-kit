@@ -18,7 +18,8 @@
     "./tooling/vite": "./src/tooling/vite.ts",
     "./tooling/tsconfig.json": "./src/tooling/tsconfig.json",
     "./web/styles.css": "./src/web/styles.css",
-    "./tooling/doctor": "./src/tooling/doctor.mjs"
+    "./tooling/doctor": "./src/tooling/doctor.mjs",
+    "./openapi": "./src/openapi/index.ts"
   },
   "scripts": {
     "dev": "npm run dev --workspace @worker-kit/dashboard",
@@ -42,10 +43,11 @@
     "hono": "^4.13.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "vite": "^8.0.0",
     "react-error-boundary": "^6.1.6",
     "semver": "^7.8.5",
-    "wrangler": "^4.152.0"
+    "vite": "^8.0.0",
+    "wrangler": "^4.152.0",
+    "hono-openapi": "^1.5.0"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -74,6 +76,9 @@
     },
     "wrangler": {
       "optional": true
+    },
+    "hono-openapi": {
+      "optional": true
     }
   },
   "devDependencies": {
@@ -86,6 +91,8 @@
     "@vitejs/plugin-react": "5.2.0",
     "antd": "6.6.7",
     "hono": "4.13.13",
+    "hono-openapi": "1.5.0",
+    "openapi-types": "12.1.3",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "react-error-boundary": "6.1.6",
@@ -97,5 +104,13 @@
   },
   "bin": {
     "workerkit": "./src/tooling/doctor.mjs"
+  },
+  "overrides": {
+    "miniflare": {
+      "undici": "7.30.1"
+    },
+    "@cloudflare/vitest-plugin": {
+      "zod": "4.6.7"
+    }
   }
 }

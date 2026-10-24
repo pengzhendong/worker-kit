@@ -103,6 +103,8 @@ app.get('/api/admin/files/download', access.require('files:download'), downloadH
 
 `listModulePermissions(modules, environment?)` 列出已启用模块的已声明操作，用于项目明确选择的授权策略。示例继续使用单管理员，由应用服务端明确授予全部已启用操作。共享库没有角色表、用户管理、多租户、记录级权限或在线编辑授权功能；这些由实际业务身份系统决定。
 
+Token 业务身份通过独立上下文传递，服务端对令牌范围与签发者当前权限取交集，不能设置 adminUser 后套用全部管理员授权。API 中心本身有独立的 read/tokens/issue/revoke 操作权限，管理入口只支持 Cookie。详见[API 中心](api-center.md)。
+
 ## 示例与兼容
 
 增加一个业务模块时，先把纯元数据加入项目模块数组，再在前端页面函数表加入组件，在服务端显式挂载路由及相应 `require` 校验，最后由项目授权策略授予需要的操作。模块数组负责组合与冲突检查；它不会自动产生页面或接口，也不会为业务创建存储。

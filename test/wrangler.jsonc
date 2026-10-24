@@ -7,7 +7,7 @@
   "d1_databases": [{ "binding": "DB", "database_name": "workerkit-test", "migrations_dir": "../examples/dashboard/migrations" }],
   "kv_namespaces": [{ "binding": "SETTINGS" }],
   "r2_buckets": [{ "binding": "FILES" }],
-  "ratelimits": [{
+  "ratelimits": [{ "name": "API_KEY_RATE_LIMITER", "namespace_id": "2026102404", "simple": { "limit": 120, "period": 60 } }, {
     "name": "ADMIN_LOGIN_RATE_LIMITER",
     "namespace_id": "2026102402",
     "simple": { "limit": 5, "period": 60 }

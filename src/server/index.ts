@@ -10,3 +10,5 @@ export { readPageQuery, readCursorQuery } from './query';
 export { createModuleAccess } from './access';
 export { runHealthChecks } from './health';
 export type { HealthCheckResult } from './health';
+export { createApiKeys, apiKeyInfo, hashApiKey } from './api-keys';
+export type { ApiKeyRecord, ApiKeyInfo, ApiKeyStore } from './api-keys';

@@ -12,6 +12,8 @@ export function createSettingsRoutes<B extends object>(options: {
   store: (bindings: B) => KVNamespace;
   defaults: SettingsValues;
   key?: string;
+  /** Application-owned constraints, evaluated on the merged values before persisting. */
+  validate?: (values: SettingsValues) => void;
   onChange?: (context: Context<WorkerEnv<B>>, event: { action: string; target: string }) => Promise<void>;
 }) {
   const app = new Hono<WorkerEnv<B>>();
@@ -38,6 +40,7 @@ export function createSettingsRoutes<B extends object>(options: {
     }
     const previous = await read(c);
     const result = { values: { ...options.defaults, ...previous.values, ...patch } as SettingsValues, updatedAt: new Date().toISOString() };
+    options.validate?.(result.values);
     await options.store(c.env).put(key, JSON.stringify(result));
     await options.onChange?.(c, { action: 'settings.update', target: Object.keys(patch).join(', ') });
     return c.json(result);
