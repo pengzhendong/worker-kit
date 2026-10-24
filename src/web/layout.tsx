@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Button, Drawer, Grid, Layout, Menu, Space, Tooltip, Typography, theme } from 'antd';
+import { Button, Drawer, Flex, Grid, Layout, Menu, Space, Tooltip, Typography, theme } from 'antd';
 import { useWorkerKitTheme } from './provider';
 import { workerKitLayout as ui } from './design';
 import { IconBox } from './icon';
@@ -38,9 +38,9 @@ export function AdminShell({ title, items, activeKey, onNavigate, username, onLo
     {screens.lg && <Layout.Sider data-workerkit-region="sidebar" width={ui.sidebarWidth} style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', overscrollBehavior: 'contain', background: token.colorBgContainer, borderInlineEnd: `1px solid ${token.colorBorderSecondary}` }}>{brand}<Typography.Text type="secondary" style={{ display: 'block', margin: '8px 24px 14px', fontSize: 11, letterSpacing: 2 }}>应用管理</Typography.Text>{menu}<div style={{ padding: 24, marginTop: 36 }}><Typography.Text type="secondary" style={{ fontSize: 12 }}>当前应用工作空间</Typography.Text></div></Layout.Sider>}
     <Drawer title={title} placement="left" open={open} onClose={() => setOpen(false)} styles={{ body: { padding: 0 } }}>{menu}</Drawer>
     <Layout style={{ height: '100%', minHeight: 0, minWidth: 0, overflow: 'hidden' }}>
-      <Layout.Header data-workerkit-region="header" style={{ height: ui.headerHeight, flexShrink: 0, paddingInline: screens.md ? ui.pagePadding : ui.mobilePagePadding, background: token.colorBgContainer, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderBottom: `1px solid ${token.colorBorderSecondary}` }}>
-        <Space>{!screens.lg && <Button onClick={() => setOpen(true)} aria-label="打开导航">菜单</Button>}<Typography.Text strong>{items.find((item) => item.key === activeKey)?.label ?? title}</Typography.Text></Space>
-        <Space><Tooltip title={themeLabel}><Button type="text" shape="circle" icon={themeIcon} onClick={toggle} aria-label={themeLabel} aria-pressed={dark} /></Tooltip><Typography.Text>{username}</Typography.Text><Button onClick={() => void onLogout()}>退出</Button></Space>
+      <Layout.Header data-workerkit-region="header" style={{ height: ui.headerHeight, lineHeight: 'normal', flexShrink: 0, paddingInline: screens.md ? ui.pagePadding : ui.mobilePagePadding, background: token.colorBgContainer, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderBottom: `1px solid ${token.colorBorderSecondary}` }}>
+        <Flex align="center" gap={8}>{!screens.lg && <Button onClick={() => setOpen(true)} aria-label="打开导航">菜单</Button>}<Typography.Text strong>{items.find((item) => item.key === activeKey)?.label ?? title}</Typography.Text></Flex>
+        <Flex align="center" gap={8} role="group" aria-label="账户操作"><Tooltip title={themeLabel}><Button type="text" shape="circle" icon={themeIcon} onClick={toggle} aria-label={themeLabel} aria-pressed={dark} /></Tooltip><Typography.Text>{username}</Typography.Text><Button onClick={() => void onLogout()}>退出</Button></Flex>
       </Layout.Header>
       <Layout.Content ref={contentRef} data-workerkit-region="content" style={{ flex: 1, minHeight: 0, minWidth: 0, overflow: 'auto', overscrollBehavior: 'contain', scrollbarGutter: 'stable' }}>
         <div style={{ boxSizing: 'border-box', padding: screens.md ? ui.pagePadding : ui.mobilePagePadding, width: '100%', maxWidth: ui.contentMaxWidth, marginInline: 'auto' }}>{children}</div>

@@ -58,6 +58,31 @@ test('navigation icons and labels share a center line', async ({ page }, info) =
   }
 });
 
+test('header controls share a center line in both themes', async ({ page }, info) => {
+  await openDashboard(page);
+  const header = page.locator(region('header'));
+  const account = header.getByRole('group', { name: '账户操作', exact: true });
+  const toggle = account.getByRole('button', { name: /切换到.*模式/ });
+  const measurements = [];
+  for (let pass = 0; pass < 2; pass++) {
+    const headerBox = await box(header);
+    const controls = {
+      themeButton: await box(toggle),
+      themeIcon: await box(toggle.locator('svg')),
+      username: await box(account.getByText('admin', { exact: true })),
+      logout: await box(account.getByRole('button', { name: /^退\s*出$/ })),
+    };
+    const centers = Object.values(controls).map((bounds) => bounds.y + bounds.height / 2);
+    expect(Math.max(...centers) - Math.min(...centers)).toBeLessThanOrEqual(1);
+    for (const center of centers) expect(Math.abs(center - headerBox.y - headerBox.height / 2)).toBeLessThanOrEqual(1);
+    expect(controls.themeButton.height).toBe(32);
+    expect(controls.logout.height).toBe(32);
+    measurements.push({ header: headerBox, controls, centers });
+    if (pass === 0) await toggle.click();
+  }
+  await info.attach('header-centers', { body: JSON.stringify(measurements, null, 2), contentType: 'application/json' });
+});
+
 test('upload stays compact and the file list is visible', async ({ page }) => {
   await openDashboard(page, 'files');
   await expect(page.getByText('使用说明.txt', { exact: true })).toBeVisible();
