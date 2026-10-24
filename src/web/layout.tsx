@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Button, Drawer, Grid, Layout, Menu, Space, Tooltip, Typography, theme } from 'antd';
 import { useWorkerKitTheme } from './provider';
@@ -15,6 +15,8 @@ export function AdminShell({ title, items, activeKey, onNavigate, username, onLo
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const contentRef = useRef<HTMLElement>(null);
+  useEffect(() => { contentRef.current?.scrollTo({ top: 0, left: 0 }); }, [activeKey]);
   const screens = Grid.useBreakpoint();
   const { token } = theme.useToken();
   const { dark, toggle } = useWorkerKitTheme();
@@ -30,15 +32,17 @@ export function AdminShell({ title, items, activeKey, onNavigate, username, onLo
     {dark ? <><circle cx="12" cy="12" r="4" /><path d="M12 2v2 M12 20v2 M2 12h2 M20 12h2 M4.93 4.93l1.42 1.42 M17.65 17.65l1.42 1.42 M4.93 19.07l1.42-1.42 M17.65 6.35l1.42-1.42" /></> : <path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z" />}
   </svg>;
   const brand = <Space size={10} style={{ height: 80, padding: '0 24px' }}><span style={{ width: 30, height: 32, borderRadius: 9, display: 'grid', placeItems: 'center', background: token.colorPrimary, color: '#fff', fontWeight: 800, fontSize: 20 }}>W</span><Typography.Title level={4} style={{ margin: 0, letterSpacing: '-.5px' }}>{title}</Typography.Title></Space>;
-  return <Layout style={{ minHeight: '100dvh', background: token.colorBgLayout }}>
-    {screens.lg && <Layout.Sider width={232} style={{ background: token.colorBgContainer, borderInlineEnd: `1px solid ${token.colorBorderSecondary}` }}>{brand}<Typography.Text type="secondary" style={{ display: 'block', margin: '8px 24px 14px', fontSize: 11, letterSpacing: 2 }}>应用管理</Typography.Text>{menu}<div style={{ padding: 24, marginTop: 36 }}><Typography.Text type="secondary" style={{ fontSize: 12 }}>当前应用工作空间</Typography.Text></div></Layout.Sider>}
+  return <Layout data-workerkit-shell style={{ height: '100dvh', minHeight: 0, overflow: 'hidden', background: token.colorBgLayout }}>
+    {screens.lg && <Layout.Sider data-workerkit-region="sidebar" width={232} style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', overscrollBehavior: 'contain', background: token.colorBgContainer, borderInlineEnd: `1px solid ${token.colorBorderSecondary}` }}>{brand}<Typography.Text type="secondary" style={{ display: 'block', margin: '8px 24px 14px', fontSize: 11, letterSpacing: 2 }}>应用管理</Typography.Text>{menu}<div style={{ padding: 24, marginTop: 36 }}><Typography.Text type="secondary" style={{ fontSize: 12 }}>当前应用工作空间</Typography.Text></div></Layout.Sider>}
     <Drawer title={title} placement="left" open={open} onClose={() => setOpen(false)} styles={{ body: { padding: 0 } }}>{menu}</Drawer>
-    <Layout>
-      <Layout.Header style={{ height: 64, paddingInline: screens.md ? 32 : 16, background: token.colorBgContainer, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderBottom: `1px solid ${token.colorBorderSecondary}` }}>
+    <Layout style={{ height: '100%', minHeight: 0, minWidth: 0, overflow: 'hidden' }}>
+      <Layout.Header data-workerkit-region="header" style={{ height: 64, flexShrink: 0, paddingInline: screens.md ? 32 : 16, background: token.colorBgContainer, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderBottom: `1px solid ${token.colorBorderSecondary}` }}>
         <Space>{!screens.lg && <Button onClick={() => setOpen(true)} aria-label="打开导航">菜单</Button>}<Typography.Text strong>{items.find((item) => item.key === activeKey)?.label ?? title}</Typography.Text></Space>
         <Space><Tooltip title={themeLabel}><Button type="text" shape="circle" icon={themeIcon} onClick={toggle} aria-label={themeLabel} aria-pressed={dark} /></Tooltip><Typography.Text>{username}</Typography.Text><Button onClick={() => void onLogout()}>退出</Button></Space>
       </Layout.Header>
-      <Layout.Content style={{ padding: screens.md ? 32 : 16, width: '100%', maxWidth: 1440, marginInline: 'auto' }}>{children}</Layout.Content>
+      <Layout.Content ref={contentRef} data-workerkit-region="content" style={{ flex: 1, minHeight: 0, minWidth: 0, overflow: 'auto', overscrollBehavior: 'contain', scrollbarGutter: 'stable' }}>
+        <div style={{ boxSizing: 'border-box', padding: screens.md ? 32 : 16, width: '100%', maxWidth: 1440, marginInline: 'auto' }}>{children}</div>
+      </Layout.Content>
     </Layout>
   </Layout>;
 }

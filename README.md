@@ -125,6 +125,8 @@ Hono 负责 Cookie 签名和凭据比较。会话默认 12 小时；更改用户
 
 应用根部放置 `WorkerKitProvider`，按需组合 `LoginPage` 和 `AdminShell`。菜单、当前页面、导航行为和退出操作全部由业务传入。共享库不绑定 React Router，也不要求所有应用采用同一导航实现。
 
+`AdminShell` 使用完整视口高度：侧栏和顶栏保持在原位，主内容区独立滚动；矮窗口中侧栏可单独滚动，窄屏采用 Drawer 导航；切换 `activeKey` 时内容回到顶部。布局实现参考 Ant Design 官方的[固定侧栏示例](https://github.com/ant-design/ant-design/blob/master/components/layout/demo/fixed-sider.tsx)与[固定顶栏示例](https://github.com/ant-design/ant-design/blob/master/components/layout/demo/fixed.tsx)，使用明确的 Flex 滚动分区适配本项目。
+
 `createApiClient()` 返回普通请求函数，保留状态码、业务错误码和请求 ID，通过 `ApiClientError` 返回失败。401 后显示登录页还是跳转，由业务决定。它不会自动重试写请求。
 
 ## 可操作的示例功能
