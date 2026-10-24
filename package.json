@@ -17,7 +17,8 @@
     "./web": "./src/web/index.ts",
     "./tooling/vite": "./src/tooling/vite.ts",
     "./tooling/tsconfig.json": "./src/tooling/tsconfig.json",
-    "./web/styles.css": "./src/web/styles.css"
+    "./web/styles.css": "./src/web/styles.css",
+    "./tooling/doctor": "./src/tooling/doctor.mjs"
   },
   "scripts": {
     "dev": "npm run dev --workspace @worker-kit/dashboard",
@@ -25,11 +26,14 @@
     "types": "npm run types --workspace @worker-kit/dashboard",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "check": "npm run types && npm run typecheck && npm test && npm run build && node scripts/check-production-ui.mjs && npm run deploy:dry-run",
+    "check": "npm run types && npm run typecheck && npm test && npm run test:tooling && npm run doctor && npm run build && node scripts/check-production-ui.mjs && npm run deploy:dry-run",
     "deploy:dry-run": "npm run deploy:dry-run --workspace @worker-kit/dashboard",
     "test:ui": "node scripts/visual.mjs",
     "test:ui:update": "node scripts/visual.mjs --update-snapshots=all",
-    "test:ui:run": "playwright test"
+    "test:ui:run": "playwright test",
+    "doctor": "node src/tooling/doctor.mjs --project examples/dashboard",
+    "test:tooling": "node --test test/tooling/*.test.mjs",
+    "upgrade:check": "npm run check && npm run test:ui"
   },
   "peerDependencies": {
     "@cloudflare/vite-plugin": "^1.65.0",
@@ -38,7 +42,10 @@
     "hono": "^4.13.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "vite": "^8.0.0"
+    "vite": "^8.0.0",
+    "react-error-boundary": "^6.1.6",
+    "semver": "^7.8.5",
+    "wrangler": "^4.152.0"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -58,6 +65,15 @@
     },
     "@cloudflare/vite-plugin": {
       "optional": true
+    },
+    "react-error-boundary": {
+      "optional": true
+    },
+    "semver": {
+      "optional": true
+    },
+    "wrangler": {
+      "optional": true
     }
   },
   "devDependencies": {
@@ -72,9 +88,14 @@
     "hono": "4.13.13",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "react-error-boundary": "6.1.6",
+    "semver": "7.8.5",
     "typescript": "7.0.2",
     "vite": "8.3.5",
     "vitest": "4.1.12",
     "wrangler": "4.152.0"
+  },
+  "bin": {
+    "workerkit": "./src/tooling/doctor.mjs"
   }
 }

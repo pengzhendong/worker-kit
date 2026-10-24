@@ -1,8 +1,8 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { App as AntApp, Button, Card, Descriptions, Flex, Result, Spin, Tag } from 'antd';
-import { AdminShell, ApiClientError, LoginPage, ModuleAccessProvider, PageHeader, useModuleAccess } from '@pengzhendong/worker-kit/web';
-import { api, formatTime, Icon, useQuery } from './data';
+import { AdminShell, ApiClientError, AppErrorBoundary, LoginPage, ModuleAccessProvider, PageHeader, useModuleAccess } from '@pengzhendong/worker-kit/web';
+import { authApi, formatTime, Icon, sessionScope, useQuery } from './data';
 import type { Settings } from './data';
 import { defineModules, getModuleNavigation, resolveModule } from '@pengzhendong/worker-kit/modules';
 import type { AccessSnapshot } from '@pengzhendong/worker-kit/modules';
@@ -57,7 +57,7 @@ function Console({ session, onLogout }: { session: Session; onLogout: () => Prom
     items={navigation('sidebar')} userMenuItems={navigation('user')} onLogout={onLogout}>
     {!module ? <Result status="404" title="页面不存在" subTitle="该页面不存在或模块尚未启用。" />
       : forbidden ? <Result status="403" title="无权访问此页面" subTitle="当前账户没有此模块的访问权限。" />
-      : <Suspense fallback={<Flex justify="center" style={{ padding: 80 }}><Spin size="large" /></Flex>}>{renderers[module.id]?.()}</Suspense>}
+      : <AppErrorBoundary resetKeys={[path, sessionScope.version]}><Suspense fallback={<Flex justify="center" style={{ padding: 80 }}><Spin size="large" /></Flex>}>{renderers[module.id]?.()}</Suspense></AppErrorBoundary>}
   </AdminShell>;
 }
 
@@ -71,32 +71,44 @@ function AuthorizedConsole({ session, onLogout }: { session: Session; onLogout: 
 }
 
 function Dashboard() {
-  const [session, setSession] = useState<Session | null>(); const [error, setError] = useState(''); const { message } = AntApp.useApp();
+  const [session, setSession] = useState<Session | null>(); const [error, setError] = useState(''); const [epoch, setEpoch] = useState(sessionScope.version); const { message, notification } = AntApp.useApp();
+  useEffect(() => sessionScope.subscribe((event) => {
+    setEpoch(event.version);
+    message.destroy(); notification.destroy();
+    if (event.reason === 'expired') { setSession(null); setError(''); void message.info('登录已过期，请重新登录'); }
+  }), [message, notification]);
+  function acceptSession(next: Session) { sessionScope.reset('signed-in'); setSession(next); }
   async function loadSession(signal?: AbortSignal) {
     setError('');
-    try { setSession(await api<Session>('/api/auth/session', { signal })); }
+    try { const next = await authApi<Session>('/api/auth/session', { signal }); if (!signal?.aborted) acceptSession(next); }
     catch (failure) {
       if (signal?.aborted) return;
-      if (failure instanceof ApiClientError && failure.status === 401) setSession(null);
+      if (failure instanceof ApiClientError && failure.status === 401) { sessionScope.reset('signed-out'); setSession(null); }
       else setError(failure instanceof Error ? failure.message : '加载失败');
     }
   }
   useEffect(() => { const controller = new AbortController(); void loadSession(controller.signal); return () => controller.abort(); }, []);
   useEffect(() => {
     if (!session) return;
-    const timer = setTimeout(() => { setSession(null); void message.info('登录已过期，请重新登录'); }, Math.max(0, session.expiresAt * 1000 - Date.now()));
-    return () => clearTimeout(timer);
-  }, [session, message]);
+    const observedVersion = sessionScope.version;
+    let timer: ReturnType<typeof setTimeout>;
+    const check = () => {
+      const remaining = session.expiresAt * 1000 - Date.now();
+      if (remaining <= 0) sessionScope.expire(observedVersion);
+      else timer = setTimeout(check, Math.min(remaining, 2_147_483_647));
+    };
+    check(); return () => clearTimeout(timer);
+  }, [session]);
   async function logout() {
-    try { await api<void>('/api/auth/logout', { method: 'POST' }); setSession(null); setError(''); }
+    try { await authApi<void>('/api/auth/logout', { method: 'POST' }); sessionScope.reset('signed-out'); setSession(null); setError(''); }
     catch (failure) { void message.error(failure instanceof Error ? failure.message : '退出失败'); }
   }
   if (error) return <Result status="warning" title="后台暂时无法访问" subTitle={error} extra={<Button onClick={() => void loadSession()}>重试</Button>} />;
   if (session === undefined) return <Flex align="center" justify="center" style={{ minHeight: '100dvh' }}><Spin size="large" /></Flex>;
-  if (!session) return <LoginPage title="WorkerKit" description="登录管理你的应用、文件与配置" onLogin={async (values) => {
-    setSession(await api<Session>('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(values) }));
+  if (!session) return <LoginPage title="WorkerKit" description="登录管理你的应用、文件与配置" onLogin={async (values, signal) => {
+    acceptSession(await authApi<Session>('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(values), signal }));
   }} />;
-  return <AuthorizedConsole session={session} onLogout={logout} />;
+  return <AuthorizedConsole key={epoch} session={session} onLogout={logout} />;
 }
 
 export default Dashboard;

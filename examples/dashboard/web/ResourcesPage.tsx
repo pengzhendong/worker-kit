@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Key } from 'react';
 import { Alert, App, Button, Card, Col, Form, Input, Modal, Popconfirm, Row, Select, Space, Table, Tag, Typography } from 'antd';
-import { getFormErrors, PageHeader, useModuleAccess } from '@pengzhendong/worker-kit/web';
+import { isRequestCancelled, getFormErrors, PageHeader, useModuleAccess } from '@pengzhendong/worker-kit/web';
 import { api, formatTime, jsonRequest, QueryError, useQuery } from './data';
 import type { BatchResult, PageList, Sort } from '@pengzhendong/worker-kit/contracts';
 import type { Resource } from './data';
@@ -22,6 +22,7 @@ export function ResourcesPage({ defaultPageSize }: { defaultPageSize: number }) 
     setSaving(true);
     try { await api(`/api/admin/resources${editing ? `/${editing.id}` : ''}`, jsonRequest(editing ? 'PUT' : 'POST', values)); void message.success(editing ? '资源已更新' : '资源已创建'); setOpen(false); refresh(); }
     catch (failure) {
+      if (isRequestCancelled(failure)) return;
       const fields = getFormErrors(failure);
       if (fields.length) form.setFields(fields);
       else void message.error(failure instanceof Error ? failure.message : '保存失败');
@@ -29,7 +30,8 @@ export function ResourcesPage({ defaultPageSize }: { defaultPageSize: number }) 
   }
   async function remove(row: Resource) {
     try { await api(`/api/admin/resources/${row.id}`, { method: 'DELETE' }); void message.success('资源已删除'); setSelected((keys) => keys.filter((key) => key !== row.id)); refresh(); }
-    catch (failure) { void message.error(failure instanceof Error ? failure.message : '删除失败'); }
+    catch (failure) {
+      if (isRequestCancelled(failure)) return; void message.error(failure instanceof Error ? failure.message : '删除失败'); }
   }
   async function batch(next: string) {
     setBatching(true);
@@ -39,7 +41,8 @@ export function ResourcesPage({ defaultPageSize }: { defaultPageSize: number }) 
       if (result.failed.length) void message.warning(`已更新 ${result.succeeded.length} 项，${result.failed.length} 项失败：${result.failed[0]!.message}`);
       else void message.success(`已更新 ${result.succeeded.length} 项`);
       setSelected(result.failed.map((item) => item.id)); refresh();
-    } catch (failure) { void message.error(failure instanceof Error ? failure.message : '操作失败'); }
+    } catch (failure) {
+      if (isRequestCancelled(failure)) return; void message.error(failure instanceof Error ? failure.message : '操作失败'); }
     finally { setBatching(false); }
   }
   return <>

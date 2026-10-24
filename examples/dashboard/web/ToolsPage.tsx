@@ -2,6 +2,7 @@ import { Alert, Button, Card, Col, Flex, Row, Space, Tabs, Tag, Typography, them
 import { PageHeader, useModuleAccess } from '@pengzhendong/worker-kit/web';
 import { Icon } from './data';
 import { ModulesPanel } from './ModulesPanel';
+import { RuntimePanel } from './RuntimePanel';
 
 const explorer = '/cdn-cgi/local/explorer';
 const docs = 'https://developers.cloudflare.com/workers/local-development/local-explorer/';
@@ -32,6 +33,8 @@ const commands = [
   { title: '生成绑定类型', command: 'npm run types', description: '修改 Wrangler 绑定配置后，为 D1、KV、R2 等绑定重新生成 TypeScript 类型。' },
   { title: '构建部署产物', command: 'npm run build', description: '生成 Worker 和前端静态文件，供后续部署使用。' },
   { title: '部署前检查', command: 'npm run deploy:dry-run', description: '先完成构建，再检查部署产物和绑定。只检查，不发布到 Cloudflare。' },
+  { title: '只读升级预检', command: 'npm run doctor', description: '检查 Node、依赖、submodule、绑定、日志配置与本地迁移文件，不修改项目或访问远程账户。' },
+  { title: '升级后完整校验', command: 'npm run upgrade:check', description: '依次执行项目检查、预检和界面回归；需要 Docker，不部署或应用远程迁移。' },
 ];
 const projectPages = [
   { key: 'resources', description: '通过业务接口编辑 D1 配置，支持筛选、排序、批量变更和导出。' },
@@ -77,6 +80,7 @@ export function ToolsPage({ onNavigate }: { onNavigate: (key: string) => void })
         <section aria-label="应用内管理工具"><Typography.Title level={4} style={{ margin: '0 0 16px' }}>应用内管理</Typography.Title><Row gutter={[16, 16]}>{projectPages.filter((item) => canOpen(item.key)).map((item) => { const label = modules.find((module) => module.id === item.key)!.label; return <Col key={item.key} xs={24} md={12}><Card style={{ height: '100%' }}><Typography.Title level={5} style={{ margin: '0 0 8px' }}>{label}</Typography.Title><Typography.Paragraph type="secondary">{item.description}</Typography.Paragraph><Button onClick={() => onNavigate(item.key)}>打开{label}</Button></Card></Col>; })}</Row></section>
       </Space> },
       { key: 'modules', label: '模块与权限', children: <ModulesPanel onNavigate={onNavigate} /> },
+      { key: 'runtime', label: '运行与恢复', children: <RuntimePanel /> },
       { key: 'more', label: '按需扩展', children: <Space orientation="vertical" size={24} className="demo-stack">
         <Typography.Paragraph type="secondary" style={{ margin: 0 }}>Local Explorer 还支持以下能力。当前示例没有配置这些资源或处理函数，配置后可在原生面板中使用。</Typography.Paragraph>
         <Row gutter={[16, 16]}>{optionalTools.map((item) => <Col key={item.title} xs={24} md={12}><Card style={{ height: '100%' }}><Flex align="center" justify="space-between" gap={8} wrap><Typography.Title level={5} style={{ margin: 0 }}>{item.title}</Typography.Title><Tag>当前未配置</Tag></Flex><Typography.Paragraph style={{ margin: '12px 0 8px' }}>{item.description}</Typography.Paragraph><Typography.Text type="secondary" style={{ fontSize: 13 }}>需要：{item.requirement}</Typography.Text></Card></Col>)}</Row>

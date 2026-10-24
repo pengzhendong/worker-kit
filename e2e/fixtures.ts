@@ -53,6 +53,8 @@ export const test = base.extend<ConsoleOptions>({
           : respond({ user: 'admin', expiresAt: Date.parse(date) / 1000 + 43200 });
       }
       if (pathname === '/api/admin/access') return respond({ permissions: grants });
+      if (pathname === '/api/admin/diagnostics') return respond({ ok: true, checks: [{ name: 'D1', status: 'ok', durationMs: 3 }, { name: 'KV', status: 'ok', durationMs: 2 }, { name: 'R2', status: 'ok', durationMs: 1 }] });
+      if (pathname === '/api/admin/audit/retention') return respond({ enabled: false, days: null, before: null, eligible: 0, batchLimit: 1000 });
       if (pathname === '/api/admin/settings') return respond({ values: settings, updatedAt: date });
       if (pathname === '/api/admin/overview') return respond({
         user: 'admin', runtime: 'Cloudflare Workers', now: date, total: resources.length, enabled: 3,

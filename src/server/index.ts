@@ -8,3 +8,5 @@ export { createFileRoutes } from './files';
 export type { FileInfo } from './files';
 export { readPageQuery, readCursorQuery } from './query';
 export { createModuleAccess } from './access';
+export { runHealthChecks } from './health';
+export type { HealthCheckResult } from './health';

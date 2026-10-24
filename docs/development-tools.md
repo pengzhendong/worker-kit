@@ -27,6 +27,8 @@ Worker 调试器入口会跳转到 Cloudflare DevTools 网页并连接本地调�
 页面列出仓库根目录可运行的命令，说明用途并提供复制按钮；页面本身不会执行终端命令。
 
 - `npm run check`：类型生成、TypeScript、workerd 测试、构建、生产页面排除检查、部署 dry-run。
+- `npm run doctor`：离线检查依赖、submodule、绑定、迁移文件与观测配置，不读取 Secrets、不执行安装或迁移。
+- `npm run upgrade:check`：完整 check 后执行正常视觉比较，不更新基准、不部署。
 - `npm run test:ui`：固定 Linux 浏览器的界面与交互回归，需要 Docker。
 - `npx playwright show-report`：查看测试结果、失败截图、差异图与 trace。
 - `npm run types`：重新生成绑定类型。
@@ -45,8 +47,14 @@ Durable Objects 的 SQLite 面板、Workflows、邮件、定时任务和 Flagshi
 
 线上资源管理提供 Cloudflare 控制台链接，具体账户和资源由使用者选择。
 
+## 运行与恢复
+
+第五个页签展示当前会话与请求策略，提供受权限保护的 D1/KV/R2 限时只读诊断、局部渲染错误与重试演示、原生指标和日志入口，以及操作日志保留策略。初始不伪造连接结果，不后台轮询。保留策略默认关闭，启用后清理也需要权限和明确确认，每次最多 1000 条；不会自动删除。
+
+健康探测、错误边界和预检的适用范围见[应用生命周期与运行检查](lifecycle-and-operations.md)。
+
 ## 开发与生产边界
 
 开发页面使用 `import.meta.env.DEV` 条件加载，生产中不显示导航，不保留对应页面或本地调试链接。构建后的 `scripts/check-production-ui.mjs` 检查前端产物，发现开发页面或调试地址时使 `npm run check` 失败。
 
-UI 测试在桌面浅色、桌面深色、手机浅色下检查四页签截图、链接目的地与新标签属性、命令、模块声明和未配置状态，以及应用内跳转。原生面板需要实际 Workers 开发服务器，独立前端测试不代替原生入口验收。
+UI 测试在桌面浅色、桌面深色、手机浅色下检查五页签截图、链接目的地与新标签属性、命令、模块声明、恢复行为和未配置状态，以及应用内跳转。原生面板需要实际 Workers 开发服务器，独立前端测试不代替原生入口验收。

@@ -1,13 +1,14 @@
 import { bodyLimit } from 'hono/body-limit';
 import type { Context } from 'hono';
-import { ApiError, createAdminAuth, createModuleAccess, createFileRoutes, createServer, createSettingsRoutes, readPageQuery } from '@pengzhendong/worker-kit/server';
+import { ApiError, createAdminAuth, createModuleAccess, createFileRoutes, createServer, createSettingsRoutes, readPageQuery, runHealthChecks } from '@pengzhendong/worker-kit/server';
 import type { BatchResult, FieldIssue, PageList } from '@pengzhendong/worker-kit/contracts';
 import { listModulePermissions } from '@pengzhendong/worker-kit/modules';
 import type { ModuleDefinition, ModulePermission } from '@pengzhendong/worker-kit/modules';
 import { dashboardModules } from '../modules';
 import type { AdminBindings, WorkerEnv } from '@pengzhendong/worker-kit/server';
+import { inspectAuditRetention, pruneAuditEvents } from './audit-retention';
 
-export interface Bindings extends AdminBindings { DB: D1Database; SETTINGS: KVNamespace; FILES: R2Bucket }
+export interface Bindings extends AdminBindings { DB: D1Database; SETTINGS: KVNamespace; FILES: R2Bucket; AUDIT_RETENTION_DAYS?: string }
 type C = Context<WorkerEnv<Bindings>>;
 type Resource = { id: string; name: string; kind: string; status: 'enabled' | 'disabled'; address: string; description: string; created_at: string; updated_at: string };
 export function createDashboard(options: {
@@ -24,10 +25,26 @@ export function createDashboard(options: {
   } });
   const requirePermission = (permission: ModulePermission<typeof dashboardModules[number]>) => access.require(permission);
   const auth = createAdminAuth<Bindings>({ allowWeakLocalPassword: true });
-  app.get('/health', (c) => c.json({ ok: true, service: 'worker-kit-dashboard' }));
+  app.get('/health', (c) => { c.header('Cache-Control', 'no-store'); return c.json({ ok: true, service: 'worker-kit-dashboard' }); });
   app.route('/api/auth', auth.routes);
   app.use('/api/admin/*', auth.requireAdmin);
   app.get('/api/admin/access', async (c) => c.json({ permissions: await access.permissions(c) }));
+  app.get('/api/admin/diagnostics', requirePermission('overview:diagnose'), async (c) => {
+    const result = await runHealthChecks([
+      { name: 'D1', check: () => c.env.DB.prepare('SELECT 1').first() },
+      { name: 'KV', check: () => c.env.SETTINGS.get('workerkit:settings') },
+      { name: 'R2', check: () => c.env.FILES.head('uploads/health-check') },
+    ]);
+    // This is a diagnostic report, not a public readiness probe. Dependency failures remain in checks.
+    return c.json(result);
+  });
+  app.get('/api/admin/audit/retention', requirePermission('audit:read'), async (c) => c.json(await inspectAuditRetention(c.env.DB, c.env.AUDIT_RETENTION_DAYS)));
+  app.post('/api/admin/audit/prune', requirePermission('audit:prune'), bodyLimit({ maxSize: 1024 }), async (c) => {
+    let input: unknown;
+    try { input = await c.req.json(); } catch { throw new ApiError(400, 'invalid_json', '请求 JSON 无效'); }
+    if (!input || typeof input !== 'object' || (input as { confirmation?: unknown }).confirmation !== 'delete-expired-audit-events') throw new ApiError(400, 'confirmation_required', '请确认清理过期操作日志');
+    return c.json(await pruneAuditEvents(c.env.DB, c.env.AUDIT_RETENTION_DAYS, c.get('adminUser')!));
+  });
   // Explicit Hono middleware before the reusable storage routes, including list and download separately.
   app.get('/api/admin/settings', requirePermission('settings:read'));
   app.put('/api/admin/settings', requirePermission('settings:update'));

@@ -47,7 +47,8 @@ export function createServer<Bindings extends object>(options: {
       path: new URL(c.req.url).pathname, status: c.res.status,
       durationMs: Math.round(performance.now() - started),
     };
-    (options.log ?? ((record) => console.log(JSON.stringify(record))))(entry);
+    try { (options.log ?? ((record) => console.log(JSON.stringify(record))))(entry); }
+    catch { console.error(JSON.stringify({ event: 'log_sink_failed', requestId: c.get('requestId') })); }
   });
   app.onError((error, c) => {
     const status = error instanceof ApiError || error instanceof HTTPException ? error.status : 500;

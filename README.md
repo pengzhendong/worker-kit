@@ -10,10 +10,11 @@
 | --- | --- |
 | `@pengzhendong/worker-kit/contracts` | 无运行时依赖的管理端契约：页码/游标列表、字段错误、批量逐项结果 |
 | `@pengzhendong/worker-kit/modules` | 无框架依赖的模块声明、菜单排序、静态页面路径、操作权限标识与访问判断 |
-| `@pengzhendong/worker-kit/server` | Hono 应用、统一 JSON 错误、请求 ID、结构化日志、安全响应头、可选单管理员认证、可复用 KV 设置路由与 R2 文件路由 |
-| `@pengzhendong/worker-kit/web` | React/Ant Design 后台布局、移动端导航、主题、登录页、页面标题、统计卡片、API 客户端 |
+| `@pengzhendong/worker-kit/server` | Hono 应用、统一 JSON 错误、请求 ID、结构化日志、安全响应头、可选单管理员认证、KV 设置路由、R2 文件路由、有时限的健康检查组合器 |
+| `@pengzhendong/worker-kit/web` | React/Ant Design 后台布局、移动端导航、主题、登录页、页面标题、统计卡片、会话与请求取消、API 客户端、无缓存查询 hook、页面错误边界 |
 | `@pengzhendong/worker-kit/tooling/vite` | React 与 Cloudflare Vite 插件组合 |
 | `@pengzhendong/worker-kit/tooling/tsconfig.json` | 可继承的 TypeScript 基础配置 |
+| `@pengzhendong/worker-kit/tooling/doctor` | 离线只读预检：依赖、submodule、原生配置、绑定与迁移文件 |
 
 这些入口相互分离，服务端不会导入 React 或 Ant Design。业务直接使用普通 Hono 路由和 React 组件，没有自定义路由语法或插件注册系统。
 
@@ -38,7 +39,7 @@ npm run dev
 npm run check
 ```
 
-该命令生成绑定类型、检查 TypeScript、在 workerd 中测试关键行为、构建前后端，再执行部署 dry-run。它不会发布到 Cloudflare。
+该命令生成绑定类型、检查 TypeScript、在 workerd 中测试关键行为、测试开发工具、执行只读预检、构建前后端，再执行部署 dry-run。它不会发布到 Cloudflare。`npm run doctor` 可单独检查配置；`npm run upgrade:check` 在完整检查后继续执行固定 Linux 视觉回归，需要 Docker。
 
 开发预览的左侧“开发工具”集中展示本地 D1/KV/R2 面板、请求追踪、运行日志、Worker 调试器、Explorer API、检查命令和应用内管理入口。每项说明用途与使用时机，未配置的原生能力单独标注；该页面和调试链接不进入生产构建。详见[开发工具目录](docs/development-tools.md)。
 
@@ -67,9 +68,9 @@ git submodule add <worker-kit-repository> framework
 
 在父项目根目录执行 `npm install`。npm 会把 workspace 链接为本地包，不需要发布 WorkerKit 到 npm。父项目提交自己的 lockfile；不要在各个 submodule 内单独安装依赖。只有开发 WorkerKit 本身时才使用它自己的 lockfile。
 
-纯 API 项目只引用服务端入口；workspace 开发安装仍可能包含本库自测所需的开发依赖，但 React 和 Ant Design 不会进入服务端构建。前端项目应显式声明 React、React DOM、Ant Design、Vite、`@vitejs/plugin-react`、`@cloudflare/vite-plugin` 和 Wrangler；具体经过验证的版本见本仓库 `package.json`。`peerDependencies` 表达兼容范围，父项目的 lockfile 固定实际解析结果。
+纯 API 项目只引用服务端入口；workspace 开发安装仍可能包含本库自测所需的开发依赖，但 React 和 Ant Design 不会进入服务端构建。前端项目应显式声明 React、React DOM、Ant Design、`react-error-boundary`、Vite、`@vitejs/plugin-react`、`@cloudflare/vite-plugin` 和 Wrangler；使用 doctor 另需 semver。具体经过验证的版本见本仓库 `package.json`。`peerDependencies` 表达兼容范围，父项目的 lockfile 固定实际解析结果。
 
-完整的前后端接入方式见 `examples/dashboard/`。复制它的业务入口、页面、`modules.ts` 声明、migrations 目录和配置到父项目后，将示例中的 `file:../..` 依赖改成上面的 workspace 版本依赖，并把 Wrangler schema 路径改为父项目的 `./node_modules/wrangler/config-schema.json`。示例中的 Worker 名和限流 namespace ID 也由父项目重新指定。
+完整的前后端接入方式见 `examples/dashboard/`。复制它的业务入口、页面、`modules.ts` 声明、`workerkit.check.json`、migrations 目录和配置到父项目后，将示例中的 `file:../..` 依赖改成上面的 workspace 版本依赖，并把 Wrangler schema 路径改为父项目的 `./node_modules/wrangler/config-schema.json`。示例中的 Worker 名和限流 namespace ID 也由父项目重新指定。
 
 ## 服务端接入
 
@@ -135,7 +136,9 @@ Hono 负责 Cookie 签名和凭据比较。会话默认 12 小时；更改用户
 
 `username` 显示在侧栏底部，点击向上展开用户菜单。可选的 `userMenuItems` 与 `items` 使用相同的 `{ key, label, icon? }` 结构，选中时调用 `onNavigate(key)`；退出项由共享组件提供，调用 `onLogout`。示例将“当前账户”和“系统设置”放入用户菜单，顶部保留当前页面名称和主题切换。手机导航抽屉使用同一用户入口。
 
-`createApiClient()` 返回普通请求函数，保留状态码、业务错误码和请求 ID，通过 `ApiClientError` 返回失败。401 后显示登录页还是跳转，由业务决定。它不会自动重试写请求。
+`createApiClient()` 返回普通请求函数，保留状态码、业务错误码、请求 ID 和 Retry-After，通过 `ApiClientError` 返回失败。默认不会改变会话；显式传入 `scope: createSessionScope()` 后，业务 401 使当前会话失效并取消旧请求，403/网络/服务故障保留身份。登录请求应使用单独的无 scope 客户端。请求不自动重试。
+
+`useApiQuery()` 在离开页面和参数变化时取消 GET 查询；`AppErrorBoundary` 提供页面与应用两层恢复入口。示例已接入会话版本隔离，退出或重新登录时清除草稿、权限与页面数据，保留主题。缓存适配、错误边界限制和升级依赖见[应用生命周期与运行检查](docs/lifecycle-and-operations.md)。
 
 ## 模块与操作权限
 
@@ -160,7 +163,9 @@ Hono 负责 Cookie 签名和凭据比较。会话默认 12 小时；更改用户
 - 操作日志：D1 记录资源、文件与设置变更，可按操作筛选和分页。它不是全量 HTTP 访问日志。
 - 当前账户：当前身份、会话期限和退出。
 - 组件与交互：页面组合、搜索筛选与批量启停、本地文件选择、弹窗校验与失败重试、删除确认与还原、加载/空/错误状态、消息与通知。所有操作仅使用页面内的临时数据，支持重置，不写入业务 API 或存储。
-- 开发工具：仅本地开发展示，按“本地调试、项目工具、模块与权限、按需扩展”介绍已有工具、实际模块声明与授权结果，并提供入口或可复制的检查命令。
+- 开发工具：仅本地开发展示，按“本地调试、项目工具、模块与权限、运行与恢复、按需扩展”介绍已有工具、实际声明与授权、只读依赖诊断、错误恢复演示及检查命令。
+
+公开 `/health` 只做存活检查；受保护的依赖诊断按需读取 D1/KV/R2。运行指标和日志使用 Cloudflare 原生 Observability。D1 操作日志可通过 `AUDIT_RETENTION_DAYS` 显式启用保留策略和手动分批清理，默认 `"0"` 关闭；没有自动删除或自建采集服务。详见[运行检查与保留策略](docs/lifecycle-and-operations.md)。
 
 共享文件模块 `createFileRoutes({ bucket, prefix?, maxBytes?, onChange? })` 和设置模块 `createSettingsRoutes({ store, defaults, key?, onChange? })` 可直接被消费项目导入。两者必须挂在已认证的路径下，并由业务选择自己的绑定。设置模块只接收 defaults 声明过的键和相同类型的值，适合非机密应用偏好；KV 不是全局强一致配置事务。
 
@@ -186,6 +191,8 @@ npm run db:remote --workspace @worker-kit/dashboard
 ## 升级与 CI
 
 submodule 固定具体提交。准备升级时，在共享库目录检出审核过的标签或提交，然后在业务项目更新 lockfile（如依赖有变化），运行项目检查，并提交 submodule 指针及相关修改。公共修复应提交到 WorkerKit，业务差异留在业务仓库。
+
+本次前端接入增加 `react-error-boundary` peer，父项目需要显式安装。消费项目可通过 `node framework/src/tooling/doctor.mjs doctor --project .` 做离线只读预检；它不拉取 submodule、不安装、不读取 Secrets，也不能证明远程资源可用或迁移已应用。完整流程及参数见[生命周期与升级文档](docs/lifecycle-and-operations.md)。
 
 新克隆或 CI 使用：
 

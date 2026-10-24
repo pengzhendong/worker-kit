@@ -1,33 +1,22 @@
-import { useCallback, useEffect, useState } from 'react';
 import { Alert, Button } from 'antd';
-import { createApiClient } from '@pengzhendong/worker-kit/web';
+import { createApiClient, createSessionScope, useApiQuery } from '@pengzhendong/worker-kit/web';
 
-export const api = createApiClient();
+export const sessionScope = createSessionScope();
+export const api = createApiClient({ scope: sessionScope });
+export const authApi = createApiClient();
 export interface Resource { id: string; name: string; kind: string; status: 'enabled' | 'disabled'; address: string; description: string; created_at: string; updated_at: string }
 export interface AuditEvent { id: string; actor: string; action: string; target: string; created_at: string }
 export interface FileItem { key: string; name: string; size: number; uploadedAt: string; contentType: string }
 export interface Settings { siteName: string; description: string; contactEmail: string; pageSize: number; showWelcome: boolean }
 export interface Overview { user: string; runtime: string; now: string; total: number | null; enabled: number | null; files: number | null; filesTruncated: boolean; bytes: number | null; recent: Resource[]; activity: AuditEvent[]; bindings: { name: string; detail: string; status: string }[] }
 
-export function useQuery<T>(path: string | null) {
-  const [data, setData] = useState<T>(); const [error, setError] = useState(''); const [loading, setLoading] = useState(true); const [version, setVersion] = useState(0);
-  const refresh = useCallback(() => setVersion((value) => value + 1), []);
-  useEffect(() => {
-    if (path === null) { setData(undefined); setError(''); setLoading(false); return; }
-    const controller = new AbortController(); setLoading(true); setError('');
-    api<T>(path, { signal: controller.signal }).then((result) => { if (!controller.signal.aborted) setData(result); }).catch((failure: unknown) => {
-      if (!controller.signal.aborted) setError(failure instanceof Error ? failure.message : '请求失败');
-    }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
-    return () => controller.abort();
-  }, [path, version]);
-  return { data, error, loading, refresh };
-}
+export function useQuery<T>(path: string | null) { return useApiQuery<T>(api, path); }
 export function QueryError({ error, retry }: { error: string; retry: () => void }) {
   return error ? <Alert type="error" showIcon title={error} action={<Button size="small" onClick={retry}>重试</Button>} style={{ marginBottom: 20 }} /> : null;
 }
 export const formatTime = (value: string) => new Date(value).toLocaleString('zh-CN', { hour12: false });
 export function formatBytes(value: number) { return value < 1024 ? `${value} B` : value < 1024 * 1024 ? `${(value / 1024).toFixed(1)} KB` : `${(value / 1024 / 1024).toFixed(1)} MB`; }
-export const actionLabels: Record<string, string> = { 'resource.create': '新增资源', 'resource.update': '编辑资源', 'resource.delete': '删除资源', 'resource.batch': '批量变更', 'file.upload': '上传文件', 'file.delete': '删除文件', 'settings.update': '保存设置' };
+export const actionLabels: Record<string, string> = { 'resource.create': '新增资源', 'resource.update': '编辑资源', 'resource.delete': '删除资源', 'resource.batch': '批量变更', 'file.upload': '上传文件', 'file.delete': '删除文件', 'settings.update': '保存设置', 'audit.prune': '清理过期日志' };
 export const jsonRequest = (method: string, body: unknown): RequestInit => ({ method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 
 export function Icon({ name }: { name: string }) {

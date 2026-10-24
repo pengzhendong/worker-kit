@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { App, Button, Card, Col, Form, Input, Row, Select, Space, Switch, Typography } from 'antd';
-import { PageHeader, useModuleAccess } from '@pengzhendong/worker-kit/web';
+import { isRequestCancelled, PageHeader, useModuleAccess } from '@pengzhendong/worker-kit/web';
 import { api, formatTime, jsonRequest, QueryError, useQuery } from './data';
 import type { Settings } from './data';
 
@@ -12,7 +12,8 @@ export function SettingsPage({ onSaved }: { onSaved: (settings: Settings) => voi
   async function save(values: Settings) {
     setSaving(true);
     try { const saved = await api<{ values: Settings }>('/api/admin/settings', jsonRequest('PUT', { values })); onSaved(saved.values); void message.success('设置已保存'); refresh(); }
-    catch (failure) { void message.error(failure instanceof Error ? failure.message : '保存失败'); } finally { setSaving(false); }
+    catch (failure) {
+      if (isRequestCancelled(failure)) return; void message.error(failure instanceof Error ? failure.message : '保存失败'); } finally { setSaving(false); }
   }
   return <>
     <PageHeader title="系统设置" description="调整应用名称、显示偏好与联系信息。" />
