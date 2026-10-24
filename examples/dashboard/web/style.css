@@ -11,8 +11,14 @@ body { margin: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Se
 .welcome-mark span { position: absolute; font-size: 36px; right: -8px; top: -6px; color: #6182e2; }
 .table-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
 .selection-bar { padding: 10px 14px; margin-bottom: 16px; background: rgba(49,91,214,.08); border-radius: 8px; }
-.upload-symbol { margin: 0 auto; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 14px; color: #4669db; background: #edf2ff; }
-.upload-symbol svg { width: 28px; height: 28px; }
+.file-upload { margin-bottom: 20px; }
+.upload-strip { display: flex; align-items: center; gap: 14px; padding: 0 4px; text-align: left; }
+.upload-symbol { display: grid; place-items: center; flex: 0 0 38px; height: 38px; border-radius: 10px; color: #4669db; background: #edf2ff; }
+.upload-symbol svg { width: 22px; height: 22px; }
+.upload-copy { display: flex; flex: 1; flex-direction: column; min-width: 0; gap: 4px; }
+.upload-copy > :last-child { font-size: 12px; }
+.upload-action { flex-shrink: 0; font-size: 13px; color: #4669db; padding: 5px 10px; border: 1px solid #d7dff5; border-radius: 6px; }
+.file-list-toolbar { margin-bottom: 16px; }
 .file-symbol { display: inline-grid; place-items: center; width: 32px; height: 36px; color: #7890c6; background: rgba(90,120,180,.08); border-radius: 6px; }
 .connection-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #4eb783; margin-top: 7px; }
 @media (max-width: 575px) {
@@ -20,4 +26,7 @@ body { margin: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Se
   .welcome-panel h2 { font-size: 24px; }
   .welcome-mark { display: none; }
   .ant-modal .ant-space { flex-wrap: wrap; }
+  .upload-strip { gap: 10px; }
+  .upload-action { display: none; }
+  .upload-copy > :first-child { font-size: 13px; }
 }
