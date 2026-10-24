@@ -21,6 +21,9 @@
 .demo-toolbar { justify-content: flex-start; gap: 8px; }
 .demo-confirm-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-top: 24px; }
 .demo-state-preview { min-height: 200px; margin-top: 24px; }
+.tool-command { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 24px; padding: 16px 0; border-bottom: 1px solid var(--wk-color-primary-border); }
+.tool-command:last-child { border-bottom: 0; }
+.tool-command > :first-child { flex: 1 1 320px; min-width: 0; }
 @media (max-width: 575px) {
   .welcome-panel { padding: 22px; }
   .welcome-panel h2 { font-size: 24px; }

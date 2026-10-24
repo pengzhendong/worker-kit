@@ -24,7 +24,7 @@
     "types": "npm run types --workspace @worker-kit/dashboard",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "check": "npm run types && npm run typecheck && npm test && npm run build && npm run deploy:dry-run",
+    "check": "npm run types && npm run typecheck && npm test && npm run build && node scripts/check-production-ui.mjs && npm run deploy:dry-run",
     "deploy:dry-run": "npm run deploy:dry-run --workspace @worker-kit/dashboard",
     "test:ui": "node scripts/visual.mjs",
     "test:ui:update": "node scripts/visual.mjs --update-snapshots=all",

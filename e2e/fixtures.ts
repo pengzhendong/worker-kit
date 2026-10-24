@@ -76,7 +76,7 @@ export { expect };
 export async function openDashboard(page: Page, section = 'overview') {
   await page.goto(`/#${section}`);
   await expect(page.locator('[data-workerkit-shell]')).toBeVisible();
-  await expect(page.getByRole('heading', { name: { overview: '工作台', resources: '资源管理', files: '文件管理', components: '组件与交互' }[section] ?? section, exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: { overview: '工作台', resources: '资源管理', files: '文件管理', components: '组件与交互', tools: '开发工具' }[section] ?? section, exact: true })).toBeVisible();
   await expect(page.locator('.ant-spin-spinning')).toHaveCount(0);
   await page.evaluate(() => document.fonts.ready);
 }

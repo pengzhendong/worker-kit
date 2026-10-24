@@ -46,7 +46,7 @@ test('short desktop lets the sidebar scroll independently', async ({ page }, inf
   await expect(account.getByRole('button', { name: '用户菜单，admin' })).toBeInViewport();
   expect(await content.evaluate((node) => node.scrollTop)).toBe(before);
   expect(await box(page.locator(region('header')))).toEqual(header);
-  await expect(sidebar.getByRole('menuitem', { name: '组件与交互', exact: true })).toBeInViewport();
+  await expect(sidebar.getByRole('menuitem', { name: '开发工具', exact: true })).toBeInViewport();
   await info.attach('independent-scroll-positions', { body: JSON.stringify({ content: before, navigation: await navigation.evaluate((node) => node.scrollTop), account: accountBefore, header }), contentType: 'application/json' });
 });
 
