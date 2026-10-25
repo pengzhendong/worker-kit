@@ -51,7 +51,7 @@ npm run check
 
 ## 在另一个项目中以 submodule 接入
 
-仓库位于 `https://github.com/pengzhendong/worker-kit`，目前为私有仓库。消费项目和 CI 需要读取权限，不能依赖本机绝对路径。
+仓库位于 `https://github.com/pengzhendong/worker-kit`，公开提供源码。消费项目和 CI 可通过 HTTPS 拉取，不需要跨仓库访问令牌或部署密钥，也不能依赖本机绝对路径。`package.json` 的 `private: true` 仅用于避免误发布到 npm，不影响 Git submodule 使用。
 
 ```sh
 git submodule add https://github.com/pengzhendong/worker-kit.git framework

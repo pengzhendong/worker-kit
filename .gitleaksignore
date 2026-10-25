@@ -1,0 +1,3 @@
+# Synthetic administrator fixture in the Honeybee integration patch, not a production credential.
+ca28b3fba7a99426e09cdca79e3f90f042bd5ebd:examples/integrations/honeybee.patch:generic-api-key:90
+examples/integrations/honeybee.patch:generic-api-key:90

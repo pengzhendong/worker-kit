@@ -1,3 +1,5 @@
+> 历史接入记录：2026-10-25 仓库公开后，新接入可直接通过 HTTPS 拉取 WorkerKit；下面的私有仓库授权说明描述当时状态。
+
 # Honeybee 接入记录
 
 2026-10-25 已在原 `~/code/honeybee` 完成管理端接入。原工作区先留存快照，再单独提交为 `2c49d01`，迁移在此基础上进行。WorkerKit 位于私有 GitHub 仓库，Honeybee 通过 `vendor/worker-kit` 固定提交，父项目保留一份 lockfile。
