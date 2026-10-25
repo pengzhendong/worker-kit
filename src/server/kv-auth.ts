@@ -9,7 +9,7 @@ export function createKvAdminAuth(options: { cookieName: string; keyPrefix: stri
   const version = async (username: string, password: string) => encode(await digest(`${options.authScope}:${username}\u0000${password}`)).slice(0, 24);
   const sessionKey = async (token: string) => `${options.keyPrefix}${encode(await digest(token))}`;
   function token(request: Request) {
-    for (const item of (request.headers.get('cookie') ?? '').split(';')) { const pos = item.indexOf('='); if (item.slice(0, pos).trim() === options.cookieName) return item.slice(pos + 1).trim(); }
+    for (const item of (request.headers.get('cookie') ?? '').split(';')) { const pos = item.indexOf('='); if (pos > 0 && item.slice(0, pos).trim() === options.cookieName) return item.slice(pos + 1).trim(); }
     return '';
   }
   function cookie(request: Request, value: string, maxAge: number) {
@@ -31,6 +31,8 @@ export function createKvAdminAuth(options: { cookieName: string; keyPrefix: stri
   }
   async function isAuthenticated(request: Request, store: Store, username: string, password: string) {
     if (!username || !password) return false;
+    const url = new URL(request.url);
+    if (url.protocol !== 'https:' && !['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)) return false;
     const value = token(request); if (!value || value.length > 128) return false;
     let session: unknown;
     try { session = await store.get(await sessionKey(value), 'json'); } catch { return false; }

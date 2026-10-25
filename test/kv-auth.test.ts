@@ -9,6 +9,7 @@ describe('native revocable KV sessions', () => {
     expect(cookie).toContain('HttpOnly; SameSite=Strict'); expect(cookie).toContain('; Secure');
     const token = cookie.split(';')[0]!.split('=')[1]!; expect([...values.keys()][0]).not.toContain(token); expect([...values.values()][0]).not.toContain('existing-password');
     const signed = new Request(origin, { headers: { cookie } }); expect(await auth.isAuthenticated(signed, store, 'admin', 'existing-password')).toBe(true);
+    expect(await auth.isAuthenticated(new Request('http://public.test', { headers: { cookie } }), store, 'admin', 'existing-password')).toBe(false);
     expect(await auth.isAuthenticated(signed, store, 'admin', 'changed-password')).toBe(false);
     await auth.deleteSession(signed, store); expect(values.size).toBe(0); expect(await auth.isAuthenticated(signed, store, 'admin', 'existing-password')).toBe(false);
   });
