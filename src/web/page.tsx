@@ -5,7 +5,7 @@ import { workerKitLayout } from './design';
 export function PageHeader({ title, description, actions }: { title: string; description?: string; actions?: ReactNode }) {
   return <Flex data-workerkit-page-header justify="space-between" align="start" gap={16} wrap style={{ marginBottom: workerKitLayout.pageHeaderGap }}>
     <div><Typography.Title level={2} style={{ margin: '0 0 8px', fontSize: workerKitLayout.pageTitleSize }}>{title}</Typography.Title>{description && <Typography.Text type="secondary">{description}</Typography.Text>}</div>
-    {actions && <Flex gap={8} wrap>{actions}</Flex>}
+    {actions && <Flex align="center" gap={8} wrap>{actions}</Flex>}
   </Flex>;
 }
 

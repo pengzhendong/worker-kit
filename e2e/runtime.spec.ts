@@ -7,6 +7,13 @@ test('runtime shows icon-based checks, honest unavailable metrics and per-page h
   await expect(page.locator('.wk-runtime-symbol .anticon')).toHaveCount(3);
   await expect(page.getByText('尚未接入 Cloudflare 指标', { exact: false })).toBeVisible();
   await expect(page.getByRole('checkbox', { name: '每 30 秒检查依赖' })).not.toBeChecked();
+  const checkbox = page.locator('.wk-runtime .ant-checkbox-wrapper');
+  const box = await checkbox.locator('.ant-checkbox').boundingBox();
+  const label = await checkbox.locator('.ant-checkbox-label').boundingBox();
+  const button = await page.getByRole('button', { name: '刷新状态', exact: true }).boundingBox();
+  expect(box).not.toBeNull(); expect(label).not.toBeNull(); expect(button).not.toBeNull();
+  expect(Math.abs(box!.y + box!.height / 2 - label!.y - label!.height / 2)).toBeLessThan(1);
+  expect(Math.abs(box!.y + box!.height / 2 - button!.y - button!.height / 2)).toBeLessThan(1);
   await expect(page.locator('.wk-runtime-history [role=img]')).toHaveCount(1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize()!.width);
   await screenshot(page, 'runtime-status.png');

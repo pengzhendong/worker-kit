@@ -34,6 +34,8 @@ import '@pengzhendong/worker-kit/web/styles.css';
 
 图标优先使用同一组 SVG，采用 currentColor。自定义图标组件应传递 className、style 与 aria 属性；`IconBox` 已处理导航图标的容器对齐。只有图标的按钮必须有可访问名称，必要时配 Tooltip。选中、成功、危险等状态都应有文字，不能仅用颜色表达。
 
+`PageHeader` 操作栏统一垂直居中。复选框与按钮混排时，不拉伸复选框外层；方框、标签文字与相邻按钮的垂直中心应一致，避免方框居中而文字靠上。
+
 业务 CSS 可使用 Provider 生成的 `--wk-color-primary`、`--wk-color-primary-bg`、`--wk-color-primary-text`、`--wk-color-primary-border`、`--wk-color-surface`、`--wk-color-text-secondary`、`--wk-color-success`。它们来自当前 Ant Design 主题，随明暗模式和品牌设置一起变化。禁止给深色模式继续套用固定浅色底。
 
 ## 布局与滚动
