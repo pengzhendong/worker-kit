@@ -16,7 +16,8 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
   activeKey: string;
   onNavigate: (key: string) => void;
   username: string;
-  onLogout: () => void | Promise<void>;
+  /** Omit for a public shell; applications may offer a sign-in item instead. */
+  onLogout?: () => void | Promise<void>;
   /** Application-owned global actions; keep labels compact on narrow screens. */
   headerActions?: ReactNode;
   /** Render one compact page heading in the fixed header; PageHeader keeps description/actions. */
@@ -66,13 +67,13 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
       styles={{ root: { width: ui.sidebarWidth - 24, maxWidth: 'calc(100vw - 24px)' } }}
       menu={{ selectable: true, selectedKeys: [activeKey], style: { boxShadow: 'none', padding: 0 }, items: [
         ...userMenuItems.map((item) => ({ key: item.key, label: item.label, icon: item.icon ? <IconBox>{item.icon}</IconBox> : undefined })),
-        ...(userMenuItems.length ? [{ type: 'divider' as const }] : []),
-        { key: 'workerkit:logout', label: '退出登录', icon: logoutIcon, disabled: loggingOut },
+        ...(onLogout && userMenuItems.length ? [{ type: 'divider' as const }] : []),
+        ...(onLogout ? [{ key: 'workerkit:logout', label: '退出登录', icon: logoutIcon, disabled: loggingOut }] : []),
       ], onClick: async ({ key }) => {
         setUserMenuOpen(false);
         if (key !== 'workerkit:logout') { navigate(key); return; }
         setLoggingOut(true);
-        try { await onLogout(); } finally { setLoggingOut(false); }
+        try { await onLogout?.(); } finally { setLoggingOut(false); }
       } }}
       popupRender={(menu) => <div style={{ padding: 6, background: token.colorBgElevated, border: `1px solid ${token.colorBorderSecondary}`, borderRadius: 12, boxShadow: token.boxShadowSecondary }}>
         <Flex align="center" gap={10} style={{ padding: '10px 8px 12px', marginBottom: 4, borderBottom: `1px solid ${token.colorBorderSecondary}` }}>{avatar}<div style={{ minWidth: 0 }}><Typography.Text strong ellipsis style={{ display: 'block' }}>{username}</Typography.Text><Typography.Text type="secondary" style={{ fontSize: 12 }}>当前登录</Typography.Text></div></Flex>{menu}
