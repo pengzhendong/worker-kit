@@ -4,6 +4,7 @@ import type { Hono } from 'hono';
 import type { OpenAPIV3_1 as O } from 'openapi-types';
 import type { WorkerEnv } from '@pengzhendong/worker-kit/server';
 import type { Bindings } from './index';
+import { apiKeyInputSchema, auditPruneSchema, inputJsonSchema, outputJsonSchema, resourceBatchSchema, resourceInputSchema, resourceSchema, resourceUpdateSchema, savedSettingsSchema, settingsPatchSchema } from './schemas';
 
 const str = { type: 'string' as const }, bool = { type: 'boolean' as const }, integer = { type: 'integer' as const };
 const obj = (properties: Record<string, O.SchemaObject>, required = Object.keys(properties)): O.SchemaObject => ({ type: 'object', properties, required });
@@ -11,10 +12,9 @@ const arr = (items: O.SchemaObject): O.SchemaObject => ({ type: 'array', items }
 const nullable = (schema: O.SchemaObject): O.SchemaObject => ({ anyOf: [schema, { type: 'null' }] });
 const stamp: O.SchemaObject = { type: 'string', format: 'date-time' };
 const error = obj({ error: obj({ code: str, message: str, fields: arr(obj({ path: arr({ anyOf: [str, integer] }), message: str })) }, ['code', 'message']), requestId: str });
-const resourceInput = obj({ name: { ...str, minLength: 1, maxLength: 80 }, kind: { ...str, enum: ['订阅源', '存储', '任务', '配置'] }, status: { ...str, enum: ['enabled', 'disabled'] }, address: { ...str, maxLength: 2000, description: '空字符串或 http(s) 地址' }, description: { ...str, maxLength: 1000 } });
-const resource = obj({ ...resourceInput.properties as Record<string, O.SchemaObject>, id: str, created_at: stamp, updated_at: stamp });
-const settings = obj({ siteName: { ...str, minLength: 1, maxLength: 40 }, description: { ...str, maxLength: 200 }, contactEmail: { ...str, maxLength: 254, description: '空字符串或有效邮箱' }, pageSize: { type: 'integer', enum: [10, 20, 50, 100] }, showWelcome: bool });
-const savedSettings = obj({ values: settings, updatedAt: nullable(stamp) });
+const resourceInput = inputJsonSchema(resourceInputSchema) as O.SchemaObject;
+const resource = outputJsonSchema(resourceSchema) as O.SchemaObject;
+const savedSettings = outputJsonSchema(savedSettingsSchema) as O.SchemaObject;
 const file = obj({ key: str, name: str, size: integer, uploadedAt: stamp, contentType: str });
 const audit = obj({ id: str, actor: str, action: str, target: str, created_at: stamp });
 const session = obj({ user: str, expiresAt: { ...integer, description: 'Unix 秒' } });
@@ -37,22 +37,22 @@ export const endpoints: readonly Endpoint[] = [
   { method: 'GET', path: '/api/admin/diagnostics', summary: '只读依赖诊断', tag: '运行', permission: 'overview:diagnose', output: obj({ ok: bool, checks: arr(obj({ name: str, status: { ...str, enum: ['ok', 'error', 'timeout'] }, durationMs: integer })) }), description: '200 表示取得诊断报告；依赖状态由 ok/checks 判断。每项默认等待上限 1500ms。' },
   { method: 'GET', path: '/api/admin/resources', summary: '查询资源', tag: '资源', permission: 'resources:read', token: true, parameters: resourceQuery, output: page(resource) },
   { method: 'POST', path: '/api/admin/resources', summary: '新增资源', tag: '资源', permission: 'resources:create', token: true, input: json(resourceInput), output: resource, status: 201 },
-  { method: 'PUT', path: '/api/admin/resources/:id', summary: '编辑资源', tag: '资源', permission: 'resources:update', token: true, input: json(resourceInput), output: obj({ ...resourceInput.properties as Record<string, O.SchemaObject>, id: str, updated_at: stamp }) },
+  { method: 'PUT', path: '/api/admin/resources/:id', summary: '编辑资源', tag: '资源', permission: 'resources:update', token: true, input: json(resourceInput), output: outputJsonSchema(resourceUpdateSchema) as O.SchemaObject },
   { method: 'DELETE', path: '/api/admin/resources/:id', summary: '删除资源', tag: '资源', permission: 'resources:delete', token: true, status: 204 },
-  { method: 'POST', path: '/api/admin/resources/batch', summary: '批量启停资源', tag: '资源', permission: 'resources:batch', token: true, input: json(obj({ ids: { ...arr({ ...str, minLength: 1, maxLength: 100 }), minItems: 1, maxItems: 100 }, status: { ...str, enum: ['enabled', 'disabled'] } })), output: obj({ succeeded: arr(str), failed: arr(obj({ id: str, code: str, message: str })), updated: integer }) },
+  { method: 'POST', path: '/api/admin/resources/batch', summary: '批量启停资源', tag: '资源', permission: 'resources:batch', token: true, input: json(inputJsonSchema(resourceBatchSchema) as O.SchemaObject), output: obj({ succeeded: arr(str), failed: arr(obj({ id: str, code: str, message: str })), updated: integer }) },
   { method: 'GET', path: '/api/admin/resources/export', summary: '导出资源 JSON', tag: '资源', permission: 'resources:export', token: true, parameters: resourceQuery, output: arr(resource), description: '最多导出 10000 项。' },
   { method: 'GET', path: '/api/admin/settings', summary: '读取应用设置', tag: '设置', permission: 'settings:read', token: true, output: savedSettings },
-  { method: 'PUT', path: '/api/admin/settings', summary: '保存应用设置', tag: '设置', permission: 'settings:update', token: true, input: json(obj({ values: { ...settings, required: [] } })), output: savedSettings, description: '仅接收已声明的非机密设置；请求体上限 16KB。' },
+  { method: 'PUT', path: '/api/admin/settings', summary: '保存应用设置', tag: '设置', permission: 'settings:update', token: true, input: json(inputJsonSchema(settingsPatchSchema) as O.SchemaObject), output: savedSettings, description: '仅接收已声明的非机密设置；请求体上限 16KB。' },
   { method: 'GET', path: '/api/admin/files', summary: '查询私有文件', tag: '文件', permission: 'files:read', token: true, parameters: [query('cursor'), query('pageSize', { ...integer, minimum: 1, maximum: 100, default: 100 })], output: obj({ items: arr(file), cursor: nullable(str), maxBytes: integer }) },
   { method: 'POST', path: '/api/admin/files', summary: '上传私有文件', tag: '文件', permission: 'files:upload', token: true, input: { required: true, content: { 'multipart/form-data': { schema: obj({ file: { type: 'string', format: 'binary' } }) } } }, output: file, status: 201, description: '单文件最大 10MB。' },
   { method: 'GET', path: '/api/admin/files/download', summary: '下载私有文件', tag: '文件', permission: 'files:download', token: true, parameters: [query('key', str, true)], binary: true },
   { method: 'DELETE', path: '/api/admin/files', summary: '删除私有文件', tag: '文件', permission: 'files:delete', token: true, parameters: [query('key', str, true)], status: 204 },
   { method: 'GET', path: '/api/admin/audit', summary: '查询操作日志', tag: '操作日志', permission: 'audit:read', token: true, parameters: [pageQuery[0]!, query('action')], output: obj({ items: arr(audit), total: integer, page: integer }) },
   { method: 'GET', path: '/api/admin/audit/retention', summary: '查看日志保留策略', tag: '操作日志', permission: 'audit:read', output: retention },
-  { method: 'POST', path: '/api/admin/audit/prune', summary: '清理过期操作日志', tag: '操作日志', permission: 'audit:prune', input: json(obj({ confirmation: { ...str, const: 'delete-expired-audit-events' } })), output: obj({ deleted: integer, before: stamp, batchLimit: integer }) },
+  { method: 'POST', path: '/api/admin/audit/prune', summary: '清理过期操作日志', tag: '操作日志', permission: 'audit:prune', input: json(inputJsonSchema(auditPruneSchema) as O.SchemaObject), output: obj({ deleted: integer, before: stamp, batchLimit: integer }) },
   { method: 'GET', path: '/api/admin/openapi.json', summary: '下载 OpenAPI 文档', tag: 'API 中心', permission: 'api:read', output: { type: 'object', description: 'OpenAPI 3.1 文档' } },
   { method: 'GET', path: '/api/admin/api-keys', summary: '查看访问令牌', tag: 'API 中心', permission: 'api:tokens', parameters: pageQuery, output: obj({ items: arr(key), total: integer, page: integer, pageSize: integer, grantablePermissions: arr(str) }) },
-  { method: 'POST', path: '/api/admin/api-keys', summary: '创建访问令牌', tag: 'API 中心', permission: 'api:issue', input: json(obj({ name: { ...str, minLength: 1, maxLength: 80 }, permissions: { ...arr(str), minItems: 1, maxItems: 100 }, expiresInDays: { ...integer, minimum: 1, maximum: 365 } })), output: obj({ token: { ...str, description: '仅在此响应中显示一次，请立即保存' }, key }), status: 201 },
+  { method: 'POST', path: '/api/admin/api-keys', summary: '创建访问令牌', tag: 'API 中心', permission: 'api:issue', input: json(inputJsonSchema(apiKeyInputSchema) as O.SchemaObject), output: obj({ token: { ...str, description: '仅在此响应中显示一次，请立即保存' }, key }), status: 201 },
   { method: 'DELETE', path: '/api/admin/api-keys/:id', summary: '撤销访问令牌', tag: 'API 中心', permission: 'api:revoke', status: 204, description: '幂等撤销，保留元数据和审计记录。' },
   { method: 'POST', path: '/api/admin/echo', summary: '认证写请求探测', tag: '运行', permission: 'overview:read', token: true, output: obj({ ok: bool }) },
 ];

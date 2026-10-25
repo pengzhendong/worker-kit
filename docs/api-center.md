@@ -10,7 +10,7 @@ API 中心是正式应用模块，生产构建保留。它提供接口目录、S
 
 示例在自己的 `server/api-description.ts` 描述 27 个操作的参数、请求体、成功响应、错误结构、认证方式及所需权限；通过原生 Hono middleware 附加描述，不引入业务路由 DSL。列表从受保护的 `/api/admin/openapi.json` 派生，搜索、方法筛选、模块分组和文档共用这一份结果。停用模块的操作不进入文档。路由仍需显式挂认证和权限，OpenAPI 的 security 字段本身不执行鉴权。
 
-当前请求校验仍由现有业务函数负责，描述 Schema 不会自动替换它们。接口测试比较完整方法/路径覆盖及关键请求、响应 Schema；维护时仍需同步检查边界。后续可以逐接口用 hono-openapi 的 Standard Schema validator 统一校验与文档，保留当前字段错误和 HTTP 契约。
+资源、设置、批量操作、API Key 创建及日志清理已经共用 Zod Schema，运行校验和 OpenAPI 的字段范围由同一个对象产生；资源与设置的响应也从这些字段派生。登录、文件及分页仍使用原有共享校验器。接口测试比较完整方法/路径覆盖，并检查真实请求和响应、错误码、鉴权顺序与文档边界。详见 [接口 Schema 与契约检查](api-schemas.md)。
 
 接口列表中的“查看文档”展示同一份文档中选定的操作，可返回全部文档。Scalar 使用固定的本地 npm 包 `@scalar/api-reference-react` 0.9.82，通过独立 HTML 入口加载，隔离 URL hash、CSS 与滚动；父页保持原有固定侧栏和顶栏。单独打开文档页面只加载壳，API 数据仍需登录和 `api:read`。
 

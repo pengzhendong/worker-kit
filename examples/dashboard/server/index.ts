@@ -2,7 +2,7 @@ import { bodyLimit } from 'hono/body-limit';
 import type { Context } from 'hono';
 import { ApiError, apiKeyInfo, createApiKeys, createAdminAuth, createModuleAccess, createFileRoutes, createServer, createSettingsRoutes, readPageQuery, runHealthChecks } from '@pengzhendong/worker-kit/server';
 import { openAPIRouteHandler } from '@pengzhendong/worker-kit/openapi';
-import type { BatchResult, FieldIssue, PageList } from '@pengzhendong/worker-kit/contracts';
+import type { BatchResult, PageList } from '@pengzhendong/worker-kit/contracts';
 import { listModulePermissions } from '@pengzhendong/worker-kit/modules';
 import type { ModuleDefinition, ModulePermission } from '@pengzhendong/worker-kit/modules';
 import { dashboardModules } from '../modules';
@@ -11,6 +11,8 @@ import { inspectAuditRetention, pruneAuditEvents } from './audit-retention';
 import { installApiDescriptions, tokenEndpoint, tokenPermissions } from './api-description';
 import { d1ApiKeyStore, listApiKeys } from './api-key-store';
 import { validateSettings } from './settings-validation';
+import { apiKeyInputSchema, auditPruneSchema, resourceBatchSchema, resourceInputSchema } from './schemas';
+import { formIssues, readJson } from './validation';
 
 export interface Bindings extends AdminBindings { DB: D1Database; SETTINGS: KVNamespace; FILES: R2Bucket; API_KEY_RATE_LIMITER: AdminBindings['ADMIN_LOGIN_RATE_LIMITER']; AUDIT_RETENTION_DAYS?: string }
 type C = Context<WorkerEnv<Bindings>>;
@@ -70,10 +72,9 @@ export function createDashboard(options: {
     return c.json({ items: result.rows.map(apiKeyInfo), total: result.total, page: query.page, pageSize: query.pageSize, grantablePermissions: tokenPermissions.filter((permission) => grants.includes(permission)) });
   });
   app.post('/api/admin/api-keys', browserOnly, requirePermission('api:issue'), bodyLimit({ maxSize: 8192 }), async (c) => {
-    let input: unknown;
-    try { input = await c.req.json(); } catch { throw new ApiError(400, 'invalid_json', '请求 JSON 无效'); }
-    if (!input || typeof input !== 'object' || Array.isArray(input)) throw new ApiError(422, 'invalid_api_key', '令牌配置无效');
-    const body = input as { name: string; permissions: string[]; expiresInDays: number };
+    const parsed = apiKeyInputSchema.safeParse(await readJson(c));
+    if (!parsed.success) throw new ApiError(422, 'invalid_api_key', '请填写名称、1–365 天有效期，并选择已授权的业务权限');
+    const body = parsed.data;
     const grants = await access.permissions(c);
     const keys = createApiKeys({ store: d1ApiKeyStore(c.env.DB) });
     return c.json(await keys.issue({ owner: c.get('adminUser')!, name: body.name, permissions: body.permissions, expiresInDays: body.expiresInDays }, tokenPermissions.filter((permission) => grants.includes(permission))), 201);
@@ -99,9 +100,7 @@ export function createDashboard(options: {
   });
   app.get('/api/admin/audit/retention', requirePermission('audit:read'), async (c) => c.json(await inspectAuditRetention(c.env.DB, c.env.AUDIT_RETENTION_DAYS)));
   app.post('/api/admin/audit/prune', requirePermission('audit:prune'), bodyLimit({ maxSize: 1024 }), async (c) => {
-    let input: unknown;
-    try { input = await c.req.json(); } catch { throw new ApiError(400, 'invalid_json', '请求 JSON 无效'); }
-    if (!input || typeof input !== 'object' || (input as { confirmation?: unknown }).confirmation !== 'delete-expired-audit-events') throw new ApiError(400, 'confirmation_required', '请确认清理过期操作日志');
+    if (!auditPruneSchema.safeParse(await readJson(c)).success) throw new ApiError(400, 'confirmation_required', '请确认清理过期操作日志');
     return c.json(await pruneAuditEvents(c.env.DB, c.env.AUDIT_RETENTION_DAYS, c.get('adminUser')!));
   });
   // Explicit Hono middleware before the reusable storage routes, including list and download separately.
@@ -181,19 +180,11 @@ export function createDashboard(options: {
     return new Response(JSON.stringify(rows.results, null, 2), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Content-Disposition': 'attachment; filename="resources.json"', 'Cache-Control': 'no-store' } });
   });
   async function resourceInput(c: C) {
-    let input: unknown;
-    try { input = await c.req.json(); } catch { throw new ApiError(400, 'invalid_json', '请求 JSON 无效'); }
+    const input = await readJson(c);
     if (!input || typeof input !== 'object' || Array.isArray(input)) throw new ApiError(400, 'invalid_resource', '请填写资源信息');
-    const body = input as Record<string, unknown>;
-    const fields: FieldIssue[] = [];
-    if (typeof body.name !== 'string' || !body.name.trim() || body.name.length > 80) fields.push({ path: ['name'], message: '名称不能为空，且不能超过 80 个字符' });
-    if (typeof body.kind !== 'string' || !['订阅源', '存储', '任务', '配置'].includes(body.kind)) fields.push({ path: ['kind'], message: '请选择有效的资源类型' });
-    if (typeof body.status !== 'string' || !['enabled', 'disabled'].includes(body.status)) fields.push({ path: ['status'], message: '请选择有效的资源状态' });
-    if (typeof body.address !== 'string' || body.address.length > 2000) fields.push({ path: ['address'], message: '地址必须是文本，且不能超过 2000 个字符' });
-    else if (body.address && !/^https?:\/\//i.test(body.address)) fields.push({ path: ['address'], message: '地址必须以 http:// 或 https:// 开头' });
-    if (typeof body.description !== 'string' || body.description.length > 1000) fields.push({ path: ['description'], message: '描述必须是文本，且不能超过 1000 个字符' });
-    if (fields.length) throw new ApiError(422, 'validation_failed', '请检查表单内容', fields);
-    return { name: (body.name as string).trim(), kind: String(body.kind), status: String(body.status), address: body.address as string, description: body.description as string };
+    const parsed = resourceInputSchema.safeParse(input);
+    if (!parsed.success) throw new ApiError(422, 'validation_failed', '请检查表单内容', formIssues(parsed.error.issues));
+    return { ...parsed.data, name: parsed.data.name.trim() };
   }
   app.post('/api/admin/resources', requirePermission('resources:create'), async (c) => {
     const data = await resourceInput(c); const id = crypto.randomUUID(); const now = new Date().toISOString();
@@ -218,12 +209,12 @@ export function createDashboard(options: {
     return c.body(null, 204);
   });
   app.post('/api/admin/resources/batch', requirePermission('resources:batch'), async (c) => {
-    let body: { ids?: unknown; status?: unknown };
-    try { body = await c.req.json(); } catch { throw new ApiError(400, 'invalid_json', '请求 JSON 无效'); }
-    if (!body || !Array.isArray(body.ids) || !body.ids.length || body.ids.length > 100 || body.ids.some((id) => typeof id !== 'string' || !id.trim() || id.length > 100) || !['enabled', 'disabled'].includes(String(body.status))) {
+    const parsed = resourceBatchSchema.safeParse(await readJson(c));
+    if (!parsed.success) {
       throw new ApiError(400, 'invalid_batch', '请选择 1–100 条资源和有效状态');
     }
-    const ids = [...new Set(body.ids as string[])]; const placeholders = ids.map(() => '?').join(',');
+    const body = parsed.data;
+    const ids = [...new Set(body.ids)]; const placeholders = ids.map(() => '?').join(',');
     const result = await c.env.DB.batch([
       c.env.DB.prepare(`UPDATE resources SET status=?, updated_at=? WHERE id IN (${placeholders}) RETURNING id`).bind(body.status, new Date().toISOString(), ...ids), auditStatement(c, 'resource.batch', `${String(body.status)} · 请求 ${ids.length} 项`),
     ]);
