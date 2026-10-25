@@ -38,6 +38,8 @@ import '@pengzhendong/worker-kit/web/styles.css';
 
 ## 布局与滚动
 
+应用负责在自己的 HTML 配置 favicon；演示应用与 API 文档共用本地 `/favicon.svg`。`AdminShell` 可通过 `brandIcon` 传入自己的图片或 SVG；默认显示应用名称首字母，消费项目不必覆盖框架 CSS。
+
 - `AdminShell` 占满 100dvh，顶栏高 64 px；页面外层不产生滚动。
 - 顶栏使用正常行高与直接居中的 Flex 子项，避免 64 px 行高传入嵌套包装层后造成按钮基线偏移。
 - ≥1024 px 显示 232 px 侧栏。主内容独立滚动，侧栏和顶栏位置保持不变。

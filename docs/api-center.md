@@ -4,6 +4,16 @@ API 中心是正式应用模块，生产构建保留。它提供接口目录、S
 
 演示应用的入口位于左下角用户菜单：点击头像或用户名，再选择“API 中心”。导航位置由模块的 `navigation.placement: 'user'` 声明，仍按 `api:read` 控制可见性与页面访问。
 
+## 在消费项目复用
+
+通用界面已提取到可选入口 `@pengzhendong/worker-kit/web/api-center`，独立 Scalar 文档使用 `@pengzhendong/worker-kit/web/scalar-reference`。普通 server/web 入口不会加载 Scalar。消费项目显式安装 `openapi-types`；使用 Scalar 时另安装 `@scalar/api-reference-react`，版本由父项目锁定。
+
+```tsx
+<ApiCenter client={api} scope={sessionScope} referenceUrl="/reference.html" />
+```
+
+应用在独立 HTML 中渲染 `<ScalarReference />`，由原生构建器产生第二个入口。默认读取 `/api/admin/openapi.json`，也可传 `specUrl`。通用组件负责列表、筛选、按操作查看、主题和会话失效；OpenAPI 路由、身份策略、Token 存储仍属于消费应用。有 Token 管理时通过 `tokenPanel` 传入业务面板；没有配置时不显示令牌页签。
+
 ## OpenAPI 与列表
 
 可选入口 `@pengzhendong/worker-kit/openapi` 导出 hono-openapi 的原生 describeRoute、openAPIRouteHandler、generateSpecs、resolver 和 validator。仅使用 server 不会导入 OpenAPI 或 Scalar。消费项目显式声明 hono-openapi peer，示例固定 1.5.0。

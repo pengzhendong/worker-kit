@@ -2,3 +2,4 @@
 html, body, #root { min-height: 100%; margin: 0; }
 body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
 *, *::before, *::after { box-sizing: border-box; }
+.wk-api-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }

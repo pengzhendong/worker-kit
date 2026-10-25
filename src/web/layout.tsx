@@ -7,8 +7,9 @@ import { IconBox } from './icon';
 
 export interface NavigationItem { key: string; label: string; icon?: ReactNode }
 
-export function AdminShell({ title, items, userMenuItems = [], activeKey, onNavigate, username, onLogout, children }: {
+export function AdminShell({ title, brandIcon, items, userMenuItems = [], activeKey, onNavigate, username, onLogout, children }: {
   title: string;
+  brandIcon?: ReactNode;
   items: NavigationItem[];
   userMenuItems?: NavigationItem[];
   activeKey: string;
@@ -38,7 +39,7 @@ export function AdminShell({ title, items, userMenuItems = [], activeKey, onNavi
   const themeIcon = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ display: 'block' }}>
     {dark ? <><circle cx="12" cy="12" r="4" /><path d="M12 2v2 M12 20v2 M2 12h2 M20 12h2 M4.93 4.93l1.42 1.42 M17.65 17.65l1.42 1.42 M4.93 19.07l1.42-1.42 M17.65 6.35l1.42-1.42" /></> : <path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z" />}
   </svg>;
-  const brand = <Space size={10} style={{ height: 80, padding: '0 24px' }}><span style={{ width: 30, height: 32, borderRadius: 9, display: 'grid', placeItems: 'center', background: token.colorPrimary, color: '#fff', fontWeight: 800, fontSize: 20 }}>W</span><Typography.Title level={4} style={{ margin: 0, letterSpacing: '-.5px' }}>{title}</Typography.Title></Space>;
+  const brand = <Space size={10} style={{ height: 80, padding: '0 24px' }}>{brandIcon ?? <span style={{ width: 30, height: 32, borderRadius: 9, display: 'grid', placeItems: 'center', background: token.colorPrimary, color: '#fff', fontWeight: 800, fontSize: 20 }}>{title.slice(0, 1).toUpperCase()}</span>}<Typography.Title level={4} style={{ margin: 0, letterSpacing: '-.5px' }}>{title}</Typography.Title></Space>;
   const logoutIcon = <IconBox><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 4H4v16h5 M14 8l4 4-4 4 M9 12h12" /></svg></IconBox>;
   const avatar = <Avatar size={ui.avatarSize} style={{ flexShrink: 0, background: token.colorPrimaryBg, color: token.colorPrimaryText, fontSize: 13, fontWeight: 600 }}>{username.slice(0, 1).toUpperCase()}</Avatar>;
   const account = <div data-workerkit-region="account" style={{ flexShrink: 0, padding: 12, borderTop: `1px solid ${token.colorBorderSecondary}` }}>
