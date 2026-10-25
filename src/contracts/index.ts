@@ -29,3 +29,4 @@ export interface BatchResult<Id extends string | number = string> {
   failed: { id: Id; code: string; message: string }[];
 }
 export type { ApiKeyInfo } from './api-keys';
+export type { RuntimeSnapshot, RuntimeCheck, RuntimeCheckKind, RuntimeMetrics } from './runtime';

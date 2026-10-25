@@ -18,7 +18,7 @@ API 中心是正式应用模块，生产构建保留。它提供接口目录、S
 
 可选入口 `@pengzhendong/worker-kit/openapi` 导出 hono-openapi 的原生 describeRoute、openAPIRouteHandler、generateSpecs、resolver 和 validator。仅使用 server 不会导入 OpenAPI 或 Scalar。消费项目显式声明 hono-openapi peer，示例固定 1.5.0。
 
-示例在自己的 `server/api-description.ts` 描述 27 个操作的参数、请求体、成功响应、错误结构、认证方式及所需权限；通过原生 Hono middleware 附加描述，不引入业务路由 DSL。列表从受保护的 `/api/admin/openapi.json` 派生，搜索、方法筛选、模块分组和文档共用这一份结果。停用模块的操作不进入文档。路由仍需显式挂认证和权限，OpenAPI 的 security 字段本身不执行鉴权。
+示例在自己的 `server/api-description.ts` 描述 29 个操作的参数、请求体、成功响应、错误结构、认证方式及所需权限；通过原生 Hono middleware 附加描述，不引入业务路由 DSL。列表从受保护的 `/api/admin/openapi.json` 派生，搜索、方法筛选、模块分组和文档共用这一份结果。停用模块的操作不进入文档。路由仍需显式挂认证和权限，OpenAPI 的 security 字段本身不执行鉴权。
 
 资源、设置、批量操作、API Key 创建及日志清理已经共用 Zod Schema，运行校验和 OpenAPI 的字段范围由同一个对象产生；资源与设置的响应也从这些字段派生。登录、文件及分页仍使用原有共享校验器。接口测试比较完整方法/路径覆盖，并检查真实请求和响应、错误码、鉴权顺序与文档边界。详见 [接口 Schema 与契约检查](api-schemas.md)。
 

@@ -1,6 +1,6 @@
 import { bodyLimit } from 'hono/body-limit';
 import type { Context } from 'hono';
-import { ApiError, apiKeyInfo, createApiKeys, createAdminAuth, createModuleAccess, createFileRoutes, createServer, createSettingsRoutes, readPageQuery, runHealthChecks } from '@pengzhendong/worker-kit/server';
+import { ApiError, apiKeyInfo, createApiKeys, createAdminAuth, createModuleAccess, createFileRoutes, createServer, createSettingsRoutes, inspectRuntime, readCloudflareMetrics, readPageQuery, runHealthChecks } from '@pengzhendong/worker-kit/server';
 import { openAPIRouteHandler } from '@pengzhendong/worker-kit/openapi';
 import type { BatchResult, PageList } from '@pengzhendong/worker-kit/contracts';
 import { listModulePermissions } from '@pengzhendong/worker-kit/modules';
@@ -14,7 +14,7 @@ import { validateSettings } from './settings-validation';
 import { apiKeyInputSchema, auditPruneSchema, resourceBatchSchema, resourceInputSchema } from './schemas';
 import { formIssues, readJson } from './validation';
 
-export interface Bindings extends AdminBindings { DB: D1Database; SETTINGS: KVNamespace; FILES: R2Bucket; API_KEY_RATE_LIMITER: AdminBindings['ADMIN_LOGIN_RATE_LIMITER']; AUDIT_RETENTION_DAYS?: string }
+export interface Bindings extends AdminBindings { DB: D1Database; SETTINGS: KVNamespace; FILES: R2Bucket; API_KEY_RATE_LIMITER: AdminBindings['ADMIN_LOGIN_RATE_LIMITER']; AUDIT_RETENTION_DAYS?: string; CF_VERSION_METADATA?: { id?: string; tag?: string; timestamp?: string }; CLOUDFLARE_METRICS_ACCOUNT_ID?: string; CLOUDFLARE_METRICS_SCRIPT_NAME?: string; CLOUDFLARE_METRICS_API_TOKEN?: string }
 type C = Context<WorkerEnv<Bindings>>;
 type Resource = { id: string; name: string; kind: string; status: 'enabled' | 'disabled'; address: string; description: string; created_at: string; updated_at: string };
 export function createDashboard(options: {
@@ -61,6 +61,19 @@ export function createDashboard(options: {
   });
   app.get('/api/admin/access', async (c) => c.json({ permissions: await access.permissions(c) }));
   const browserOnly = async (c: C, next: () => Promise<void>) => { if (c.get('apiKey')) throw new ApiError(403, 'browser_session_required', '此接口仅支持浏览器登录'); await next(); };
+  app.get('/api/admin/runtime', browserOnly, requirePermission('runtime:read'), async (c) => c.json(await inspectRuntime({
+    application: { name: 'WorkerKit Dashboard', version: '0.2.0' },
+    environment: ['localhost', '127.0.0.1', '[::1]'].includes(new URL(c.req.url).hostname) ? 'local' : 'production',
+    version: c.env.CF_VERSION_METADATA,
+    checks: [
+      { name: 'D1', kind: 'database', description: '配置与操作日志', check: () => c.env.DB.prepare('SELECT 1').first() },
+      { name: 'KV', kind: 'kv', description: '应用设置', check: () => c.env.SETTINGS.get('workerkit:settings') },
+      { name: 'R2', kind: 'storage', description: '私有文件存储', check: () => c.env.FILES.head('uploads/health-check') },
+    ],
+  })));
+  app.get('/api/admin/runtime/metrics', browserOnly, requirePermission('runtime:read'), async (c) => c.json(await readCloudflareMetrics({
+    accountId: c.env.CLOUDFLARE_METRICS_ACCOUNT_ID, scriptName: c.env.CLOUDFLARE_METRICS_SCRIPT_NAME, apiToken: c.env.CLOUDFLARE_METRICS_API_TOKEN,
+  }, { signal: c.req.raw.signal })));
   app.get('/api/admin/openapi.json', browserOnly, requirePermission('api:read'), openAPIRouteHandler(app, {
     excludeStaticFile: false, excludeMethods: ['OPTIONS', 'HEAD'],
     documentation: { openapi: '3.1.0', info: { title: 'WorkerKit API', version: '0.2.0', description: '当前应用的接口。Cookie 写操作要求同源 Origin；Bearer Token 仅能访问显式开放的业务接口。' }, servers: [{ url: '/' }], components: { securitySchemes: { cookieAuth: { type: 'apiKey', in: 'cookie', name: 'workerkit_session', description: '通过登录接口设置，HttpOnly；无需复制 Cookie。' }, bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'Opaque API Key' } } } },

@@ -16,10 +16,11 @@
 | R2 文件 | 私有前缀、10MB 上限、游标列表、认证 Blob 下载、文件名和下载响应头处理、删除确认 | 示例概览最多枚举 1000 个文件；不是通用 WebDAV/超大文件流式客户端 |
 | KV 设置 | 声明键及类型校验，新增应用域校验，字段错误显示与失败草稿保留 | 非机密偏好；没有 KV 强一致事务或并发编辑冲突检测 |
 | 操作日志 | D1 业务事件、Token actor、筛选分页；显式保留策略、分批清理和清理审计 | 默认不删除；不是全量 HTTP 日志；跨 R2/KV 与 D1 的审计为尽力写入 |
-| API 目录与文档 | 27 个操作，列表和 Scalar 共用受保护的 OpenAPI；应用 JSON 写入共用 Zod Schema，资源/设置响应派生与真实契约检查；搜索筛选、按操作查看、同源调试 | 登录、文件和查询仍沿用共享校验器；不是无配置扫描或全部线上响应校验 |
+| API 目录与文档 | 29 个操作，列表和 Scalar 共用受保护的 OpenAPI；应用 JSON 写入共用 Zod Schema，资源/设置响应派生与真实契约检查；搜索筛选、按操作查看、同源调试 | 登录、文件和查询仍沿用共享校验器；不是无配置扫描或全部线上响应校验 |
 | API Key | Web Crypto 随机 token、仅存摘要、一次展示、权限与有效期、分页元数据、撤销、限流、最近使用、审计 | 每次授权读取 D1 主库；不是 OAuth/JWT 身份系统；撤销不终止已授权的在途执行 |
 | 开发工具 | 本地 D1/KV/R2、追踪、日志与命令目录；模块权限实况；组件交互示例 | 原生工具仅本机可信调试；无第二套存储编辑器；未配置能力明确标记 |
 | 运行与升级 | 公共存活、受保护只读依赖诊断、Cloudflare 原生指标日志、doctor 离线预检、生产开发页排除、dry-run | 没有创建外部 uptime 告警或自建采集服务；预检不证明线上 Secret/迁移/资源可用 |
+| 运行状态页 | 独立可选 UI、图标与文字状态、D1/KV/R2 只读检查、原生版本元数据、本页 20 次记录；可选读取 Cloudflare 一小时请求、调用错误、CPU 和内存分位数 | 指标需要应用配置 Account Analytics Read Token；当前真实预览未配置，平台适配器以夹具验证；不是宿主机监控或外部可用率 |
 | 自动回归 | workerd 真实绑定测试、Node 预检测试、Linux 视觉与行为断言，包含取消、异常、权限和 Token 边界 | 测试夹具不会改预览存储；真实预览验收不能被 HTML 200 或独立测试替代 |
 
 ## 本轮落实的改进
@@ -43,6 +44,7 @@
 | [TanStack Query 取消](https://tanstack.com/query/latest/docs/framework/react/guides/query-cancellation) | 消费 AbortSignal，避免旧请求回写 | 现有 hook 无缓存，适合目前规模；多个模块需要共享缓存时可接 QueryClient，并通过会话清理回调清缓存 |
 | [react-error-boundary](https://github.com/bvaughn/react-error-boundary) | 实际复用 resetKeys、重试和错误回调 | 无需自己维护另一个 React 边界实现；页面、根部与异步错误责任已经分清 |
 | [Cloudflare D1 复制](https://developers.cloudflare.com/d1/best-practices/read-replication/) | first-primary 授权读取 | 撤销需要明确一致性语义；不把最终一致 KV 缓存当作即时撤销的唯一依据 |
+| [Uptime Kuma](https://github.com/louislam/uptime-kuma)、[OpenStatus](https://github.com/openstatusHQ/openstatus) | 参考真实检查记录、状态条和键盘可访问交互；图标实际使用 Ant Design Icons | 不复制整套监控服务或 OpenStatus 源码；应用内检查、平台采样指标和外部监控分别说明，未知值不显示为零 |
 
 ## 后续优先级
 

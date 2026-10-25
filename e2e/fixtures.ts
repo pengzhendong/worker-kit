@@ -61,6 +61,14 @@ export const test = base.extend<ConsoleOptions>({
       }
       if (pathname === '/api/admin/access') return respond({ permissions: grants });
       if (pathname === '/api/admin/diagnostics') return respond({ ok: true, checks: [{ name: 'D1', status: 'ok', durationMs: 3 }, { name: 'KV', status: 'ok', durationMs: 2 }, { name: 'R2', status: 'ok', durationMs: 1 }] });
+      if (pathname === '/api/admin/runtime') return respond({
+        application: { name: 'WorkerKit Dashboard', version: '0.2.0' }, runtime: 'Cloudflare Workers', environment: 'local', checkedAt: date, ok: true,
+        version: { id: '00000000-0000-4000-8000-000000000001', tag: 'preview', createdAt: date },
+        checks: [{ name: 'D1', kind: 'database', description: '配置与操作日志', status: 'ok', durationMs: 3 }, { name: 'KV', kind: 'kv', description: '应用设置', status: 'ok', durationMs: 2 }, { name: 'R2', kind: 'storage', description: '私有文件存储', status: 'ok', durationMs: 1 }],
+      });
+      if (pathname === '/api/admin/runtime/metrics') return respond({ source: 'cloudflare', status: 'not-configured', message: '尚未接入 Cloudflare 指标', from: '2026-10-24T11:00:00.000Z', to: date,
+        requests: null, errors: null, cpuMsP50: null, cpuMsP99: null, wallMsP50: null, wallMsP99: null, memoryBytesP50: null, memoryBytesP99: null,
+      });
       if (pathname === '/api/admin/audit/retention') return respond({ enabled: false, days: null, before: null, eligible: 0, batchLimit: 1000 });
       if (pathname === '/api/admin/openapi.json') return respond(await apiDocument);
       if (pathname === '/api/admin/api-keys') return respond({ items: [], total: 0, page: 1, pageSize: 10, grantablePermissions: ['resources:read'] });
@@ -91,7 +99,7 @@ export { expect };
 export async function openDashboard(page: Page, section = 'overview') {
   await page.goto(`/#${section}`);
   await expect(page.locator('[data-workerkit-shell]')).toBeVisible();
-  await expect(page.getByRole('heading', { name: { overview: '工作台', resources: '资源管理', files: '文件管理', components: '组件与交互', tools: '开发工具', api: 'API 中心' }[section] ?? section, exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: { overview: '工作台', resources: '资源管理', files: '文件管理', components: '组件与交互', tools: '开发工具', api: 'API 中心', runtime: '运行状态' }[section] ?? section, exact: true })).toBeVisible();
   await expect(page.locator('.ant-spin-spinning')).toHaveCount(0);
   await page.evaluate(() => document.fonts.ready);
 }

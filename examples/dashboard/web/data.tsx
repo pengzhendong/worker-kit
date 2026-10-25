@@ -26,6 +26,7 @@ export function Icon({ name }: { name: string }) {
     files: 'M3 6h7l2 3h9v11H3z M3 6V4h7l2 2',
     settings: 'M4 6h16 M4 12h16 M4 18h16 M8 3v6 M16 9v6 M10 15v6',
     audit: 'M6 3h12v18H6z M9 7h6 M9 11h6 M9 15h4',
+    runtime: 'M3 12h4l3-8 4 16 3-8h4',
     account: 'M16 7a4 4 0 1 1-8 0a4 4 0 0 1 8 0 M4 21v-2a8 8 0 0 1 16 0v2',
     components: 'M3 3h6v6H3z M14 3h7v6h-7z M3 14h6v7H3z M14 14h7v7h-7z',
     tools: 'M14 6a4 4 0 0 0-5 5L3 17l4 4 6-6a4 4 0 0 0 5-5l-3 3-4-4z',

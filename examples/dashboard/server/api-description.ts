@@ -27,6 +27,14 @@ const json = (schema: O.SchemaObject): O.RequestBodyObject => ({ required: true,
 const response = (schema: O.SchemaObject): O.ResponseObject => ({ description: '成功', content: { 'application/json': { schema } } });
 export interface Endpoint { method: 'GET' | 'POST' | 'PUT' | 'DELETE'; path: string; summary: string; tag: string; permission?: string; token?: boolean; public?: boolean; input?: O.RequestBodyObject; parameters?: O.ParameterObject[]; output?: O.SchemaObject; status?: number; description?: string; binary?: boolean }
 const page = (items: O.SchemaObject) => obj({ items: arr(items), total: integer, page: integer, pageSize: integer });
+const numeric = { type: 'number' as const, minimum: 0 };
+const runtime = obj({ application: obj({ name: str, version: str }), runtime: { ...str, const: 'Cloudflare Workers' }, environment: str, checkedAt: stamp, ok: bool,
+  version: obj({ id: nullable(str), tag: nullable(str), createdAt: nullable(stamp) }),
+  checks: arr(obj({ name: str, kind: { ...str, enum: ['database', 'kv', 'storage', 'service'] }, description: str, status: { ...str, enum: ['ok', 'error', 'timeout'] }, durationMs: numeric })),
+});
+const metrics = obj({ source: { ...str, const: 'cloudflare' }, status: { ...str, enum: ['ok', 'not-configured', 'error'] }, message: str, from: stamp, to: stamp,
+  ...Object.fromEntries(['requests', 'errors', 'cpuMsP50', 'cpuMsP99', 'wallMsP50', 'wallMsP99', 'memoryBytesP50', 'memoryBytesP99'].map((name) => [name, nullable(numeric)])),
+});
 export const endpoints: readonly Endpoint[] = [
   { method: 'GET', path: '/health', summary: '服务存活检查', tag: '运行', public: true, output: obj({ ok: bool, service: str }) },
   { method: 'POST', path: '/api/auth/login', summary: '管理员登录', tag: '认证', public: true, input: json(obj({ username: str, password: { ...str, format: 'password' } })), output: session, description: '同源 Origin 必填；设置 HttpOnly Cookie。限流可能返回 429 和 Retry-After。' },
@@ -35,6 +43,8 @@ export const endpoints: readonly Endpoint[] = [
   { method: 'GET', path: '/api/admin/access', summary: '当前操作权限', tag: '认证', token: true, output: obj({ permissions: arr(str) }) },
   { method: 'GET', path: '/api/admin/overview', summary: '工作台概览', tag: '运行', permission: 'overview:read', token: true, output: obj({ user: str, runtime: str, now: stamp, total: nullable(integer), enabled: nullable(integer), files: nullable(integer), filesTruncated: bool, bytes: nullable(integer), recent: arr(resource), activity: arr(audit), bindings: arr(obj({ name: str, detail: str, status: str })) }) },
   { method: 'GET', path: '/api/admin/diagnostics', summary: '只读依赖诊断', tag: '运行', permission: 'overview:diagnose', output: obj({ ok: bool, checks: arr(obj({ name: str, status: { ...str, enum: ['ok', 'error', 'timeout'] }, durationMs: integer })) }), description: '200 表示取得诊断报告；依赖状态由 ok/checks 判断。每项默认等待上限 1500ms。' },
+  { method: 'GET', path: '/api/admin/runtime', summary: '查看应用运行状态', tag: '运行', permission: 'runtime:read', output: runtime, description: '只读依赖检查与原生版本元数据。200 表示取得报告，依赖状态检查 ok/checks；不是全天可用率。' },
+  { method: 'GET', path: '/api/admin/runtime/metrics', summary: '读取 Cloudflare 运行指标', tag: '运行', permission: 'runtime:read', output: metrics, description: '服务端配置固定 Worker 的过去一小时聚合指标。CPU/执行耗时单位 ms，内存 bytes；未接入或失败返回明确状态和 null，不返回密钥或原始平台错误。' },
   { method: 'GET', path: '/api/admin/resources', summary: '查询资源', tag: '资源', permission: 'resources:read', token: true, parameters: resourceQuery, output: page(resource) },
   { method: 'POST', path: '/api/admin/resources', summary: '新增资源', tag: '资源', permission: 'resources:create', token: true, input: json(resourceInput), output: resource, status: 201 },
   { method: 'PUT', path: '/api/admin/resources/:id', summary: '编辑资源', tag: '资源', permission: 'resources:update', token: true, input: json(resourceInput), output: outputJsonSchema(resourceUpdateSchema) as O.SchemaObject },

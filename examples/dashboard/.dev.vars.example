@@ -1,3 +1,8 @@
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=replace-with-a-local-password
 ADMIN_SESSION_SECRET=replace-with-a-random-secret-at-least-32-characters
+
+# Optional: read-only Cloudflare Analytics. Leave all three unset for local-only status.
+# CLOUDFLARE_METRICS_ACCOUNT_ID=your-account-id
+# CLOUDFLARE_METRICS_SCRIPT_NAME=dashboard
+# CLOUDFLARE_METRICS_API_TOKEN=your-account-analytics-read-token

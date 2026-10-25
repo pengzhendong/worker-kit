@@ -4,6 +4,7 @@
   "main": "server/index.ts",
   "compatibility_date": "2026-10-19",
   "compatibility_flags": ["nodejs_compat"],
+  "version_metadata": { "binding": "CF_VERSION_METADATA" },
   // 0 disables automatic eligibility; cleanup is always an explicit authenticated operation.
   "vars": { "AUDIT_RETENTION_DAYS": "0" },
   "assets": {

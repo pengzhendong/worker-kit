@@ -17,6 +17,7 @@
     "./web": "./src/web/index.ts",
     "./web/api-center": "./src/web/api-center.tsx",
     "./web/scalar-reference": "./src/web/scalar-reference.tsx",
+    "./web/runtime-status": "./src/web/runtime-status.tsx",
     "./tooling/vite": "./src/tooling/vite.ts",
     "./tooling/tsconfig.json": "./src/tooling/tsconfig.json",
     "./web/styles.css": "./src/web/styles.css",
@@ -51,7 +52,8 @@
     "wrangler": "^4.152.0",
     "hono-openapi": "^1.5.0",
     "@scalar/api-reference-react": "^0.9.82",
-    "openapi-types": "^12.1.3"
+    "openapi-types": "^12.1.3",
+    "@ant-design/icons": "^6.3.4"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -88,6 +90,9 @@
       "optional": true
     },
     "openapi-types": {
+      "optional": true
+    },
+    "@ant-design/icons": {
       "optional": true
     }
   },

@@ -16,6 +16,7 @@
 | `@pengzhendong/worker-kit/web` | React/Ant Design 后台布局、移动端导航、主题、登录页、页面标题、统计卡片、会话与请求取消、API 客户端、无缓存查询 hook、页面错误边界 |
 | `@pengzhendong/worker-kit/web/api-center` | 可选的接口目录、筛选与文档容器；应用传入自己的 Token 面板 |
 | `@pengzhendong/worker-kit/web/scalar-reference` | 可选的独立 Scalar 文档入口，限制同源请求并接入会话取消 |
+| `@pengzhendong/worker-kit/web/runtime-status` | 可选的图标化运行状态、依赖检查、版本信息和平台资源指标 |
 | `@pengzhendong/worker-kit/openapi` | 可选 hono-openapi 原生描述、Schema 适配与文档生成 |
 | `@pengzhendong/worker-kit/tooling/vite` | React 与 Cloudflare Vite 插件组合 |
 | `@pengzhendong/worker-kit/tooling/tsconfig.json` | 可继承的 TypeScript 基础配置 |
@@ -174,7 +175,8 @@ Honeybee 原项目已接入固定版本 submodule、公共布局与主题、底�
 - 文件管理：私有 R2 文件上传、游标分页、当前页搜索、认证下载、删除。默认单文件最大 10 MB；文件只在当前应用的 `uploads/` 前缀中操作。
 - 系统设置：KV 保存应用名称、描述、联系邮箱、分页和欢迎区域偏好；名称会更新导航与页面标题。
 - 操作日志：D1 记录资源、文件与设置变更，可按操作筛选和分页。它不是全量 HTTP 访问日志。
-- API 中心：27 个操作的搜索、方法与分组筛选、Scalar 文档与同源调试、访问令牌生成和撤销。
+- API 中心：29 个操作的搜索、方法与分组筛选、Scalar 文档与同源调试、访问令牌生成和撤销。
+- 运行状态：图标化的依赖连接检查、检查记录、应用及 Worker 版本；可选的 Cloudflare 请求量、错误率、CPU 与内存 P50/P99。未接入时不伪造数据，见[接入与数据来源](docs/runtime-status.md)。
 - 当前账户：当前身份、会话期限和退出。
 - 组件与交互：页面组合、搜索筛选与批量启停、本地文件选择、弹窗校验与失败重试、删除确认与还原、加载/空/错误状态、消息与通知。所有操作仅使用页面内的临时数据，支持重置，不写入业务 API 或存储。
 - 开发工具：仅本地开发展示，按“本地调试、项目工具、模块与权限、运行与恢复、按需扩展”介绍已有工具、实际声明与授权、只读依赖诊断、错误恢复演示及检查命令。

@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@ant-design/icons": "6.3.4",
     "@pengzhendong/worker-kit": "file:../..",
     "@scalar/api-reference-react": "0.9.82",
     "antd": "6.6.7",

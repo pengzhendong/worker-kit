@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { App as AntApp, Button, Card, Descriptions, Flex, Result, Spin, Tag } from 'antd';
 import { AdminShell, ApiClientError, AppErrorBoundary, LoginPage, ModuleAccessProvider, PageHeader, useModuleAccess } from '@pengzhendong/worker-kit/web';
-import { authApi, formatTime, Icon, sessionScope, useQuery } from './data';
+import { api, authApi, formatTime, Icon, sessionScope, useQuery } from './data';
 import type { Settings } from './data';
 import { defineModules, getModuleNavigation, resolveModule } from '@pengzhendong/worker-kit/modules';
 import type { AccessSnapshot } from '@pengzhendong/worker-kit/modules';
@@ -15,6 +15,7 @@ const FilesPage = lazy(() => import('./FilesPage').then((module) => ({ default: 
 const SettingsPage = lazy(() => import('./SettingsPage').then((module) => ({ default: module.SettingsPage })));
 const AuditPage = lazy(() => import('./AuditPage').then((module) => ({ default: module.AuditPage })));
 const ApiCenterPage = lazy(() => import('./ApiCenterPage').then((module) => ({ default: module.ApiCenterPage })));
+const RuntimeStatusPage = lazy(() => import('@pengzhendong/worker-kit/web/runtime-status').then(({ RuntimeStatus }) => ({ default: () => <RuntimeStatus client={api} /> })));
 const ComponentsPage = lazy(() => import('./ComponentsPage').then((module) => ({ default: module.ComponentsPage })));
 const ToolsPage = import.meta.env.DEV ? lazy(() => import('./ToolsPage').then((module) => ({ default: module.ToolsPage }))) : null;
 type Session = { user: string; expiresAt: number };
@@ -46,6 +47,7 @@ function Console({ session, onLogout }: { session: Session; onLogout: () => Prom
     files: () => <FilesPage />,
     settings: () => <SettingsPage onSaved={setSavedSettings} />,
     audit: () => <AuditPage />,
+    runtime: () => <RuntimeStatusPage />,
     api: () => <ApiCenterPage />,
     components: () => <ComponentsPage />,
     account: () => <><PageHeader title="当前账户" description="查看当前管理员身份与会话信息。" /><Card title="账户信息" style={{ maxWidth: 820 }}><Descriptions column={1} items={[

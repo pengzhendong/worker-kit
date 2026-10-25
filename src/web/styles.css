@@ -3,3 +3,19 @@ html, body, #root { min-height: 100%; margin: 0; }
 body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
 *, *::before, *::after { box-sizing: border-box; }
 .wk-api-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+.wk-runtime { display: flex; flex-direction: column; gap: 24px; }
+.wk-runtime > [data-workerkit-page-header] { margin-bottom: 0 !important; }
+.wk-runtime-health { width: 56px; height: 56px; flex-shrink: 0; display: grid; place-items: center; border-radius: 16px; font-size: 28px; }
+.wk-runtime-history { min-height: 56px; margin-bottom: 16px; }
+.wk-runtime-history > span { width: 12px; height: 36px; border-radius: 4px; }
+.wk-runtime-checks { display: flex; flex-direction: column; gap: 20px; }
+.wk-runtime-check { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.wk-runtime-symbol { width: 40px; height: 40px; display: grid; place-items: center; flex-shrink: 0; border-radius: 10px; font-size: 20px; }
+.wk-runtime-check-copy { display: flex; flex: 1 1 200px; flex-direction: column; gap: 4px; min-width: 0; }
+.wk-runtime-latency { text-align: right; min-width: 72px; }
+@media (max-width: 575px) {
+  .wk-runtime-check { gap: 12px; }
+  .wk-runtime-check-copy { flex-basis: calc(100% - 52px); }
+  .wk-runtime-check > .ant-space { margin-left: 52px; }
+  .wk-runtime-latency { margin-left: auto; }
+}

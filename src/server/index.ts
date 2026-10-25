@@ -10,5 +10,7 @@ export { readPageQuery, readCursorQuery } from './query';
 export { createModuleAccess } from './access';
 export { runHealthChecks } from './health';
 export type { HealthCheckResult } from './health';
+export { inspectRuntime, readCloudflareMetrics } from './runtime';
+export type { RuntimeStatusOptions, CloudflareMetricsOptions } from './runtime';
 export { createApiKeys, apiKeyInfo, hashApiKey } from './api-keys';
 export type { ApiKeyRecord, ApiKeyInfo, ApiKeyStore } from './api-keys';

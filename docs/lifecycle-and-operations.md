@@ -87,3 +87,5 @@ doctor 不执行项目脚本、网络请求、安装、迁移或部署，也不�
 - [Refine Auth Provider](https://refine.dev/core/docs/authentication/auth-provider/)：借鉴认证错误单独决策的扩展点。WorkerKit 的策略是仅 401 失效；403 保留身份，不照搬示例中的所有状态码。
 - [react-error-boundary](https://github.com/bvaughn/react-error-boundary)：实际依赖，复用 resetKeys、reset 和原生错误回调。
 - [Cloudflare Workers Logs](https://developers.cloudflare.com/workers/observability/logs/workers-logs/) 与 [Metrics](https://developers.cloudflare.com/workers/observability/metrics-and-analytics/)：使用平台观测能力。
+
+正式运行状态页与可复用组件已加入，包含原生版本元数据、依赖检查记录和可选平台指标。旧诊断接口继续兼容；数据来源、只读 Token 和边界见 [运行状态](runtime-status.md)。

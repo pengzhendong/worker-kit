@@ -5,7 +5,7 @@ const key = { id: 'key-1', owner: 'admin', name: '订阅同步脚本', prefix: '
 
 test('API catalog searches documented endpoints and opens the matching Scalar operation', async ({ page }) => {
   await openDashboard(page, 'api');
-  await expect(page.getByText('共 27 个接口', { exact: true })).toBeVisible();
+  await expect(page.getByText('共 29 个接口', { exact: true })).toBeVisible();
   await screenshot(page, 'api-catalog.png');
   await page.getByRole('searchbox', { name: '搜索接口', exact: true }).fill('查询资源');
   await expect(page.getByText('共 1 个接口', { exact: true })).toBeVisible();

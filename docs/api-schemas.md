@@ -35,6 +35,6 @@ JSON Schema 正则没有 JavaScript 的 flags。地址规则显式表达大小�
 
 `test/schema-contracts.test.ts` 检查生成文档里的字段范围、地址正则、示例请求、真实 HTTP 边界、写入不变、部分设置合并、错误码和鉴权顺序，以及创建/修改/列表/导出的响应。已有 Token、权限、批量和存储测试继续覆盖业务授权与副作用。
 
-本次统一的是应用自己的 JSON 写入字段。登录、私有文件和分页查询仍使用共享库原有校验器；它们的运行限制和安全策略由原生路由保证，文档覆盖测试仍保留。没有宣称全部 27 个操作都进行运行时响应校验。新业务接口可以按 [Hono 的验证约定](https://hono.dev/docs/guides/validation) 直接使用 [hono-openapi 的 Standard Schema validator](https://honohub.dev/docs/openapi)，不必复制示例的兼容处理。
+本次统一的是应用自己的 JSON 写入字段。登录、私有文件和分页查询仍使用共享库原有校验器；它们的运行限制和安全策略由原生路由保证，文档覆盖测试仍保留。没有宣称全部 29 个操作都进行运行时响应校验。新业务接口可以按 [Hono 的验证约定](https://hono.dev/docs/guides/validation) 直接使用 [hono-openapi 的 Standard Schema validator](https://honohub.dev/docs/openapi)，不必复制示例的兼容处理。
 
 参考：[Zod 原生 JSON Schema](https://zod.dev/json-schema)、[Hono OpenAPI](https://hono.dev/examples/hono-openapi)。
