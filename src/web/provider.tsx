@@ -25,7 +25,7 @@ function ThemeSurface({ children }: { children: ReactNode }) {
   return <App style={variables}>{children}</App>;
 }
 
-export function WorkerKitProvider({ children, storageKey = 'workerkit.theme', theme: overrides, locale = zhCN }: { children: ReactNode; storageKey?: string; theme?: ThemeConfig; locale?: ConfigProviderProps['locale'] }) {
+export function WorkerKitProvider({ children, storageKey = 'workerkit.theme', theme: themeOverrides, locale = zhCN }: { children: ReactNode; storageKey?: string; theme?: ThemeConfig | ((dark: boolean) => ThemeConfig); locale?: ConfigProviderProps['locale'] }) {
   const [dark, setDark] = useState(() => {
     try { return typeof window !== 'undefined' && localStorage.getItem(storageKey) === 'dark'; }
     catch { return false; }
@@ -35,6 +35,7 @@ export function WorkerKitProvider({ children, storageKey = 'workerkit.theme', th
     catch { /* Storage may be disabled; theme switching still works. */ }
   }, [dark, storageKey]);
   const value = useMemo(() => ({ dark, toggle: () => setDark((current) => !current) }), [dark]);
+  const overrides = typeof themeOverrides === 'function' ? themeOverrides(dark) : themeOverrides;
   return <ThemeContext.Provider value={value}>
     <ConfigProvider locale={locale} theme={{ algorithm: dark ? theme.darkAlgorithm : theme.defaultAlgorithm, ...overrides, token: { ...workerKitTokens, ...(dark ? workerKitDarkTokens : {}), ...overrides?.token } }}>
       <ThemeSurface>{children}</ThemeSurface>

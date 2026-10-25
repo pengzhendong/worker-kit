@@ -33,6 +33,8 @@ import '@pengzhendong/worker-kit/web/styles.css';
 | 页面边距 | ≥768 px 时 32 px，否则 16 px；内容最大宽 1440 px | `AdminShell` |
 | 文件上传 | 示例使用 88 px 横条，文件列表紧随其后 | `workerKitLayout.uploadHeight` |
 
+消费应用可通过 `WorkerKitProvider` 的 `theme` 覆盖 Ant Design token；传入 `(dark) => ThemeConfig` 可分别提供深浅色品牌色、链接色和按钮文字色。保持品牌色相一致，并分别检查浅色背景与深色背景的对比度，避免将 logo 的亮色直接用于白底小字。
+
 图标优先使用同一组 SVG，采用 currentColor。自定义图标组件应传递 className、style 与 aria 属性；`IconBox` 已处理导航图标的容器对齐。只有图标的按钮必须有可访问名称，必要时配 Tooltip。选中、成功、危险等状态都应有文字，不能仅用颜色表达。
 
 `PageHeader` 操作栏统一垂直居中。复选框与按钮混排时，不拉伸复选框外层；方框、标签文字与相邻按钮的垂直中心应一致，避免方框居中而文字靠上。
