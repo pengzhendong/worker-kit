@@ -134,6 +134,8 @@ Hono 负责 Cookie 签名和凭据比较。会话默认 12 小时；更改用户
 
 ## 前端接入
 
+图片缩放、音视频播放和按需波形通过可选的 [`web/media` 入口](docs/media.md) 接入，基于 Ant Design Image、Video.js 10 与 WaveSurfer。演示位置为“组件与交互 → 媒体预览”，不影响普通前后端入口的依赖。
+
 应用根部放置 `WorkerKitProvider`，按需组合 `LoginPage` 和 `AdminShell`。菜单、当前页面、导航行为和退出操作全部由业务传入。共享库不绑定 React Router，也不要求所有应用采用同一导航实现。
 
 入口导入 `@pengzhendong/worker-kit/web/styles.css` 完成基础重置。Provider 接受标准 Ant Design `theme` 配置，默认 token、布局尺寸与 `IconBox` 可从 `/web` 导出使用。共享界面遵守[界面约定](docs/ui-guidelines.md)，业务 CSS 通过 Provider 的主题变量适配深色模式。

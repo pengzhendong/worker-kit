@@ -3,6 +3,7 @@ import type { Key } from 'react';
 import { Alert, App, Button, Card, Col, Descriptions, Empty, Flex, Form, Input, Modal, Popconfirm, Row, Segmented, Select, Skeleton, Space, Switch, Table, Tabs, Tag, Typography, Upload } from 'antd';
 import { PageHeader, StatCard, workerKitLayout } from '@pengzhendong/worker-kit/web';
 import { formatBytes, Icon } from './data';
+import { MediaExamples } from './MediaExamples';
 
 type DemoItem = { id: number; name: string; kind: string; enabled: boolean };
 const initialItems: DemoItem[] = [
@@ -155,6 +156,7 @@ export function ComponentsPage() {
       { key: 'composition', label: '页面组合', children: <CompositionExamples /> },
       { key: 'forms', label: '表单与确认', children: <FormExamples /> },
       { key: 'states', label: '状态与反馈', children: <StateExamples /> },
+      { key: 'media', label: '媒体预览', destroyOnHidden: true, children: <MediaExamples /> },
     ]} />
   </>;
 }

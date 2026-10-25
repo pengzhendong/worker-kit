@@ -1,0 +1,10 @@
+.wk-media-player { width: 100%; min-width: 0; font-family: var(--wk-font-family, system-ui); }
+.wk-media-loading { padding: 16px; width: 100%; }
+.wk-video-skin { width: 100%; aspect-ratio: 16 / 9; --media-object-fit: contain; }
+.wk-audio-skin { width: 100%; }
+.wk-waveform-toolbar { padding: 12px; display: grid; gap: 8px; background: var(--wk-color-surface); }
+.wk-waveform-toolbar > .ant-btn { justify-self: start; }
+.wk-waveform-panel { min-width: 0; }
+.wk-waveform { min-height: 80px; }
+.wk-waveform-panel .ant-typography { font-size: var(--wk-font-size-sm, 12px); }
+.wk-media-player .ant-alert { margin-top: 8px; }
