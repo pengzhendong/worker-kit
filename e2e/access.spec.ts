@@ -27,6 +27,10 @@ test.describe('read-only access', () => {
     await page.goto('/#/settings');
     await expect(page.getByLabel('应用名称', { exact: true })).toBeDisabled();
     await expect(page.getByRole('button', { name: '保存设置', exact: true })).toHaveCount(0);
+    await openNavigation(page);
+    await page.getByRole('button', { name: '用户菜单，admin', exact: true }).click();
+    await expect(page.getByRole('menuitem', { name: '系统设置', exact: true })).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: 'API 中心', exact: true })).toHaveCount(0);
   });
   test('direct unauthorized and unknown routes never render protected pages or fetch their data', async ({ page }) => {
     const requests: string[] = [];

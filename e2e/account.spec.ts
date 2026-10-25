@@ -11,6 +11,7 @@ test('account stays at the bottom and opens an upward menu', async ({ page }, in
   await openDashboard(page);
   await expect(page.getByText('当前应用工作空间', { exact: true })).toHaveCount(0);
   const trigger = await userButton(page);
+  await expect(page.locator('[data-workerkit-region="sidebar-navigation"]').getByRole('menuitem', { name: 'API 中心', exact: true })).toHaveCount(0);
   const bounds = await trigger.boundingBox();
   expect(bounds).not.toBeNull();
   expect(Math.abs(bounds!.y + bounds!.height - page.viewportSize()!.height + 12)).toBeLessThanOrEqual(1);
@@ -23,7 +24,7 @@ test('account stays at the bottom and opens an upward menu', async ({ page }, in
   await expect(trigger).toHaveAttribute('aria-expanded', 'true');
   const menu = page.getByRole('menu').filter({ has: page.getByRole('menuitem', { name: '退出登录', exact: true }) });
   await expect(menu).toBeVisible();
-  for (const name of ['当前账户', '系统设置', '退出登录']) await expect(menu.getByRole('menuitem', { name, exact: true })).toBeVisible();
+  for (const name of ['当前账户', '系统设置', 'API 中心', '退出登录']) await expect(menu.getByRole('menuitem', { name, exact: true })).toBeVisible();
   const menuBounds = await menu.boundingBox();
   expect(menuBounds!.y + menuBounds!.height).toBeLessThan(bounds!.y);
   await info.attach('account-position', { body: JSON.stringify({ trigger: bounds, menu: menuBounds, controls }), contentType: 'application/json' });
@@ -40,6 +41,12 @@ test('account menu navigates and closes the mobile drawer', async ({ page }) => 
   await (await userButton(page)).click();
   await page.getByRole('menuitem', { name: '系统设置', exact: true }).click();
   await expect(page.getByRole('heading', { name: '系统设置', exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog')).not.toBeVisible();
+  await expect(page.getByRole('menuitem', { name: '退出登录', exact: true })).not.toBeVisible();
+  await (await userButton(page)).click();
+  await page.getByRole('menuitem', { name: 'API 中心', exact: true }).click();
+  await expect(page).toHaveURL(/#\/api$/);
+  await expect(page.getByRole('heading', { name: 'API 中心', exact: true })).toBeVisible();
   await expect(page.getByRole('dialog')).not.toBeVisible();
   await expect(page.getByRole('menuitem', { name: '退出登录', exact: true })).not.toBeVisible();
 });

@@ -2,6 +2,8 @@
 
 API 中心是正式应用模块，生产构建保留。它提供接口目录、Scalar 文档和访问令牌；开发工具目录与 Local Explorer 仍只用于可信本机调试。
 
+演示应用的入口位于左下角用户菜单：点击头像或用户名，再选择“API 中心”。导航位置由模块的 `navigation.placement: 'user'` 声明，仍按 `api:read` 控制可见性与页面访问。
+
 ## OpenAPI 与列表
 
 可选入口 `@pengzhendong/worker-kit/openapi` 导出 hono-openapi 的原生 describeRoute、openAPIRouteHandler、generateSpecs、resolver 和 validator。仅使用 server 不会导入 OpenAPI 或 Scalar。消费项目显式声明 hono-openapi peer，示例固定 1.5.0。
