@@ -24,6 +24,7 @@ export const workerKitDarkTokens = {
 
 export const workerKitLayout = {
   sidebarWidth: 232,
+  sidebarCollapsedWidth: 72,
   headerHeight: 64,
   contentMaxWidth: 1440,
   pagePadding: 32,
