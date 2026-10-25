@@ -96,13 +96,14 @@ export async function inspectProject({ project = process.cwd(), framework = fram
   for (const database of config.d1_databases ?? []) {
     const directory = resolve(dirname(configs[0]), database.migrations_dir ?? 'migrations');
     if (!existsSync(directory)) { add(`migrations:${database.binding}`, 'warn', `未找到 ${database.binding} 的本地迁移目录`); continue; }
-    const files = readdirSync(directory).filter((name) => name.endsWith('.sql')).sort(); const prefixes = new Set(); let valid = true;
+    const files = readdirSync(directory).filter((name) => name.endsWith('.sql')).sort(); const prefixes = new Set(); let valid = true; let duplicate = false;
     for (const name of files) {
       const prefix = /^(\d+)_/.exec(name)?.[1];
-      if (!prefix || prefixes.has(Number(prefix)) || !readFileSync(join(directory, name), 'utf8').trim()) valid = false;
+      if (!prefix || !readFileSync(join(directory, name), 'utf8').trim()) valid = false;
+      if (prefixes.has(Number(prefix))) duplicate = true;
       prefixes.add(Number(prefix));
     }
-    add(`migrations:${database.binding}`, valid && files.length ? 'ok' : 'fail', `${database.binding}：${files.length} 个本地迁移，检查编号重复与空文件；未检查线上应用状态`);
+    add(`migrations:${database.binding}`, !valid || !files.length ? 'fail' : duplicate ? 'warn' : 'ok', `${database.binding}：${files.length} 个本地迁移；${duplicate ? '编号存在重复，Wrangler 按完整文件名记录，历史迁移不要改名；' : ''}检查命名与空文件，未检查线上应用状态`);
   }
   add('coverage', 'info', '离线预检不能证明 Secret 已设置、资源可达、迁移已应用或接口已鉴权；仍需消费项目测试与部署后探测');
   return report;

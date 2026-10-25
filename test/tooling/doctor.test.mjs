@@ -58,3 +58,12 @@ test('doctor compares the actual submodule commit against its parent index witho
   git(f.app, 'add', relative(f.app, checkout));
   assert.equal((await inspectProject({ project: f.app, framework: checkout })).checks.find((check) => check.id === 'submodule').status, 'ok');
 });
+
+test('doctor warns about historical duplicate numbers without rewriting D1 migration identities', async (t) => {
+  const f = fixture(t);
+  writeFileSync(join(f.app, 'migrations/0001_legacy.sql'), 'CREATE TABLE legacy(id TEXT);');
+  const before = snapshot(f.app);
+  const result = await inspectProject({ project: f.app, framework: f.framework });
+  assert.equal(result.checks.find(check => check.id === 'migrations:DB').status, 'warn');
+  assert.deepEqual(snapshot(f.app), before);
+});
