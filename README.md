@@ -4,6 +4,8 @@
 
 当前版本：`0.2.0`，接口仍在通过真实项目接入验证。包含可操作的管理控制台：D1 配置清单、R2 文件管理、KV 应用设置、D1 操作日志。多用户和任务执行尚未接入。
 
+功能边界与后续取舍见[功能回顾](docs/feature-review.md)和[开源复用检查](docs/architecture-review.md)。
+
 ## 已包含
 
 | 入口 | 能力 |
@@ -12,6 +14,8 @@
 | `@pengzhendong/worker-kit/modules` | 无框架依赖的模块声明、菜单排序、静态页面路径、操作权限标识与访问判断 |
 | `@pengzhendong/worker-kit/server` | Hono 应用、统一 JSON 错误、请求 ID、结构化日志、安全响应头、可选单管理员认证、KV 设置路由、R2 文件路由、有时限的健康检查组合器、可替换存储的 opaque API Key 服务 |
 | `@pengzhendong/worker-kit/web` | React/Ant Design 后台布局、移动端导航、主题、登录页、页面标题、统计卡片、会话与请求取消、API 客户端、无缓存查询 hook、页面错误边界 |
+| `@pengzhendong/worker-kit/web/api-center` | 可选的接口目录、筛选与文档容器；应用传入自己的 Token 面板 |
+| `@pengzhendong/worker-kit/web/scalar-reference` | 可选的独立 Scalar 文档入口，限制同源请求并接入会话取消 |
 | `@pengzhendong/worker-kit/openapi` | 可选 hono-openapi 原生描述、Schema 适配与文档生成 |
 | `@pengzhendong/worker-kit/tooling/vite` | React 与 Cloudflare Vite 插件组合 |
 | `@pengzhendong/worker-kit/tooling/tsconfig.json` | 可继承的 TypeScript 基础配置 |
@@ -46,10 +50,10 @@ npm run check
 
 ## 在另一个项目中以 submodule 接入
 
-WorkerKit 仓库需要先有一个 Git 提交。以下 `<worker-kit-repository>` 替换为实际仓库 URL；仓库可以公开或私有。
+仓库位于 `https://github.com/pengzhendong/worker-kit`，目前为私有仓库。消费项目和 CI 需要读取权限，不能依赖本机绝对路径。
 
 ```sh
-git submodule add <worker-kit-repository> framework
+git submodule add https://github.com/pengzhendong/worker-kit.git framework
 ```
 
 父项目的 `package.json` 示例：
@@ -153,7 +157,7 @@ Hono 负责 Cookie 签名和凭据比较。会话默认 12 小时；更改用户
 
 示例的资源、设置、批量操作、令牌创建与日志清理共用运行校验和文档 Schema；定义一次字段规则，由 Zod 原生生成 JSON Schema，并保留旧错误契约。范围与迁移方式见[接口 Schema](docs/api-schemas.md)。Zod 只属于示例应用依赖。
 
-使用可选 `/openapi` 入口需由父项目声明 hono-openapi；Scalar 属于示例前端依赖，不进入共享 server/web 入口。当前 dashboard 新增 `0002_api_keys.sql` 和独立 `API_KEY_RATE_LIMITER` 绑定，消费项目需显式接入，不自动开放旧业务接口。
+使用可选 `/openapi` 入口需由父项目声明 hono-openapi；文档 UI 位于独立的 `/web/api-center` 和 `/web/scalar-reference` 入口，不进入普通 server/web 入口。父项目按需安装 `openapi-types` 和 Scalar。当前 dashboard 新增 `0002_api_keys.sql` 和独立 `API_KEY_RATE_LIMITER` 绑定，消费项目需显式接入，不自动开放旧业务接口。
 
 ## 管理端接入约定
 
@@ -161,7 +165,7 @@ Hono 负责 Cookie 签名和凭据比较。会话默认 12 小时；更改用户
 
 本次对资源字段校验改用 HTTP 422；列表查询改为拒绝未知参数、重复参数和非法分页。原错误结构、列表响应及文件接口保持兼容，批量接口保留旧 `updated` 计数字段并增加逐项结果。兼容边界和升级方法见契约文档。
 
-已在 Honeybee 独立副本验证 submodule 接入、现有认证复用与旧业务适配，范围和补丁见[接入记录](docs/honeybee-integration.md)。原项目未迁移或部署。
+Honeybee 原项目已接入固定版本 submodule、公共布局与主题、底部账户菜单、请求生命周期、统一管理接口和 API 文档。原登录、订阅与流式代理继续由 Honeybee 实现，接入范围与本地验收见[接入记录](docs/honeybee-integration.md)。生产部署单独进行。
 
 ## 可操作的示例功能
 
@@ -235,4 +239,4 @@ npm run deploy
 
 已通过独立 submodule 消费项目验证：创建父仓库、递归克隆、`npm ci`、前后端构建、部署 dry-run 均成功。20 项 Workers 运行时测试通过，覆盖真实 D1/KV/R2 读写和认证边界；浏览器完成登录、新增资源、刷新持久化、保存设置和菜单导航验证。
 
-接下来可以挑选 Honeybee 等真实项目渐进迁移，现有项目尚未迁移。Queue、Workflow 以及多用户认证应由实际接入需求推动，暂不引入通用 CRUD、插件系统或隐藏资源生命周期的抽象。
+Honeybee 已作为第一个真实消费项目接入。Queue、Workflow 以及多用户认证应由实际接入需求推动，暂不引入通用 CRUD、插件系统或隐藏资源生命周期的抽象。

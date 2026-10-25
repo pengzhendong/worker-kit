@@ -118,4 +118,4 @@ submodule 使用消费项目记录的 Git 提交固定版本。升级先阅读�
 
 `test/contracts.test.ts` 覆盖请求白名单和边界、字段错误跨 HTTP 到表单的映射、错误脱敏、实际 D1 的筛选排序分页和部分 ID 缺失、实际 R2 的游标翻页。`e2e/resources.spec.ts` 验证排序请求、后端字段错误保留草稿并重试、批量部分失败保留正确选择并显示明细。
 
-首次现有项目试接使用 Honeybee 的独立副本，记录见 `docs/honeybee-integration.md`。生产存储和现有项目原目录不参与这些测试。
+首次试接使用 Honeybee 的独立副本，随后已迁移原项目的管理端，记录见 `docs/honeybee-integration.md`。契约检查使用内存或隔离本地 KV，不读写生产存储。

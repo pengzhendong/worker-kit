@@ -1,55 +1,59 @@
-# Honeybee 首次接入验证
+# Honeybee 接入记录
 
-本次只在 `~/Documents/Codex/2026-10-24/you-sh/work/honeybee-contract-check` 的独立副本验证。原 `~/code/honeybee` 有未提交的前端与其他改动，复制时保留了当时的工作区状态，没有修改原目录、原 Git 状态、认证配置或部署。没有访问真实订阅源和生产 KV。
+2026-10-25 已在原 `~/code/honeybee` 完成管理端接入。原工作区先留存快照，再单独提交为 `2c49d01`，迁移在此基础上进行。WorkerKit 位于私有 GitHub 仓库，Honeybee 通过 `vendor/worker-kit` 固定提交，父项目保留一份 lockfile。
+
+本次完成本地代码切换、测试与实际预览，没有部署。Honeybee README 说明其 Git 集成会在推送时部署，因此没有推送生产分支。Cloudflare 构建还需确认有权限拉取新建的私有 submodule。
 
 ## 接入范围
 
-- 在消费项目根目录增加 `vendor/worker-kit` Git submodule，父项目使用 `file:vendor/worker-kit` 依赖和一份自己的 lockfile；最新复验固定在共享库提交 `1371db7`。工具链要求 Node ≥22.12。
-- 通过独立 Worker 入口增加 `GET /api/admin/history` 和 `POST /api/admin/history/restore`；其他请求及 `VmessProxyService` 继续交给原 Worker。
-- 原认证模块只导出已有的 `getAuthConfig` 与 `isAuthenticated`，供适配层复用。新端点沿用 Honeybee 的签名 Cookie 和来源检查，不替换登录系统，也不沿用旧的本地免登录开关。
-- 新列表将 Honeybee 原有的、有数量上限的历史索引转换为 `PageList<T>`，支持页码、搜索和声明过的排序。没有扫描整个 KV；响应省略内部 KV 键、哈希和订阅链接。
-- 恢复操作调用原来的 `restoreHistorySnapshot`，失败返回标准错误，成功只返回版本 ID 与恢复时间。旧 `/history` 和 `/history/restore` 保持原有响应和行为。
-- 消费应用的历史选择器改用共享 `createApiClient` 和新的列表类型，仍显示最近十个版本。旧恢复按钮继续使用原业务响应；本次没有迁移整个 Honeybee 控制台。
+- 复用 AdminShell、主题、页面标题、固定滚动分区、移动抽屉与底部账户菜单，品牌继续使用 Honeybee 原图标。
+- 纯 `modules.ts` 声明派生菜单、路径和操作权限；API 中心放在账户菜单。单管理员由服务端明确授予已启用操作，客户端不能自报授权。
+- 删除重复布局、主题与 requestJson，使用公共请求、标准错误、401 会话失效和页面错误恢复。切换源站、离开页面会取消旧请求，保留原版本检查和三路测速并发限制。
+- 复用可选 ApiCenter 和独立 ScalarReference，用 esbuild 双入口和明确 CSP 提供同源资源。没有复制另一套示例 API 界面。
+- 新管理应用复用 Hono、日志、请求 ID、错误、分页与原生 hono-openapi，认证继续使用原 Honeybee 签名 Cookie。新接口配置缺失时拒绝访问，不接受旧本地免登录标记；写操作要求准确匹配的同源 Origin。
 
-## 实际发现的问题
+## 管理接口
 
-原 `node --test` 会递归发现 submodule 下的库测试，以及命名包含 test 的脚本。这些测试需要库自己的 workerd 环境，不能由消费项目的 Node 测试器运行。副本改为 `node --test test/*.test.js`，共享库和消费应用各自运行自己的检查。
+| 方法与路径 | 实现 |
+| --- | --- |
+| GET `/api/admin/session` | 当前账户和服务端模块权限 |
+| POST `/api/admin/logout` | 复用原 Cookie 删除 |
+| GET `/api/admin/openapi.json` | 受保护的 9 个操作文档 |
+| GET `/api/admin/history` | 有数量上限的 KV 历史索引转 PageList；省略内部键、哈希和订阅链接 |
+| POST `/api/admin/history/restore` | 原恢复函数；成功只返回版本与时间，失败不伪报成功 |
+| GET `/api/admin/subscription` | 原订阅缓存状态 |
+| POST `/api/admin/subscription/refresh` | 原刷新和质量保护；业务拒绝检查 refresh.status |
+| GET `/api/admin/nodes` | 原当前、历史或候选节点；传递选定源站 |
+| POST `/api/admin/nodes/probe` | 原单节点握手测试；JSON 与体积限制 |
 
-WorkerKit 提供的是 TypeScript 源码入口，由 Wrangler/Vite/esbuild 编译。Honeybee 的新增适配代码用独立 tsconfig 检查，契约测试由 esbuild 编译后在 Node 中运行。测试保留动态 import 分块，避免 Node 提前加载 Cloudflare sockets；真实 Worker 构建和 dry-run 使用 Cloudflare 的原生环境。本地源码 file 依赖会把共享库的开发工具信息纳入父项目 lockfile，本次没有另建子模块安装目录或第二份消费项目 lockfile。
+新 Worker 入口只分流 `/api/admin/*`。原 `/subscription`、`/cloudflare.yaml`、`/health`、`/history*`、`/node-status*` 和命名导出的 VmessProxyService 继续由原业务处理。缓存键、生产绑定、订阅 token、RPC 和流式响应保持原实现。原公共订阅刷新拒绝的状态码不变；没有为了文档新加 D1 或通用 Token。
 
-升级复验还检查了父项目实际安装树：WorkerKit 的 overrides 不会自动应用到父项目。副本同步 Miniflare/Undici 与测试插件/Zod 的补丁约束，并显式把 Zod 4.6.7 固定为父项目开发依赖；只加 overrides 时曾仍提升旧版 Zod，`npm ls` 会报告 invalid。重新 `npm ci --ignore-scripts` 后，`npm ls undici zod` 正常，实际分别为 7.30.1 与 4.6.7；React、Hono 和错误边界各使用父项目的一份安装。
+## 安装与检查
 
-## 验证方法
-
-在副本根目录运行：
+要求 Node ≥22.12；在 Honeybee 父项目运行：
 
 ```sh
+git submodule update --init --recursive
 npm ci --ignore-scripts
-npm ls undici zod
-npm run typecheck:workerkit
-npm test
-npm run test:workerkit
-npm run build:admin
-npm run build:workerkit
-npx wrangler deploy --dry-run --config wrangler.workerkit.jsonc
+npm ls undici zod react hono react-error-boundary
+npm run doctor -- --strict
+npm run check
 ```
 
-配置文件是无真实域名和资源 ID 的独立检查配置；上面的最后一步只进行 dry-run。不能直接把检查配置作为生产配置。
+不要在子模块内安装。消费项目改用 `node --test test/*.test.js`，避免 Node 误发现库自己的 workerd 测试。适配层有独立类型检查，契约检查由 esbuild 编译后运行 Node 测试器，保留动态 import 分块避免提前加载 Cloudflare sockets。
 
-验证包括 52 项 Honeybee 原测试，以及 7 项新增契约接入检查：已有 Cookie 互通、未登录与篡改会话拒绝访问、列表筛选排序分页、字段错误到表单辅助函数、真实旧业务函数的历史恢复、跨来源和不存在记录的失败结果、旧接口兼容。
+父项目 overrides 固定 Undici 7.30.1 和测试插件 Zod 4.6.7，并显式固定根 Zod。npm 曾保留插件下旧 Zod，执行 `npm update zod --ignore-scripts` 后重新 npm ci 与 npm ls 通过。React、Hono、错误边界均为父项目单份安装；子模块 overrides 不会自动应用到父项目。
 
-新增接入测试调用副本里的实际 Honeybee 业务与认证代码，KV 使用内存替身，不涉及生产数据。WorkerKit 自身另有真实 workerd/D1/R2 测试。
+通过 50 项业务测试、12 项适配检查、类型检查、严格 doctor、双入口构建和 Worker dry-run。移除的两项旧 requestJson 单元测试对应已删除的重复传输函数；公共客户端由 WorkerKit 检查覆盖，新的消费项目检查验证其与原业务错误的实际适配。
 
-## Wrangler 本地与浏览器复验
+## 真实本地验收
 
-2026-10-25 另用独立配置在本地 5175 端口启动实际 Wrangler。`.dev.vars` 仅包含专用测试凭据和虚构源站 `https://source.example`，没有本地免登录开关。用 Wrangler 向副本的本地 KV 写入两个空节点历史夹具，不读取原项目凭据、真实订阅或生产 KV。
+使用原项目源码和构建产物在 5175 启动真实 Wrangler。独立配置、测试凭据和本地 KV 存放于隔离工作目录，源站为虚构 https://source.example，包含两个空节点历史夹具。没有读取原项目 .dev.vars、真实订阅和生产 KV，也不用假节点冒充真实服务。
 
-真实服务检查包括：未登录 401；原 Honeybee 签名 Cookie 登录；新接口列表的分页、排序和安全字段；新恢复接口写入本地 KV 后当前版本更新；旧 `/history` 继续返回原格式；跨来源恢复返回 403 且当前版本不变。浏览器确认原控制台能加载两条历史、切换选择，刷新后显示恢复后的当前版本。Cloudflare 节点因未配置而显示未配置状态，没有用假节点冒充可用服务。验收后已停止这个临时服务；WorkerKit 的 5173 预览继续运行。
+验证登录、未登录拒绝、会话权限、历史查询与恢复、跨来源拒绝、旧接口兼容、节点、OpenAPI 和注销。浏览器确认公共布局、账户菜单、API 目录、Scalar、主题与业务状态。长页正文滚动约 257px 时 body、侧栏、顶栏不移动，页面切换后内容回顶。未配置 Cloudflare 节点明确显示不可用。
 
-这补齐了独立副本的真实运行验收，仍不能替代正式切换时的生产配置、真实订阅和流式代理检查。
+WorkerKit 自身另通过 73 项 workerd、5 项工具测试和固定 Linux 131 项 UI 回归（5 项条件跳过），没有更新视觉基准。以上不能证明真实订阅源、线上 Secrets、私有仓库授权和生产资源已经可用。
 
-## 补丁与下一步
+## 历史补丁
 
-接入补丁在 `examples/integrations/honeybee.patch`，基于 2026-10-24 当时的本地工作区快照，包含 submodule、父项目依赖、薄适配层、前端调用和测试；现已更新到上述固定版本与依赖补丁。它尚未应用到原 Honeybee 仓库。新版补丁已在匹配快照的另一份干净副本通过 `git apply --check`。实际应用前仍应在匹配的工作区副本检查。
-
-WorkerKit 尚未建立远程仓库，所以验证副本的 submodule URL 使用本机仓库路径。发布远程仓库后应替换 URL，并保留经过验证的 Git 提交固定版本。正式迁移还需将新入口与实际 Wrangler 配置合并、进行浏览器验收，再单独部署。
+`examples/integrations/honeybee.patch` 仅保留首次独立副本试接记录，基于旧工作区和本机 submodule URL，不是当前迁移脚本。现行实现以 Honeybee 父项目源码、Git 指针和 lockfile 为准。

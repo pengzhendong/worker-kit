@@ -12,7 +12,7 @@ API 中心是正式应用模块，生产构建保留。它提供接口目录、S
 <ApiCenter client={api} scope={sessionScope} referenceUrl="/reference.html" />
 ```
 
-应用在独立 HTML 中渲染 `<ScalarReference />`，由原生构建器产生第二个入口。默认读取 `/api/admin/openapi.json`，也可传 `specUrl`。通用组件负责列表、筛选、按操作查看、主题和会话失效；OpenAPI 路由、身份策略、Token 存储仍属于消费应用。有 Token 管理时通过 `tokenPanel` 传入业务面板；没有配置时不显示令牌页签。
+应用在独立 HTML 中渲染 `<ScalarReference />`，由原生构建器产生第二个入口。默认读取 `/api/admin/openapi.json`，也可传 `specUrl`。通用组件负责列表、筛选、按操作查看、主题和会话失效；OpenAPI 路由、身份策略、Token 存储仍属于消费应用。有 Token 管理时通过 `tokenPanel` 传入业务面板；没有配置时不显示令牌页签，应用可通过 `description` 和 `documentationNote` 说明自己的认证方式。非 Vite 的 TypeScript 项目应声明 `*.css` 模块，让类型检查接受 Scalar 的样式导入；esbuild 等原生构建器实际处理 CSS。
 
 ## OpenAPI 与列表
 

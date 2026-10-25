@@ -26,13 +26,14 @@ function ReferenceFrame({ operation, scope, referenceUrl }: { operation?: string
 }
 
 /** Optional UI only. Applications own the OpenAPI route, permissions and token storage. */
-export function ApiCenter({ client, scope, specUrl = '/api/admin/openapi.json', referenceUrl = '/reference.html', tokenPanel, description = '查阅应用接口、调用文档与访问令牌。' }: {
+export function ApiCenter({ client, scope, specUrl = '/api/admin/openapi.json', referenceUrl = '/reference.html', tokenPanel, description = '查阅应用接口、调用文档与访问令牌。', documentationNote = '文档由 Scalar 展示，调试仅请求当前应用；填写的 Token 不持久保存。发送写请求会修改真实数据。' }: {
   client: ReturnType<typeof createApiClient>;
   scope: SessionScope;
   specUrl?: string;
   referenceUrl?: string;
   tokenPanel?: ReactNode;
   description?: string;
+  documentationNote?: ReactNode;
 }) {
   const [active, setActive] = useState('list'); const [selectedOperation, setSelectedOperation] = useState<string>(); const [search, setSearch] = useState(''); const [method, setMethod] = useState(''); const [tag, setTag] = useState('');
   const { data, error, loading, refresh } = useApiQuery<O.Document>(client, specUrl);
@@ -50,7 +51,7 @@ export function ApiCenter({ client, scope, specUrl = '/api/admin/openapi.json', 
           { title: '认证 / 权限', key: 'access', width: 230, render: (_, entry) => <Space orientation="vertical" size={0}><Typography.Text type="secondary">{!entry.operation.security?.length ? '公开' : entry.operation['x-token-allowed'] ? 'Cookie / Token' : 'Cookie'}</Typography.Text>{entry.operation['x-permission'] && <Typography.Text code>{entry.operation['x-permission']}</Typography.Text>}</Space> },
           { title: '操作', key: 'action', width: 90, render: (_, entry) => <Button type="link" size="small" onClick={() => { setSelectedOperation(entry.operation.operationId); setActive('docs'); }}>查看文档</Button> },
         ]} /></Card> },
-      { key: 'docs', label: '接口文档', children: <><Typography.Paragraph type="secondary">文档由 Scalar 展示，调试仅请求当前应用；填写的 Token 不持久保存。发送写请求会修改真实数据。</Typography.Paragraph>{selectedOperation && <Button style={{ marginBottom: 12 }} onClick={() => setSelectedOperation(undefined)}>查看全部接口文档</Button>}<ReferenceFrame operation={selectedOperation} scope={scope} referenceUrl={referenceUrl} /></> },
+      { key: 'docs', label: '接口文档', children: <><Typography.Paragraph type="secondary">{documentationNote}</Typography.Paragraph>{selectedOperation && <Button style={{ marginBottom: 12 }} onClick={() => setSelectedOperation(undefined)}>查看全部接口文档</Button>}<ReferenceFrame operation={selectedOperation} scope={scope} referenceUrl={referenceUrl} /></> },
       ...(tokenPanel ? [{ key: 'tokens', label: '访问令牌', children: tokenPanel }] : []),
     ]} />
   </>;
