@@ -10,6 +10,13 @@ const ThemeContext = createContext<{ dark: boolean; toggle: () => void }>({ dark
 function ThemeSurface({ children }: { children: ReactNode }) {
   const { token } = theme.useToken();
   const variables = {
+    '--wk-font-family': token.fontFamily,
+    '--wk-font-family-code': token.fontFamilyCode,
+    '--wk-font-size': `${token.fontSize}px`,
+    '--wk-font-size-sm': `${token.fontSizeSM}px`,
+    '--wk-font-size-lg': `${token.fontSizeLG}px`,
+    '--wk-line-height': token.lineHeight,
+    '--wk-line-height-sm': token.lineHeightSM,
     '--wk-color-primary': token.colorPrimary,
     '--wk-color-primary-bg': token.colorPrimaryBg,
     '--wk-color-primary-text': token.colorPrimaryText,

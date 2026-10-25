@@ -41,6 +41,8 @@ import '@pengzhendong/worker-kit/web/styles.css';
 
 业务 CSS 可使用 Provider 生成的 `--wk-color-primary`、`--wk-color-primary-bg`、`--wk-color-primary-text`、`--wk-color-primary-border`、`--wk-color-surface`、`--wk-color-text-secondary`、`--wk-color-success`。它们来自当前 Ant Design 主题，随明暗模式和品牌设置一起变化。禁止给深色模式继续套用固定浅色底。
 
+业务文字也使用当前主题的 `--wk-font-family`、`--wk-font-family-code`、`--wk-font-size`、`--wk-font-size-sm`、`--wk-font-size-lg`、`--wk-line-height`、`--wk-line-height-sm`。正文、表头、表单标签、操作按钮、状态和主要说明默认 14 px / 1.6；时间、地址、协议徽标及附注可用 12 px，不再用 10–11 px 压缩业务信息。不要让原生 `<small>` 的浏览器默认比例把说明缩到 11.67 px。标题保留各自层级，图标尺寸不按文字字号批量替换。变量作用于 Provider 的应用容器；原生浮层在容器之外时，应用需传递当前 token 或提供相同默认值。
+
 ## 布局与滚动
 
 应用负责在自己的 HTML 配置 favicon；演示应用与 API 文档共用本地 `/favicon.svg`。`AdminShell` 可通过 `brandIcon` 传入自己的图片或 SVG；默认显示应用名称首字母，消费项目不必覆盖框架 CSS。
