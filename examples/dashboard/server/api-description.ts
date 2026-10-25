@@ -1,3 +1,4 @@
+import { runtimeSnapshotSchema as runtime, runtimeMetricsSchema as metrics } from '@pengzhendong/worker-kit/contracts';
 import { describeRoute } from '@pengzhendong/worker-kit/openapi';
 import type { DescribeRouteOptions } from '@pengzhendong/worker-kit/openapi';
 import type { Hono } from 'hono';
@@ -27,14 +28,6 @@ const json = (schema: O.SchemaObject): O.RequestBodyObject => ({ required: true,
 const response = (schema: O.SchemaObject): O.ResponseObject => ({ description: '成功', content: { 'application/json': { schema } } });
 export interface Endpoint { method: 'GET' | 'POST' | 'PUT' | 'DELETE'; path: string; summary: string; tag: string; permission?: string; token?: boolean; public?: boolean; input?: O.RequestBodyObject; parameters?: O.ParameterObject[]; output?: O.SchemaObject; status?: number; description?: string; binary?: boolean }
 const page = (items: O.SchemaObject) => obj({ items: arr(items), total: integer, page: integer, pageSize: integer });
-const numeric = { type: 'number' as const, minimum: 0 };
-const runtime = obj({ application: obj({ name: str, version: str }), runtime: { ...str, const: 'Cloudflare Workers' }, environment: str, checkedAt: stamp, ok: bool,
-  version: obj({ id: nullable(str), tag: nullable(str), createdAt: nullable(stamp) }),
-  checks: arr(obj({ name: str, kind: { ...str, enum: ['database', 'kv', 'storage', 'service'] }, description: str, status: { ...str, enum: ['ok', 'error', 'timeout'] }, durationMs: numeric })),
-});
-const metrics = obj({ source: { ...str, const: 'cloudflare' }, status: { ...str, enum: ['ok', 'not-configured', 'error'] }, message: str, from: stamp, to: stamp,
-  ...Object.fromEntries(['requests', 'errors', 'cpuMsP50', 'cpuMsP99', 'wallMsP50', 'wallMsP99', 'memoryBytesP50', 'memoryBytesP99'].map((name) => [name, nullable(numeric)])),
-});
 export const endpoints: readonly Endpoint[] = [
   { method: 'GET', path: '/health', summary: '服务存活检查', tag: '运行', public: true, output: obj({ ok: bool, service: str }) },
   { method: 'POST', path: '/api/auth/login', summary: '管理员登录', tag: '认证', public: true, input: json(obj({ username: str, password: { ...str, format: 'password' } })), output: session, description: '同源 Origin 必填；设置 HttpOnly Cookie。限流可能返回 429 和 Retry-After。' },

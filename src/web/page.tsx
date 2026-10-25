@@ -1,10 +1,15 @@
 import type { ReactNode } from 'react';
+import { createContext, useContext } from 'react';
+
+export const PageTitleInHeader = createContext(false);
 import { Card, Flex, Statistic, Typography, theme } from 'antd';
 import { workerKitLayout } from './design';
 
 export function PageHeader({ title, description, actions }: { title: string; description?: string; actions?: ReactNode }) {
+  const compact = useContext(PageTitleInHeader);
+  if (compact && !description && !actions) return null;
   return <Flex data-workerkit-page-header justify="space-between" align="start" gap={16} wrap style={{ marginBottom: workerKitLayout.pageHeaderGap }}>
-    <div><Typography.Title level={2} style={{ margin: '0 0 8px', fontSize: workerKitLayout.pageTitleSize }}>{title}</Typography.Title>{description && <Typography.Text type="secondary">{description}</Typography.Text>}</div>
+    <div>{!compact && <Typography.Title level={2} style={{ margin: '0 0 8px', fontSize: workerKitLayout.pageTitleSize }}>{title}</Typography.Title>}{description && <Typography.Text type="secondary">{description}</Typography.Text>}</div>
     {actions && <Flex align="center" gap={8} wrap>{actions}</Flex>}
   </Flex>;
 }

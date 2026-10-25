@@ -133,3 +133,21 @@ test('theme toggle is an accessible icon and survives reload', async ({ page, da
   await page.reload();
   await expect(page.getByRole('button', { name: dark ? '切换到深色模式' : '切换到浅色模式' })).toHaveAttribute('aria-pressed', String(!dark));
 });
+
+// Exercise consumer-provided actions without adding fixture-only controls to the demo.
+test('consumer header actions stay aligned and compact pages have one heading', async ({ page }) => {
+  await page.route('**/Dashboard.tsx', async route => {
+    const response = await route.fetch();
+    const body = (await response.text()).replace(/(\w*jsxDEV)\(AdminShell, \{/, '$1(AdminShell, { pageTitleInHeader: true, headerActions: $1("button", {children: "发布到电视"}),');
+    expect(body).not.toBe(await response.text());
+    await route.fulfill({ response, body });
+  });
+  await openDashboard(page, 'files');
+  await expect(page.getByRole('heading', { name: '文件管理', exact: true })).toHaveCount(1);
+  const header = page.locator(region('header'));
+  const action = header.getByRole('button', { name: '发布到电视' });
+  await expect(action).toBeVisible();
+  const bounds = await box(action), headerBounds = await box(header);
+  expect(Math.abs(bounds.y + bounds.height / 2 - headerBounds.y - headerBounds.height / 2)).toBeLessThanOrEqual(1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize()!.width);
+});

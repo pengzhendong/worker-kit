@@ -30,3 +30,5 @@ export interface BatchResult<Id extends string | number = string> {
 }
 export type { ApiKeyInfo } from './api-keys';
 export type { RuntimeSnapshot, RuntimeCheck, RuntimeCheckKind, RuntimeMetrics } from './runtime';
+
+export { runtimeSnapshotSchema, runtimeMetricsSchema } from './runtime.ts';

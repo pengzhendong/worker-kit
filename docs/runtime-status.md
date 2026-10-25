@@ -83,3 +83,11 @@ npx wrangler secret put CLOUDFLARE_METRICS_API_TOKEN
 workerd 检查真实 D1/KV/R2、Cookie 和权限，确认报告不写业务数据。Analytics 使用确定的上游响应检查请求范围、单位、空数据、失败脱敏和体积限制；未配置真实只读 Token 时，不宣称已从线上账号读到指标。
 
 固定 Linux UI 检查浅/深色与手机布局、真实页面的查询/错误状态、权限先于请求、检查记录清理、自动检查只轮询依赖和离页取消。新增侧栏入口引起的旧截图差异另行人工确认，再更新对应基准并正常复验。实际预览还需确认 API、版本绑定、图标、刷新、主题与滚动。
+
+## 轻量原生入口
+
+已有原生 `fetch(request, env)` 的 Worker 可直接导入 `@pengzhendong/worker-kit/runtime`；它只导出运行检查和健康检查，不加载 Hono、React 或 OpenAPI 生成器。`/server` 继续供 Hono 应用使用，Hono 现在是可选 peer：使用该入口的应用须显式安装它。
+
+`@pengzhendong/worker-kit/http` 提供 `readBytesLimited(stream, maxBytes, signal?)`、`readTextLimited` 和 `BodyLimitError`。按实际收到的字节限制大小，超限/取消时取消底层流并释放 reader；不信任 Content-Length，不处理 URL、凭据、重试或解压策略。解压前后需要分别设限时由应用组合。调用者可用原生 `AbortSignal.timeout()` / `AbortSignal.any()` 控制时限；平台指标读取已采用这个公共工具。
+
+`/contracts` 导出 `runtimeSnapshotSchema` 和 `runtimeMetricsSchema`，是无运行时依赖的 JSON Schema / OpenAPI 3.1 对象。示例与消费项目应引用同一声明，避免分别维护字段和单位。

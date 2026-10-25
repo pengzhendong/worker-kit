@@ -4,10 +4,11 @@ import { Avatar, Button, Drawer, Dropdown, Flex, Grid, Layout, Menu, Space, Tool
 import { useWorkerKitTheme } from './provider';
 import { workerKitLayout as ui } from './design';
 import { IconBox } from './icon';
+import { PageTitleInHeader } from './page';
 
 export interface NavigationItem { key: string; label: string; icon?: ReactNode }
 
-export function AdminShell({ title, brandIcon, items, userMenuItems = [], activeKey, onNavigate, username, onLogout, children }: {
+export function AdminShell({ title, brandIcon, items, userMenuItems = [], activeKey, onNavigate, username, onLogout, headerActions, pageTitleInHeader = false, children }: {
   title: string;
   brandIcon?: ReactNode;
   items: NavigationItem[];
@@ -16,6 +17,10 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
   onNavigate: (key: string) => void;
   username: string;
   onLogout: () => void | Promise<void>;
+  /** Application-owned global actions; keep labels compact on narrow screens. */
+  headerActions?: ReactNode;
+  /** Render one compact page heading in the fixed header; PageHeader keeps description/actions. */
+  pageTitleInHeader?: boolean;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -70,11 +75,11 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
       : <Drawer title={title} placement="left" open={open} onClose={() => { setOpen(false); setUserMenuOpen(false); }} styles={{ body: { padding: 0, display: 'flex', flexDirection: 'column', minHeight: 0 } }}>{navigation}{account}</Drawer>}
     <Layout style={{ height: '100%', minHeight: 0, minWidth: 0, overflow: 'hidden' }}>
       <Layout.Header data-workerkit-region="header" style={{ height: ui.headerHeight, lineHeight: 'normal', flexShrink: 0, paddingInline: screens.md ? ui.pagePadding : ui.mobilePagePadding, background: token.colorBgContainer, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderBottom: `1px solid ${token.colorBorderSecondary}` }}>
-        <Flex align="center" gap={8}>{!screens.lg && <Button onClick={() => setOpen(true)} aria-label="打开导航">菜单</Button>}<Typography.Text strong>{[...items, ...userMenuItems].find((item) => item.key === activeKey)?.label ?? title}</Typography.Text></Flex>
-        <Tooltip title={themeLabel}><Button type="text" shape="circle" icon={themeIcon} onClick={toggle} aria-label={themeLabel} aria-pressed={dark} /></Tooltip>
+        <Flex align="center" gap={8}>{!screens.lg && <Button onClick={() => setOpen(true)} aria-label="打开导航">菜单</Button>}<Typography.Text strong role={pageTitleInHeader ? 'heading' : undefined} aria-level={pageTitleInHeader ? 1 : undefined}>{[...items, ...userMenuItems].find((item) => item.key === activeKey)?.label ?? title}</Typography.Text></Flex>
+        <Flex data-workerkit-header-actions align="center" gap={8} style={{ minWidth: 0 }}>{headerActions}<Tooltip title={themeLabel}><Button type="text" shape="circle" icon={themeIcon} onClick={toggle} aria-label={themeLabel} aria-pressed={dark} /></Tooltip></Flex>
       </Layout.Header>
       <Layout.Content ref={contentRef} data-workerkit-region="content" style={{ flex: 1, minHeight: 0, minWidth: 0, overflow: 'auto', overscrollBehavior: 'contain', scrollbarGutter: 'stable' }}>
-        <div style={{ boxSizing: 'border-box', padding: screens.md ? ui.pagePadding : ui.mobilePagePadding, width: '100%', maxWidth: ui.contentMaxWidth, marginInline: 'auto' }}>{children}</div>
+        <div style={{ boxSizing: 'border-box', padding: screens.md ? ui.pagePadding : ui.mobilePagePadding, width: '100%', maxWidth: ui.contentMaxWidth, marginInline: 'auto' }}><PageTitleInHeader.Provider value={pageTitleInHeader}>{children}</PageTitleInHeader.Provider></div>
       </Layout.Content>
     </Layout>
   </Layout>;

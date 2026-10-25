@@ -22,7 +22,10 @@
     "./tooling/tsconfig.json": "./src/tooling/tsconfig.json",
     "./web/styles.css": "./src/web/styles.css",
     "./tooling/doctor": "./src/tooling/doctor.mjs",
-    "./openapi": "./src/openapi/index.ts"
+    "./openapi": "./src/openapi/index.ts",
+    "./runtime": "./src/server/runtime-entry.ts",
+    "./http": "./src/server/streams.ts",
+    "./web/session": "./src/web/session.ts"
   },
   "scripts": {
     "dev": "npm run dev --workspace @worker-kit/dashboard",
@@ -93,6 +96,9 @@
       "optional": true
     },
     "@ant-design/icons": {
+      "optional": true
+    },
+    "hono": {
       "optional": true
     }
   },

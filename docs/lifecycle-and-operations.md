@@ -89,3 +89,5 @@ doctor 不执行项目脚本、网络请求、安装、迁移或部署，也不�
 - [Cloudflare Workers Logs](https://developers.cloudflare.com/workers/observability/logs/workers-logs/) 与 [Metrics](https://developers.cloudflare.com/workers/observability/metrics-and-analytics/)：使用平台观测能力。
 
 正式运行状态页与可复用组件已加入，包含原生版本元数据、依赖检查记录和可选平台指标。旧诊断接口继续兼容；数据来源、只读 Token 和边界见 [运行状态](runtime-status.md)。
+
+不使用共享请求协议的既有应用，可从 `/web/session` 单独导入 `createSessionScope`，保留原有 API 错误格式与身份提供方。身份切换/退出时同步清理注册的用户数据并取消未完成请求；主题偏好不清除。此入口没有 React 依赖。

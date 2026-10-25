@@ -17,6 +17,10 @@ function ThemeSurface({ children }: { children: ReactNode }) {
     '--wk-color-surface': token.colorBgContainer,
     '--wk-color-text-secondary': token.colorTextSecondary,
     '--wk-color-success': token.colorSuccess,
+    '--wk-color-layout': token.colorBgLayout,
+    '--wk-color-text': token.colorText,
+    '--wk-color-border': token.colorBorderSecondary,
+    '--wk-color-hover': token.colorFillQuaternary,
   } as CSSProperties;
   return <App style={variables}>{children}</App>;
 }

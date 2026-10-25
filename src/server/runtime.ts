@@ -1,5 +1,6 @@
 import type { RuntimeSnapshot, RuntimeCheckKind, RuntimeMetrics } from '../contracts';
-import { runHealthChecks } from './health';
+import { runHealthChecks } from './health.ts';
+import { readTextLimited } from './streams.ts';
 
 export interface RuntimeStatusOptions {
   application: { name: string; version: string };
@@ -45,28 +46,17 @@ export async function readCloudflareMetrics(config: CloudflareMetricsOptions, op
   }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 5000);
+  const signal = options.signal ? AbortSignal.any([options.signal, controller.signal]) : controller.signal;
   try {
+    signal.throwIfAborted();
     const response = await (options.fetcher ?? fetch)('https://api.cloudflare.com/client/v4/graphql', {
-      method: 'POST', redirect: 'error', signal: options.signal ? AbortSignal.any([options.signal, controller.signal]) : controller.signal,
+      method: 'POST', redirect: 'error', signal,
       headers: { Authorization: `Bearer ${config.apiToken}`, 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({ query, variables: { account: config.accountId, script: config.scriptName, from: result.from, to: result.to } }),
     });
     if (!response.ok) throw new Error('Upstream unavailable');
     if (!response.body) throw new Error('Empty analytics response');
-    const reader = response.body.getReader();
-    const chunks: Uint8Array[] = []; let length = 0;
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        length += value.byteLength;
-        if (length > 65_536) { await reader.cancel(); throw new Error('Oversized analytics response'); }
-        chunks.push(value);
-      }
-    } finally { reader.releaseLock(); }
-    const bytes = new Uint8Array(length); let offset = 0;
-    for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
-    const body = new TextDecoder().decode(bytes);
+    const body = await readTextLimited(response.body, 65_536, signal);
     const payload = JSON.parse(body);
     if (payload.errors != null && (!Array.isArray(payload.errors) || payload.errors.length) || !Array.isArray(payload.data?.viewer?.accounts) || payload.data.viewer.accounts.length !== 1) throw new Error('Analytics unavailable');
     const rows = payload.data.viewer.accounts[0].workersInvocationsAdaptive;
