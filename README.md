@@ -158,7 +158,7 @@ Hono 负责 Cookie 签名和凭据比较。会话默认 12 小时；更改用户
 
 示例的资源、设置、批量操作、令牌创建与日志清理共用运行校验和文档 Schema；定义一次字段规则，由 Zod 原生生成 JSON Schema，并保留旧错误契约。范围与迁移方式见[接口 Schema](docs/api-schemas.md)。Zod 只属于示例应用依赖。
 
-使用可选 `/openapi` 入口需由父项目声明 hono-openapi；文档 UI 位于独立的 `/web/api-center` 和 `/web/scalar-reference` 入口，不进入普通 server/web 入口。父项目按需安装 `openapi-types` 和 Scalar。当前 dashboard 新增 `0002_api_keys.sql` 和独立 `API_KEY_RATE_LIMITER` 绑定，消费项目需显式接入，不自动开放旧业务接口。
+使用可选 `/openapi` 入口需由父项目声明 hono-openapi；文档 UI 位于独立的 `/web/api-center` 和 `/web/scalar-reference` 入口，不进入普通 server/web 入口。父项目按需安装 `openapi-types` 和 Scalar。`ApiTokenPanel` 已从演示项目提取为共享组件，可通过 `tokenPanel` 按需装配；原生 Worker 直接提供 OpenAPI JSON，无需 Hono。当前 dashboard 新增 `0002_api_keys.sql` 和独立 `API_KEY_RATE_LIMITER` 绑定，消费项目需显式接入，不自动开放旧业务接口。
 
 ## 管理端接入约定
 

@@ -30,7 +30,7 @@ export function ScalarReference({ specUrl = '/api/admin/openapi.json' }: { specU
   const paths: O.PathsObject = {};
   let title = data.info.title;
   if (selected) for (const [path, item] of Object.entries(data.paths ?? {})) {
-    for (const method of ['get', 'post', 'put', 'delete', 'patch'] as const) {
+    for (const method of ['get', 'post', 'put', 'delete', 'patch', 'head', 'options', 'trace'] as const) {
       if (item?.[method]?.operationId === selected) { paths[path] = { ...(item.parameters ? { parameters: item.parameters } : {}), [method]: item[method] }; title = item[method]!.summary ?? title; }
     }
   }

@@ -14,6 +14,44 @@ API 中心是正式应用模块，生产构建保留。它提供接口目录、S
 
 应用在独立 HTML 中渲染 `<ScalarReference />`，由原生构建器产生第二个入口。默认读取 `/api/admin/openapi.json`，也可传 `specUrl`。通用组件负责列表、筛选、按操作查看、主题和会话失效；OpenAPI 路由、身份策略、Token 存储仍属于消费应用。有 Token 管理时通过 `tokenPanel` 传入业务面板；没有配置时不显示令牌页签，应用可通过 `description` 和 `documentationNote` 说明自己的认证方式。非 Vite 的 TypeScript 项目应声明 `*.css` 模块，让类型检查接受 Scalar 的样式导入；esbuild 等原生构建器实际处理 CSS。
 
+## 选择要接入的能力
+
+| 应用需要 | 使用方式 | 额外运行依赖 |
+| --- | --- | --- |
+| 接口列表与交互文档 | `ApiCenter` + 独立 HTML 中的 `ScalarReference` | Scalar React 包、`openapi-types` |
+| 再加访问令牌管理 | 为 `ApiCenter.tokenPanel` 传入共享 `ApiTokenPanel` | 应用自己的认证、Token 路由和存储 |
+| Hono 路由自动生成文档 | 按需使用 `/openapi` 入口 | `hono-openapi` |
+| 原生 Worker | 应用返回自己的 OpenAPI 3.1 JSON | 不需要 Hono 或生成器 |
+
+开源文档组件实际使用 Scalar；OpenAPI 生成按需使用 hono-openapi。Token 验证沿用 WorkerKit 的 Web Crypto 服务，并未安装 Better Auth。Better Auth API Key 插件需要其认证实例与数据库表，不适合仅为 Token 替换已有单管理员或 KV 会话。这里保留认证、路由和存储的显式组合，不把所有应用迁移到同一个用户系统。
+
+共享 Token 面板已经独立于 dashboard 的权限模块和数据 hook：
+
+```tsx
+import { ApiCenter, ApiTokenPanel } from '@pengzhendong/worker-kit/web/api-center';
+
+<ApiCenter client={api} scope={sessionScope}
+  specUrl="/api/admin/openapi.json" referenceUrl="/reference.html"
+  tokenPanel={<ApiTokenPanel client={api} scope={sessionScope}
+    endpoint="/api/admin/api-keys"
+    access={{ read: can('api:tokens'), issue: can('api:issue'), revoke: can('api:revoke') }}
+    permissionLabel={(permission) => permission}
+  />}
+/>
+```
+
+`access` 控制界面，后端仍必须校验同样的权限。`endpoint` 使用本页描述的分页列表、创建、撤销接口契约；`description` 可说明应用自己的限流政策，通用组件不假定每个应用都是 120 次/分钟。面板通过会话作用域取消请求，身份失效或切换时清除表单与一次性 Token，不写入 localStorage/sessionStorage。
+
+脚本调用使用 `Authorization: Bearer <token>` 请求**已显式允许 Token** 的业务接口；文档里的 Bearer 输入框不负责签发令牌。示例：
+
+```sh
+curl -H "Authorization: Bearer $APP_API_TOKEN" https://your-app.example/api/admin/resources
+```
+
+Cookieflare 的接入示例只传 `specUrl`、`referenceUrl`，不传 `tokenPanel`：复用列表、筛选、OpenAPI 参数/响应、Scalar 调试和代码示例，不新增 Token 表、签发路由或认证机制。管理 API 仍用原有 HttpOnly Cookie；既有可选上传凭据只保护 `/update`。
+
+接口列表读取 operation.security 或根 security，区分 Cookie、Bearer、Basic 和自定义请求头，支持多个认证方式的任选与组合。`security: []` 明确公开。路径 UUID 等非标准凭据可用 `x-authentication-label` 提供准确说明；该扩展不执行鉴权。
+
 ## OpenAPI 与列表
 
 可选入口 `@pengzhendong/worker-kit/openapi` 导出 hono-openapi 的原生 describeRoute、openAPIRouteHandler、generateSpecs、resolver 和 validator。仅使用 server 不会导入 OpenAPI 或 Scalar。消费项目显式声明 hono-openapi peer，示例固定 1.5.0。

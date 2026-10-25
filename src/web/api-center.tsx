@@ -7,10 +7,12 @@ import type { SessionScope } from './session';
 import { useApiQuery } from './query';
 import { useWorkerKitTheme } from './provider';
 import { PageHeader } from './page';
+import { authenticationLabel } from './openapi-access';
+export { ApiTokenPanel } from './api-token-panel';
 
-type Operation = O.OperationObject & { 'x-permission'?: string; 'x-token-allowed'?: boolean };
+type Operation = O.OperationObject & { 'x-permission'?: string; 'x-token-allowed'?: boolean; 'x-authentication-label'?: string };
 type Endpoint = { key: string; method: string; path: string; operation: Operation };
-const methods = ['get', 'post', 'put', 'delete', 'patch'] as const;
+const methods = ['get', 'post', 'put', 'delete', 'patch', 'head', 'options', 'trace'] as const;
 function ReferenceFrame({ operation, scope, referenceUrl }: { operation?: string; scope: SessionScope; referenceUrl: string }) {
   const { dark } = useWorkerKitTheme(); const frame = useRef<HTMLIFrameElement>(null);
   useEffect(() => {
@@ -48,7 +50,7 @@ export function ApiCenter({ client, scope, specUrl = '/api/admin/openapi.json', 
           { title: '方法', dataIndex: 'method', width: 90, render: (value: string) => <Tag color={value === 'GET' ? 'blue' : value === 'DELETE' ? 'red' : 'orange'}>{value}</Tag> },
           { title: '路径 / 说明', key: 'path', render: (_, entry) => <Space orientation="vertical" size={0}><Typography.Text code>{entry.path}</Typography.Text><Typography.Text>{entry.operation.summary}</Typography.Text></Space> },
           { title: '分组', key: 'tag', width: 100, render: (_, entry) => entry.operation.tags?.join('、') },
-          { title: '认证 / 权限', key: 'access', width: 230, render: (_, entry) => <Space orientation="vertical" size={0}><Typography.Text type="secondary">{!entry.operation.security?.length ? '公开' : entry.operation['x-token-allowed'] ? 'Cookie / Token' : 'Cookie'}</Typography.Text>{entry.operation['x-permission'] && <Typography.Text code>{entry.operation['x-permission']}</Typography.Text>}</Space> },
+          { title: '认证 / 权限', key: 'access', width: 230, render: (_, entry) => <Space orientation="vertical" size={0}><Typography.Text type="secondary">{authenticationLabel(data!, entry.operation)}</Typography.Text>{entry.operation['x-permission'] && <Typography.Text code>{entry.operation['x-permission']}</Typography.Text>}</Space> },
           { title: '操作', key: 'action', width: 90, render: (_, entry) => <Button type="link" size="small" onClick={() => { setSelectedOperation(entry.operation.operationId); setActive('docs'); }}>查看文档</Button> },
         ]} /></Card> },
       { key: 'docs', label: '接口文档', children: <><Typography.Paragraph type="secondary">{documentationNote}</Typography.Paragraph>{selectedOperation && <Button style={{ marginBottom: 12 }} onClick={() => setSelectedOperation(undefined)}>查看全部接口文档</Button>}<ReferenceFrame operation={selectedOperation} scope={scope} referenceUrl={referenceUrl} /></> },
