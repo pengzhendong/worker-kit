@@ -30,6 +30,7 @@ test.describe('login handling', () => {
     await page.getByRole('button', { name: /^登\s*录$/ }).click();
     await expect(page.getByRole('button', { name: /秒后重试/ })).toBeDisabled();
     await expect(page.getByRole('button', { name: /^登\s*录$/ })).toBeEnabled();
+    await expect(page.getByRole('button', { name: /^登\s*录$/ })).toHaveAttribute('aria-busy', 'false');
     await page.getByRole('button', { name: /^登\s*录$/ }).click();
     await expect(page.getByText('网络连接失败，请检查连接后重试', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: /^登\s*录$/ }).click();

@@ -41,7 +41,7 @@ export function LoginPage({ title, description = '登录你的管理后台', onL
       }}>
         <Form.Item label="用户名" name="username" rules={[{ required: true, message: '请输入用户名' }]}><Input autoComplete="username" size="large" maxLength={256} /></Form.Item>
         <Form.Item label="密码" name="password" rules={[{ required: true, message: '请输入密码' }]}><Input.Password autoComplete="current-password" size="large" maxLength={1024} /></Form.Item>
-        <Button type="primary" htmlType="submit" loading={busy} disabled={cooldown > 0} block size="large">{cooldown ? `${cooldown} 秒后重试` : '登录'}</Button>
+        <Button type="primary" htmlType="submit" aria-label={cooldown ? `${cooldown} 秒后重试` : '登录'} aria-busy={busy} loading={busy} disabled={cooldown > 0} block size="large">{cooldown ? `${cooldown} 秒后重试` : '登录'}</Button>
       </Form>
     </Card>
   </main>;
