@@ -1,14 +1,24 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Avatar, Button, Drawer, Dropdown, Flex, Grid, Layout, Menu, Space, Tooltip, Typography, theme } from 'antd';
+import type { MenuProps } from 'antd';
+import { Avatar, Button, ConfigProvider, Drawer, Dropdown, Flex, Grid, Layout, Menu, Space, Tooltip, Typography, theme } from 'antd';
 import { useWorkerKitTheme } from './provider';
 import { workerKitLayout as ui } from './design';
 import { IconBox } from './icon';
 import { PageTitleInHeader } from './page';
 
-export interface NavigationItem { key: string; label: string; icon?: ReactNode }
+export interface NavigationItem { key: string; label: string; icon?: ReactNode; extra?: ReactNode; children?: NavigationItem[] }
 
-export function AdminShell({ title, brandIcon, items, userMenuItems = [], activeKey, onNavigate, username = '', onLogout, headerActions, sidebarFooter, pageTitleInHeader = false, sidebarStorageKey = 'workerkit.sidebar.collapsed', children }: {
+function navigationPath(items: NavigationItem[], key: string): NavigationItem[] {
+  for (const item of items) {
+    if (item.key === key) return [item];
+    const path = item.children ? navigationPath(item.children, key) : [];
+    if (path.length) return [item, ...path];
+  }
+  return [];
+}
+
+export function AdminShell({ title, brandIcon, items, userMenuItems = [], activeKey, onNavigate, username = '', onLogout, headerActions, sidebarActions, sidebarFooter, menuProps, navigationLabel = '应用管理', pageTitleInHeader = false, sidebarStorageKey = 'workerkit.sidebar.collapsed', children }: {
   title: string;
   brandIcon?: ReactNode;
   items: NavigationItem[];
@@ -18,6 +28,12 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
   /** Omit for a public/local browser without an authenticated account. */
   username?: string;
   sidebarFooter?: ReactNode;
+  /** Navigation search/filter controls. Hidden in the collapsed desktop rail. */
+  sidebarActions?: ReactNode;
+  /** Native Ant Design control for application-owned selection and accordion behavior. */
+  menuProps?: Pick<MenuProps, 'openKeys' | 'onOpenChange' | 'selectedKeys'>;
+  /** Optional sidebar caption; false hides it without leaving an empty row. */
+  navigationLabel?: string | false;
   /** Omit for a public shell; applications may offer a sign-in item instead. */
   onLogout?: () => void | Promise<void>;
   /** Application-owned global actions; keep labels compact on narrow screens. */
@@ -44,17 +60,44 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
   useEffect(() => { contentRef.current?.scrollTo({ top: 0, left: 0 }); }, [activeKey]);
   const screens = Grid.useBreakpoint();
   const compact = !!screens.lg && collapsed;
+  const nested = items.some(item => item.children?.length);
+  const activePath = navigationPath(items, activeKey);
+  const parentKeys = JSON.stringify(activePath.slice(0, -1).map(item => item.key));
+  const [openKeys, setOpenKeys] = useState<string[]>([]);
+  useEffect(() => {
+    const parents = JSON.parse(parentKeys) as string[];
+    setOpenKeys(keys => compact ? [] : [...new Set([...keys, ...parents])]);
+  }, [parentKeys, compact]);
   const { token } = theme.useToken();
   const { dark, toggle } = useWorkerKitTheme();
-  useEffect(() => { setUserMenuOpen(false); setOpen(false); }, [screens.lg, activeKey]);
+  useEffect(() => { setUserMenuOpen(false); setOpen(false); }, [screens.lg]);
+  useEffect(() => { setUserMenuOpen(false); }, [activeKey]);
   function navigate(key: string) { onNavigate(key); setUserMenuOpen(false); setOpen(false); }
-  const menu = <Menu mode={compact ? 'inline' : 'vertical'} inlineCollapsed={compact || undefined} items={items.map((item) => ({
-    key: item.key, type: 'item' as const,
-    title: item.label,
-    icon: item.icon || compact ? <IconBox>{item.icon ?? <span aria-hidden="true">{item.label.slice(0, 1)}</span>}</IconBox> : undefined,
-    label: <span style={{ display: 'block', lineHeight: '20px' }}>{item.label}</span>,
-  }))} selectedKeys={[activeKey]} onClick={({ key }) => navigate(key)}
-    styles={{ root: { paddingInline: compact ? 8 : 10 }, item: { display: 'flex', alignItems: 'center', height: ui.navigationHeight, marginBlock: 5, ...(compact ? { justifyContent: 'center', paddingInline: 0, marginInline: 0, width: '100%' } : {}) }, itemContent: { marginInlineStart: compact ? 0 : ui.iconGap, lineHeight: '20px', ...(compact ? { flex: '0 0 0', width: 0, overflow: 'hidden', opacity: 0 } : {}) } }}
+  function menuItems(entries: NavigationItem[], depth = 0): MenuProps['items'] {
+    return entries.map(item => ({
+      key: item.key,
+      title: item.label,
+      icon: item.icon || compact && depth === 0 ? <IconBox>{item.icon ?? <span aria-hidden="true">{item.label.slice(0, 1)}</span>}</IconBox> : undefined,
+      label: nested ? item.children?.length ? <Flex component="span" align="center" justify="space-between" gap={8}
+        style={{ paddingInlineStart: depth > 0 ? 18 : 0 }}>{item.label}{item.extra}</Flex> : item.label
+        : <span style={{ display: 'block', lineHeight: '20px' }}>{item.label}</span>,
+      ...(item.children?.length ? { children: menuItems(item.children, depth + 1) } : { extra: item.extra }),
+    }));
+  }
+  const menu = <Menu mode={compact || nested ? 'inline' : 'vertical'} inlineIndent={nested ? 12 : undefined} inlineCollapsed={compact || undefined} items={menuItems(items)}
+    {...(nested ? { openKeys: compact ? openKeys : menuProps?.openKeys ?? openKeys,
+      onOpenChange: compact ? setOpenKeys : menuProps?.onOpenChange ?? setOpenKeys } : {})}
+    selectedKeys={menuProps?.selectedKeys ?? [activeKey]} onClick={({ key }) => navigate(key)}
+    styles={{
+      root: { paddingInline: compact ? 8 : 10 },
+      item: { display: 'flex', alignItems: 'center', height: ui.navigationHeight, marginBlock: 5, ...(compact ? { justifyContent: 'center', paddingInline: 0, marginInline: 0, width: '100%' } : {}) },
+      itemContent: { marginInlineStart: compact ? 0 : ui.iconGap, lineHeight: '20px', ...(compact ? { flex: '0 0 0', width: 0, overflow: 'hidden', opacity: 0 } : {}) },
+      ...(nested ? { subMenu: {
+        item: { height: ui.navigationHeight, marginBlock: 5, display: 'flex', alignItems: 'center' },
+        itemContent: { marginInlineStart: 18, lineHeight: '20px' },
+        itemTitle: { height: ui.navigationHeight, lineHeight: `${ui.navigationHeight}px`, marginBlock: 5 },
+      }, popup: { root: { maxHeight: 'calc(100dvh - 32px)', overflowY: 'auto' } } } : {}),
+    }}
     style={{ borderInlineEnd: 0, ...(compact ? { width: '100%' } : {}) }} />;
   const themeLabel = dark ? '切换到浅色模式' : '切换到深色模式';
   const themeIcon = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ display: 'block' }}>
@@ -86,13 +129,14 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
       </Button>
     </Dropdown>
   </div> : sidebarFooter ? <div data-workerkit-region="sidebar-footer" style={{ flexShrink: 0, padding: 16, borderTop: `1px solid ${token.colorBorderSecondary}`, overflowWrap: 'anywhere' }}>{sidebarFooter}</div> : null;
-  const navigation = <div data-workerkit-region="sidebar-navigation" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', overscrollBehavior: 'contain' }}>{menu}</div>;
+  const navigation = <div data-workerkit-region="sidebar-navigation" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', overscrollBehavior: 'contain' }}>{nested ? <ConfigProvider theme={{ components: { Menu: { collapsedIconSize: ui.iconSize } } }}>{menu}</ConfigProvider> : menu}</div>;
+  const navigationActions = sidebarActions && !compact ? <div data-workerkit-region="sidebar-actions" style={{ padding: '12px 16px', flexShrink: 0 }}>{sidebarActions}</div> : null;
   return <Layout data-workerkit-shell style={{ height: '100dvh', minHeight: 0, overflow: 'hidden', background: token.colorBgLayout }}>
-    {screens.lg ? <Layout.Sider id={sidebarId} data-workerkit-region="sidebar" width={ui.sidebarWidth} collapsedWidth={ui.sidebarCollapsedWidth} collapsed={compact} trigger={null} style={{ height: '100%', overflow: 'hidden', background: token.colorBgContainer, borderInlineEnd: `1px solid ${token.colorBorderSecondary}` }}><Flex vertical style={{ height: '100%' }}><div style={{ flexShrink: 0 }}>{brand}{!compact && <Typography.Text type="secondary" style={{ display: 'block', margin: '8px 24px 14px', fontSize: 11, letterSpacing: 2 }}>应用管理</Typography.Text>}</div>{navigation}{account}</Flex></Layout.Sider>
-      : <Drawer title={title} placement="left" open={open} onClose={() => { setOpen(false); setUserMenuOpen(false); }} styles={{ body: { padding: 0, display: 'flex', flexDirection: 'column', minHeight: 0 } }}>{navigation}{account}</Drawer>}
+    {screens.lg ? <Layout.Sider id={sidebarId} data-workerkit-region="sidebar" width={ui.sidebarWidth} collapsedWidth={ui.sidebarCollapsedWidth} collapsed={compact} trigger={null} style={{ height: '100%', overflow: 'hidden', background: token.colorBgContainer, borderInlineEnd: `1px solid ${token.colorBorderSecondary}` }}><Flex vertical style={{ height: '100%' }}><div style={{ flexShrink: 0 }}>{brand}{!compact && navigationLabel && <Typography.Text type="secondary" style={{ display: 'block', margin: '8px 24px 14px', fontSize: 11, letterSpacing: 2 }}>{navigationLabel}</Typography.Text>}</div>{navigationActions}{navigation}{account}</Flex></Layout.Sider>
+      : <Drawer title={title} placement="left" open={open} onClose={() => { setOpen(false); setUserMenuOpen(false); }} styles={{ body: { padding: 0, display: 'flex', flexDirection: 'column', minHeight: 0 } }}>{navigationActions}{navigation}{account}</Drawer>}
     <Layout style={{ height: '100%', minHeight: 0, minWidth: 0, overflow: 'hidden' }}>
       <Layout.Header data-workerkit-region="header" style={{ height: ui.headerHeight, lineHeight: 'normal', flexShrink: 0, paddingInline: screens.md ? ui.pagePadding : ui.mobilePagePadding, background: token.colorBgContainer, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderBottom: `1px solid ${token.colorBorderSecondary}` }}>
-        <Flex align="center" gap={8}>{screens.lg ? <Tooltip title={compact ? '展开侧栏' : '收起侧栏'}><Button type="text" aria-label={compact ? '展开侧栏' : '收起侧栏'} aria-expanded={!compact} aria-controls={sidebarId} onClick={() => { setUserMenuOpen(false); setCollapsed((value) => !value); }} icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3" /><path d="M9 4v16" /></svg>} /></Tooltip> : <Button onClick={() => setOpen(true)} aria-label="打开导航">菜单</Button>}<Typography.Text strong role={pageTitleInHeader ? 'heading' : undefined} aria-level={pageTitleInHeader ? 1 : undefined}>{[...items, ...userMenuItems].find((item) => item.key === activeKey)?.label ?? title}</Typography.Text></Flex>
+        <Flex align="center" gap={8}>{screens.lg ? <Tooltip title={compact ? '展开侧栏' : '收起侧栏'}><Button type="text" aria-label={compact ? '展开侧栏' : '收起侧栏'} aria-expanded={!compact} aria-controls={sidebarId} onClick={() => { setUserMenuOpen(false); setCollapsed((value) => !value); }} icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3" /><path d="M9 4v16" /></svg>} /></Tooltip> : <Button onClick={() => setOpen(true)} aria-label="打开导航">菜单</Button>}<Typography.Text strong role={pageTitleInHeader ? 'heading' : undefined} aria-level={pageTitleInHeader ? 1 : undefined}>{activePath.at(-1)?.label ?? userMenuItems.find(item => item.key === activeKey)?.label ?? title}</Typography.Text></Flex>
         <Flex data-workerkit-header-actions align="center" gap={8} style={{ minWidth: 0 }}>{headerActions}<Tooltip title={themeLabel}><Button type="text" shape="circle" icon={themeIcon} onClick={toggle} aria-label={themeLabel} aria-pressed={dark} /></Tooltip></Flex>
       </Layout.Header>
       <Layout.Content ref={contentRef} data-workerkit-region="content" style={{ flex: 1, minHeight: 0, minWidth: 0, overflow: 'auto', overscrollBehavior: 'contain', scrollbarGutter: 'stable' }}>
