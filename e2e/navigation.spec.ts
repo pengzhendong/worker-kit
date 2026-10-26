@@ -86,6 +86,11 @@ test('controlled three-level navigation opens one branch, previews its first lea
   if (mobile) await page.getByRole('button', { name: '打开导航', exact: true }).click();
   const navigation = mobile ? page.getByRole('dialog') : page.locator('[data-workerkit-region="sidebar"]');
   await expect(navigation.getByPlaceholder('分类筛选')).toBeVisible();
+  if (!mobile) {
+    const actions = await navigation.locator('[data-workerkit-region="sidebar-actions"]').boundingBox();
+    const header = await page.locator('[data-workerkit-region="header"]').boundingBox();
+    expect(actions!.y).toBe(header!.y + header!.height);
+  }
   const library = navigation.getByRole('menuitem', { name: '资源库', exact: true });
   await navigation.getByRole('menuitem', { name: '系统', exact: true }).click();
   await expect(page).toHaveURL(/#\/overview$/);

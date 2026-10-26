@@ -2,6 +2,11 @@
 html, body, #root { min-height: 100%; margin: 0; }
 body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
 *, *::before, *::after { box-sizing: border-box; }
+.wk-page-toolbar { min-width: 0; }
+.wk-page-toolbar-actions { min-width: 0; max-width: 100%; margin-inline-start: auto; }
+@media (max-width: 767px) {
+  .wk-page-toolbar-actions { flex-basis: 100%; }
+}
 .wk-api-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
 .wk-runtime { display: flex; flex-direction: column; gap: 24px; }
 .wk-runtime > [data-workerkit-page-header] { margin-bottom: 0 !important; }

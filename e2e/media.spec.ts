@@ -86,3 +86,42 @@ test('compact audio fits narrow cards, shows known duration without fetching, an
   await assertFit();
   await screenshot(page, 'components-media-compact.png');
 });
+
+test('compact browser spacing and shared media cards align titles, metadata and controls', async ({ page }) => {
+  await page.route('**/Dashboard.tsx', async route => {
+    const response = await route.fetch(), original = await response.text();
+    const body = original.replace(/(\w*jsxDEV)\(AdminShell, \{/, '$1(AdminShell, { compactContent: true, pageTitleInHeader: true,');
+    expect(body).not.toBe(original);
+    await route.fulfill({ response, body });
+  });
+  await openMedia(page);
+  const demo = page.getByTestId('media-card-demo');
+  const cards = demo.getByRole('article');
+  await expect(cards).toHaveCount(2);
+  const search = demo.getByPlaceholder('搜索卡片示例');
+  await search.fill('不存在');
+  await expect(cards).toHaveCount(0);
+  await search.fill('');
+  await expect(cards).toHaveCount(2);
+  await search.click();
+  const toolbar = await demo.locator('[data-workerkit-page-toolbar]').boundingBox();
+  const grid = await demo.locator('.wk-media-grid').boundingBox();
+  const content = await page.locator('[data-workerkit-region="content"]').boundingBox();
+  expect(grid!.y - toolbar!.y - toolbar!.height).toBeCloseTo(16, 0);
+  expect(grid!.x - content!.x).toBeCloseTo(16, 0);
+  expect((await search.boundingBox())!.height).toBeCloseTo(32, 0);
+  const relativeMetadata = [];
+  for (const card of await cards.all()) {
+    const box = await card.boundingBox(), meta = await card.locator('.wk-media-card-meta').boundingBox();
+    expect((await card.locator('.wk-media-card-title').boundingBox())!.height).toBeGreaterThan(20);
+    relativeMetadata.push(box!.y + box!.height - meta!.y - meta!.height);
+  }
+  expect(relativeMetadata[0]).toBeCloseTo(relativeMetadata[1], 0);
+  await demo.getByRole('button', { name: '短标题', exact: true }).press('Enter');
+  const dialog = page.getByRole('dialog', { name: '资源详情', exact: true });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('button', { name: '知道了', exact: true }).click();
+  await expect(dialog).toBeHidden();
+  await screenshot(page, 'media-card-browser.png');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize()!.width);
+});

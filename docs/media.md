@@ -31,6 +31,22 @@ import '@pengzhendong/worker-kit/web/media/styles.css';
 
 音频卡片设置 `compact`，使用 Video.js 的公开 PlayButton、TimeSlider、Time 组件，仅显示播放、定位和时间，不放快进、快退、音量与倍速。已知 `duration` 在播放前直接显示；未知时长显示“—”，不为读时长预取媒体。开始播放后显示实际进度与媒体时长。详情保留默认完整控制栏，可另开 `waveform`。
 
+## 列表工具栏与卡片
+
+`AdminShell compactContent` 为资源浏览器采用 16 px 内容边距；`PageToolbar`（普通 web 入口）统一标题、数量与常规 32 px 操作控件，工具栏到列表为 16 px。不要在应用里另叠标题行 margin。
+
+```tsx
+import { PageToolbar } from '@pengzhendong/worker-kit/web';
+import { MediaCard, MediaGrid } from '@pengzhendong/worker-kit/web/media';
+
+<PageToolbar title="全部分类" meta={`${items.length} 项`} actions={searchInput} />
+<MediaGrid>{items.map(item => <MediaCard key={item.id} title={item.title}
+  preview={renderPreview(item)} description={item.author} extra={formatSize(item.bytes)}
+  onOpen={() => openDetails(item)} action={downloadButton(item)} />)}</MediaGrid>
+```
+
+网格间距和卡片内边距为 16 px；标题最多两行，不额外预留空白行，同一行卡片的作者与操作区沿底部对齐。卡片直接使用 Ant Design Card；媒体来源、封面尺寸、分类、下载和弹窗内容由应用负责。`loading` 使用共享骨架正文，`preview` 可传应用自己的占位封面。
+
 ## 无登录的资源浏览器
 
 `AdminShell` 可省略 `username`，此时不显示账户菜单；`sidebarFooter` 可展示应用自己的资源数量等信息。这不会添加、关闭或替代任何服务端认证。业务是否公开仍由服务端决定。

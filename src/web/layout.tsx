@@ -18,7 +18,7 @@ function navigationPath(items: NavigationItem[], key: string): NavigationItem[] 
   return [];
 }
 
-export function AdminShell({ title, brandIcon, items, userMenuItems = [], activeKey, onNavigate, username = '', onLogout, headerActions, sidebarActions, sidebarFooter, menuProps, navigationLabel = '应用管理', pageTitleInHeader = false, sidebarStorageKey = 'workerkit.sidebar.collapsed', children }: {
+export function AdminShell({ title, brandIcon, items, userMenuItems = [], activeKey, onNavigate, username = '', onLogout, headerActions, sidebarActions, sidebarFooter, menuProps, navigationLabel = '应用管理', compactContent = false, pageTitleInHeader = false, sidebarStorageKey = 'workerkit.sidebar.collapsed', children }: {
   title: string;
   brandIcon?: ReactNode;
   items: NavigationItem[];
@@ -34,6 +34,8 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
   menuProps?: Pick<MenuProps, 'openKeys' | 'onOpenChange' | 'selectedKeys'>;
   /** Optional sidebar caption; false hides it without leaving an empty row. */
   navigationLabel?: string | false;
+  /** 16 px content inset for compact browsers/lists; form consoles retain 32 px. */
+  compactContent?: boolean;
   /** Omit for a public shell; applications may offer a sign-in item instead. */
   onLogout?: () => void | Promise<void>;
   /** Application-owned global actions; keep labels compact on narrow screens. */
@@ -104,7 +106,8 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
     {dark ? <><circle cx="12" cy="12" r="4" /><path d="M12 2v2 M12 20v2 M2 12h2 M20 12h2 M4.93 4.93l1.42 1.42 M17.65 17.65l1.42 1.42 M4.93 19.07l1.42-1.42 M17.65 6.35l1.42-1.42" /></> : <path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z" />}
   </svg>;
   const logo = brandIcon ?? <span style={{ width: 30, height: 32, borderRadius: 9, display: 'grid', placeItems: 'center', background: token.colorPrimary, color: '#fff', fontWeight: 800, fontSize: 20 }}>{title.slice(0, 1).toUpperCase()}</span>;
-  const brand = compact ? <Flex align="center" justify="center" aria-label={title} style={{ height: 80 }}>{logo}</Flex> : <Space size={10} style={{ height: 80, padding: '0 24px' }}>{logo}<Typography.Title level={4} style={{ margin: 0, letterSpacing: '-.5px' }}>{title}</Typography.Title></Space>;
+  const brandHeight = sidebarActions ? ui.headerHeight : 80;
+  const brand = compact ? <Flex align="center" justify="center" aria-label={title} style={{ height: brandHeight }}>{logo}</Flex> : <Space size={10} style={{ height: brandHeight, padding: '0 24px' }}>{logo}<Typography.Title level={4} style={{ margin: 0, letterSpacing: '-.5px' }}>{title}</Typography.Title></Space>;
   const logoutIcon = <IconBox><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 4H4v16h5 M14 8l4 4-4 4 M9 12h12" /></svg></IconBox>;
   const avatar = <Avatar size={ui.avatarSize} style={{ flexShrink: 0, background: token.colorPrimaryBg, color: token.colorPrimaryText, fontSize: 13, fontWeight: 600 }}>{username.slice(0, 1).toUpperCase()}</Avatar>;
   const account = username ? <div data-workerkit-region="account" style={{ flexShrink: 0, padding: compact ? '12px 8px' : 12, borderTop: `1px solid ${token.colorBorderSecondary}` }}>
@@ -130,7 +133,7 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
     </Dropdown>
   </div> : sidebarFooter ? <div data-workerkit-region="sidebar-footer" style={{ flexShrink: 0, padding: 16, borderTop: `1px solid ${token.colorBorderSecondary}`, overflowWrap: 'anywhere' }}>{sidebarFooter}</div> : null;
   const navigation = <div data-workerkit-region="sidebar-navigation" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', overscrollBehavior: 'contain' }}>{nested ? <ConfigProvider theme={{ components: { Menu: { collapsedIconSize: ui.iconSize } } }}>{menu}</ConfigProvider> : menu}</div>;
-  const navigationActions = sidebarActions && !compact ? <div data-workerkit-region="sidebar-actions" style={{ padding: '12px 16px', flexShrink: 0 }}>{sidebarActions}</div> : null;
+  const navigationActions = sidebarActions && !compact ? <div data-workerkit-region="sidebar-actions" style={{ padding: screens.lg ? '0 16px 12px' : '12px 16px', flexShrink: 0 }}>{sidebarActions}</div> : null;
   return <Layout data-workerkit-shell style={{ height: '100dvh', minHeight: 0, overflow: 'hidden', background: token.colorBgLayout }}>
     {screens.lg ? <Layout.Sider id={sidebarId} data-workerkit-region="sidebar" width={ui.sidebarWidth} collapsedWidth={ui.sidebarCollapsedWidth} collapsed={compact} trigger={null} style={{ height: '100%', overflow: 'hidden', background: token.colorBgContainer, borderInlineEnd: `1px solid ${token.colorBorderSecondary}` }}><Flex vertical style={{ height: '100%' }}><div style={{ flexShrink: 0 }}>{brand}{!compact && navigationLabel && <Typography.Text type="secondary" style={{ display: 'block', margin: '8px 24px 14px', fontSize: 11, letterSpacing: 2 }}>{navigationLabel}</Typography.Text>}</div>{navigationActions}{navigation}{account}</Flex></Layout.Sider>
       : <Drawer title={title} placement="left" open={open} onClose={() => { setOpen(false); setUserMenuOpen(false); }} styles={{ body: { padding: 0, display: 'flex', flexDirection: 'column', minHeight: 0 } }}>{navigationActions}{navigation}{account}</Drawer>}
@@ -140,7 +143,7 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
         <Flex data-workerkit-header-actions align="center" gap={8} style={{ minWidth: 0 }}>{headerActions}<Tooltip title={themeLabel}><Button type="text" shape="circle" icon={themeIcon} onClick={toggle} aria-label={themeLabel} aria-pressed={dark} /></Tooltip></Flex>
       </Layout.Header>
       <Layout.Content ref={contentRef} data-workerkit-region="content" style={{ flex: 1, minHeight: 0, minWidth: 0, overflow: 'auto', overscrollBehavior: 'contain', scrollbarGutter: 'stable' }}>
-        <div style={{ boxSizing: 'border-box', padding: screens.md ? ui.pagePadding : ui.mobilePagePadding, width: '100%', maxWidth: ui.contentMaxWidth, marginInline: 'auto' }}><PageTitleInHeader.Provider value={pageTitleInHeader}>{children}</PageTitleInHeader.Provider></div>
+        <div style={{ boxSizing: 'border-box', padding: compactContent ? ui.compactPagePadding : screens.md ? ui.pagePadding : ui.mobilePagePadding, width: '100%', maxWidth: ui.contentMaxWidth, marginInline: 'auto' }}><PageTitleInHeader.Provider value={pageTitleInHeader}>{children}</PageTitleInHeader.Provider></div>
       </Layout.Content>
     </Layout>
   </Layout>;

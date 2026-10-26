@@ -31,6 +31,8 @@ import '@pengzhendong/worker-kit/web/styles.css';
 | 侧栏用户入口 | 固定在底部，按钮高 56 px，头像 32 px；头像、用户名和展开图标居中 | `AdminShell` 的账户菜单 |
 | 桌面折叠侧栏 | 展开 232 px，折叠 72 px；折叠时图标居中、名称通过提示显示，底部保留头像入口 | `AdminShell`、Ant Design Sider / Menu |
 | 页面边距 | ≥768 px 时 32 px，否则 16 px；内容最大宽 1440 px | `AdminShell` |
+| 紧凑资源列表 | `compactContent` 使用 16 px 内容边距；`PageToolbar` 到列表也为 16 px，标题与 32 px 控件垂直居中 | `AdminShell`、`PageToolbar` |
+| 资源卡片 | 16 px 网格间距与内边距，标题最多两行，同一行作者与操作沿底部对齐 | `MediaGrid`、`MediaCard`（可选媒体入口） |
 | 文件上传 | 示例使用 88 px 横条，文件列表紧随其后 | `workerKitLayout.uploadHeight` |
 
 消费应用可通过 `WorkerKitProvider` 的 `theme` 覆盖 Ant Design token；传入 `(dark) => ThemeConfig` 可分别提供深浅色品牌色、链接色和按钮文字色。保持品牌色相一致，并分别检查浅色背景与深色背景的对比度，避免将 logo 的亮色直接用于白底小字。
@@ -55,6 +57,7 @@ import '@pengzhendong/worker-kit/web/styles.css';
 - 矮窗口中的侧栏导航区独立滚动，品牌和底部用户入口保持固定；滚动导航不能带动主内容。
 - 当前用户只显示在侧栏底部；点击向上展开账户菜单，支持键盘操作、Escape 和点击外部关闭。账户页面、设置与 API 中心入口由消费应用通过 `userMenuItems` 传入，退出调用 `onLogout`。不显示无操作的工作空间占位文案。
 - 侧栏标题可通过 `navigationLabel={false}` 隐藏。`items` 可传原生层级的 `children` 与 `extra`，分组默认只展开/收起，叶节点触发导航。选中的子页面会展开其祖先，顶栏显示 `activeKey` 对应的页面名称。`menuProps` 可传 Ant Design 原生 `openKeys`、`onOpenChange`、`selectedKeys`，由业务决定手风琴、展开后默认进入首项、三级分类筛选等行为。`sidebarActions` 放置导航搜索，桌面折叠时隐藏，手机抽屉中保留。折叠栏用浮出子菜单，悬停不会触发业务的自动导航；手机展开预览保留抽屉，选择叶节点后关闭。
+- 多级菜单使用 12 px 的递进缩进，二级标题与一级图标后的文字对齐，避免三级标签被挤到侧栏中央。带 `sidebarActions` 的桌面品牌区高 64 px，与顶栏对齐；搜索使用默认 32 px 控件，与内容区搜索保持相同高度。
 - <1024 px 使用 Drawer 导航，底部保留相同的用户入口。内容滚到任意位置后仍能打开；主导航或账户菜单选中页面后均关闭抽屉。
 - `activeKey` 变化后主内容回到顶部。
 - 窄屏工具栏与表单应换行。宽表格在容器内部横向滚动，不能撑宽整个页面。

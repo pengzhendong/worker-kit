@@ -1,7 +1,30 @@
 import { lazy, Suspense } from 'react';
-import { Image, Skeleton } from 'antd';
+import type { ComponentPropsWithoutRef, ReactNode } from 'react';
+import { Card, Image, Skeleton } from 'antd';
 
 const Playback = lazy(() => import('./media-player'));
+
+export function MediaGrid({ children, className = '', ...props }: ComponentPropsWithoutRef<'div'>) {
+  return <div {...props} className={`wk-media-grid ${className}`}>{children}</div>;
+}
+
+/** Shared card geometry; media sources, formatting and detail actions stay in the application. */
+export function MediaCard({ preview, title, description, extra, action, onOpen, loading = false }: {
+  preview: ReactNode; title: string; description?: string; extra?: ReactNode;
+  action?: ReactNode; onOpen?: () => void; loading?: boolean;
+}) {
+  return <Card role="article" className="wk-media-card" cover={preview} classNames={{ body: 'wk-media-card-body' }}
+    styles={{ body: { padding: 16, display: 'flex', flexDirection: 'column', flex: 1 } }}>
+    {loading ? <Skeleton active title paragraph={{ rows: 1 }} /> : <>
+      <div className="wk-media-card-heading">
+        {onOpen ? <button type="button" className="wk-media-card-title" title={title} onClick={onOpen}>{title}</button>
+          : <span className="wk-media-card-title" title={title}>{title}</span>}
+        {extra != null && <span className="wk-media-card-extra">{extra}</span>}
+      </div>
+      <div className="wk-media-card-meta"><span title={description}>{description}</span>{action}</div>
+    </>}
+  </Card>;
+}
 
 export interface MediaSource {
   src: string;
