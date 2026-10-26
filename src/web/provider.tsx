@@ -3,7 +3,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { App, ConfigProvider, theme } from 'antd';
 import type { ConfigProviderProps, ThemeConfig } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
-import { workerKitDarkTokens, workerKitTokens } from './design';
+import { workerKitDarkTokens, workerKitLayout, workerKitTokens } from './design';
 
 const ThemeContext = createContext<{ dark: boolean; toggle: () => void }>({ dark: false, toggle: () => {} });
 
@@ -11,6 +11,7 @@ function ThemeSurface({ children }: { children: ReactNode }) {
   const { token } = theme.useToken();
   const variables = {
     '--wk-font-family': token.fontFamily,
+    '--wk-media-row-height': `${workerKitLayout.mediaRowHeight}px`,
     '--wk-font-family-code': token.fontFamilyCode,
     '--wk-font-size': `${token.fontSize}px`,
     '--wk-font-size-sm': `${token.fontSizeSM}px`,

@@ -40,7 +40,7 @@ button.wk-media-card-title:focus-visible { outline: 2px solid var(--wk-color-pri
 .wk-media-visual > video { display: block; width: 100%; height: 100%; object-fit: contain; }
 .wk-media-compact-error { position: absolute; bottom: 0; left: 0; right: 0; height: 48px; display: flex; align-items: center; justify-content: center; background: var(--wk-color-surface); }
 .wk-media-list { min-width: 0; border: 1px solid var(--wk-color-border); border-radius: 10px; overflow: hidden; background: var(--wk-color-surface); }
-.wk-media-row { position: relative; box-sizing: border-box; height: 64px; display: grid; grid-template-columns: 56px minmax(0, 1fr) 240px 64px 32px; grid-template-areas: "thumbnail info controls extra action"; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--wk-color-border); }
+.wk-media-row { position: relative; box-sizing: border-box; height: var(--wk-media-row-height, 64px); display: grid; grid-template-columns: 56px minmax(0, 1fr) 240px 64px 32px; grid-template-areas: "thumbnail info controls extra action"; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--wk-color-border); }
 .wk-media-row:last-child { border-bottom: 0; }
 .wk-media-row:hover { background: var(--wk-color-hover); }
 .wk-media-thumbnail { grid-area: thumbnail; position: relative; z-index: 1; width: 56px; height: 40px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 5px; overflow: hidden; background: var(--wk-color-hover); color: var(--wk-color-text-secondary); cursor: pointer; font-size: 20px; }

@@ -73,3 +73,16 @@ import { MediaCard, MediaGrid } from '@pengzhendong/worker-kit/web/media';
 音视频仍使用 Video.js 的原生播放、定位、时长组件，`preload=none`，不为填充时长主动下载媒体，也不加载波形。播放视频时缩略图显示实际画面；打开完整预览由应用的 `onOpen` 负责。播放失败与重试占用原来的控件位置，避免行高跳动。`loading` 使用相同行高的骨架。详情使用 `ImageViewer` 或默认完整 `MediaPlayer`。
 
 设计参考 [PhotoPrism 的 List View](https://docs.photoprism.app/user-guide/search/views/) 和 [Navidrome SongList](https://github.com/navidrome/navidrome/blob/master/ui/src/song/SongList.jsx)：借鉴缩略图、信息列、行内操作和响应式信息取舍，未引入它们的应用运行时或复制业务代码。
+
+## 按窗口高度分页
+
+`useAutoPageSize` 从普通 web 入口导出。把 `listRef` 交给持续挂载的 `MediaList`，把 `paginationRef` 交给分页外层；测量完成前 `pageSize` 为 `null`，此时不请求列表。它扣除列表顶部已占空间、边框、分页实际高度和外边距、内容底部 padding，以共享 64 px 行高计算整行数量。窗口缩放、工具栏换行和分页换行通过 ResizeObserver 更新，120 ms 合并连续变化，滚动不会改变容量。
+
+```tsx
+const { pageSize, listRef, paginationRef } = useAutoPageSize({ max: 48 });
+// 业务按 pageSize 请求数据，并取消上一次请求。
+<MediaList ref={listRef}>{rows}</MediaList>
+<div ref={paginationRef}><Pagination pageSize={pageSize || 1} showSizeChanger={false} /></div>
+```
+
+`rowHeight` 可适配其他等高列表；`min` 默认 1，`max` 默认 100，由业务按后端限制设置。极矮窗口至少显示一行并允许内容滚动。页码与数据查询由消费项目负责；剪映保留首条资源的索引，容量改变后定位到包含该资源的页面。

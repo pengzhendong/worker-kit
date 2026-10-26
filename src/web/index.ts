@@ -12,3 +12,5 @@ export { useApiQuery } from './query';
 export { AppErrorBoundary } from './error-boundary';
 export type { ApiRequestInit } from './api';
 export { workerKitDarkTokens, workerKitLayout, workerKitTokens } from './design';
+
+export { useAutoPageSize } from './auto-page-size';

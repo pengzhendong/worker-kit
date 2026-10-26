@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
-import type { ComponentPropsWithoutRef, ReactNode } from 'react';
+import type { ComponentPropsWithRef, ComponentPropsWithoutRef, ReactNode } from 'react';
 import { Button, Card, Image, Skeleton } from 'antd';
 import { AudioOutlined, EyeOutlined, FileOutlined, PictureOutlined } from '@ant-design/icons';
 
@@ -58,7 +58,7 @@ export function ImageViewer({ src, title, poster, className }: MediaSource & { c
 }
 
 /** Compact mixed-media list. Applications own detail dialogs and download actions. */
-export function MediaList({ children, className = '', ...props }: ComponentPropsWithoutRef<'div'>) {
+export function MediaList({ children, className = '', ...props }: ComponentPropsWithRef<'div'>) {
   return <div {...props} role="list" className={`wk-media-list ${className}`}>{children}</div>;
 }
 
