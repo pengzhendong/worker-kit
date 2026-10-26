@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Alert, Button, Flex, Typography, theme } from 'antd';
 import { I18nProvider } from '@videojs/react/i18n';
+import { Container, PlayButton, Time, TimeSlider } from '@videojs/react';
+import { CaretRightOutlined, PauseOutlined, ReloadOutlined } from '@ant-design/icons';
 import { Audio, AudioPlayer, NeutralAudioSkin } from '@videojs/react/audio';
 import { Video, VideoPlayer, NeutralVideoSkin } from '@videojs/react/video';
 import '@videojs/react/audio/neutral-skin.css';
@@ -14,6 +16,35 @@ let activeMedia: HTMLMediaElement | null = null;
 function claimPlayback(media: HTMLMediaElement) {
   if (activeMedia && activeMedia !== media) activeMedia.pause();
   activeMedia = media;
+}
+
+function formatDuration(seconds?: number) {
+  if (!seconds || !Number.isFinite(seconds) || seconds <= 0) return '—';
+  const whole = Math.floor(seconds), minutes = Math.floor(whole / 60);
+  return `${minutes >= 60 ? `${Math.floor(minutes / 60)}:` : ''}${minutes >= 60 ? String(minutes % 60).padStart(2, '0') : minutes}:${String(whole % 60).padStart(2, '0')}`;
+}
+
+function CompactAudio({ title, duration, children }: Pick<MediaPlayerProps, 'title' | 'duration'> & { children: React.ReactNode }) {
+  const knownDuration = formatDuration(duration);
+  return <Container className="wk-audio-compact" aria-label={`${title}播放器`}>
+    {children}
+    <PlayButton className="wk-audio-play" render={(attributes, state) => <button {...attributes}>
+      {state.ended ? <ReloadOutlined /> : state.paused ? <CaretRightOutlined /> : <PauseOutlined />}
+    </button>} />
+    <TimeSlider.Root className="wk-audio-seek">
+      <TimeSlider.Track className="wk-audio-track"><TimeSlider.Buffer className="wk-audio-buffer" /><TimeSlider.Fill className="wk-audio-fill" /></TimeSlider.Track>
+      <TimeSlider.Thumb className="wk-audio-thumb" />
+    </TimeSlider.Root>
+    <Time.Group className="wk-audio-time">
+      <Time.Value type="current" className="wk-audio-current" />
+      <Time.Separator />
+      <Time.Value type="duration" render={(attributes, state) => <time {...attributes}
+        aria-label={state.unavailable ? `总时长 ${knownDuration === '—' ? '未知' : knownDuration}` : attributes['aria-label']}
+        dateTime={state.unavailable && knownDuration !== '—' ? `PT${Math.floor(duration!)}S` : state.datetime}>
+        {state.unavailable ? knownDuration : state.text}
+      </time>} />
+    </Time.Group>
+  </Container>;
 }
 
 function Waveform({ media, source }: { media: HTMLAudioElement; source: MediaPlayerProps }) {
@@ -59,7 +90,7 @@ function Waveform({ media, source }: { media: HTMLAudioElement; source: MediaPla
 }
 
 export default function Playback(props: MediaPlayerProps) {
-  const { src, title, poster, kind, waveform = false, className } = props;
+  const { src, title, poster, kind, waveform = false, compact = false, className } = props;
   const media = useRef<HTMLMediaElement | null>(null);
   const [showWave, setShowWave] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -93,7 +124,8 @@ export default function Playback(props: MediaPlayerProps) {
             : <Button size="small" disabled={!canDecode} onClick={() => setShowWave(true)}>加载波形</Button>}
           {!canDecode && <Typography.Text type="secondary">大音频或时长未知，使用流式试听</Typography.Text>}
         </div>}
-        <NeutralAudioSkin key={attempt} className="wk-audio-skin"><Audio {...events} ref={element => { media.current = element; }} /></NeutralAudioSkin>
+        {compact ? <CompactAudio key={attempt} title={title} duration={props.duration}><Audio {...events} ref={element => { media.current = element; }} /></CompactAudio>
+          : <NeutralAudioSkin key={attempt} className="wk-audio-skin"><Audio {...events} ref={element => { media.current = element; }} /></NeutralAudioSkin>}
       </AudioPlayer>}
     </I18nProvider>
     {failed && <Alert type="warning" title="暂时无法播放" description="请重试，或下载后使用本地播放器打开。"

@@ -20,6 +20,8 @@ export interface MediaPlayerProps extends MediaSource {
   kind: 'audio' | 'video';
   /** Offer waveform loading in a detail view; lists keep this off. */
   waveform?: boolean;
+  /** Audio card controls: play, seek and time. Full controls remain the default for details. */
+  compact?: boolean;
   className?: string;
 }
 

@@ -2,6 +2,20 @@
 .wk-media-loading { padding: 16px; width: 100%; }
 .wk-video-skin { width: 100%; aspect-ratio: 16 / 9; --media-object-fit: contain; }
 .wk-audio-skin { width: 100%; }
+.wk-audio-compact { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 8px 12px; color: var(--wk-color-text); background: var(--wk-color-surface); }
+.wk-audio-play { display: grid; place-items: center; flex: 0 0 32px; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; background: var(--wk-color-primary-bg); color: var(--wk-color-primary-text); font-size: 18px; cursor: pointer; }
+.wk-audio-play:hover { background: var(--wk-color-hover); }
+.wk-audio-play:focus-visible,.wk-audio-seek:focus-within { outline: 2px solid var(--wk-color-primary); outline-offset: 2px; }
+.wk-audio-seek { position: relative; display: flex; align-items: center; flex: 1; min-width: 32px; height: 32px; cursor: pointer; touch-action: none; }
+.wk-audio-seek[data-disabled] { opacity: .5; cursor: default; }
+.wk-audio-track { position: absolute; width: 100%; height: 4px; border-radius: 4px; background: var(--wk-color-border); overflow: hidden; }
+.wk-audio-buffer,.wk-audio-fill { position: absolute; height: 100%; border-radius: inherit; }
+.wk-audio-buffer { width: var(--media-slider-buffer); background: var(--wk-color-primary-border); }
+.wk-audio-fill { width: var(--media-slider-fill); background: var(--wk-color-primary); }
+.wk-audio-thumb { position: absolute; left: var(--media-slider-fill); width: 10px; height: 10px; border-radius: 50%; background: var(--wk-color-primary); transform: translateX(-50%); }
+.wk-audio-seek[data-disabled] .wk-audio-thumb { visibility: hidden; }
+.wk-audio-time { display: flex; align-items: center; gap: 4px; flex-shrink: 0; white-space: nowrap; color: var(--wk-color-text-secondary); font-size: var(--wk-font-size-sm, 12px); font-variant-numeric: tabular-nums; }
+.wk-audio-current[data-unavailable],.wk-audio-current[data-unavailable] + * { display: none; }
 .wk-waveform-toolbar { padding: 12px; display: grid; gap: 8px; background: var(--wk-color-surface); }
 .wk-waveform-toolbar > .ant-btn { justify-self: start; }
 .wk-waveform-panel { min-width: 0; }

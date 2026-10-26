@@ -8,6 +8,7 @@ import '@pengzhendong/worker-kit/web/media/styles.css';
 
 <ImageViewer src="/files/original.jpg" poster="/files/thumbnail.jpg" title="封面" />
 <MediaPlayer kind="video" src="/files/demo.mp4" poster="/files/poster.jpg" title="演示" />
+<MediaPlayer kind="audio" src="/files/music.mp3" title="列表试听" duration={190} compact />
 <MediaPlayer kind="audio" src="/files/music.mp3" title="音乐" bytes={3_000_000} duration={190} waveform />
 ```
 
@@ -27,6 +28,8 @@ import '@pengzhendong/worker-kit/web/media/styles.css';
 当前默认适配浏览器原生可解码的图片和文件音视频（如 MP3、AAC、WAV、MP4、WebM）。服务端需正确提供 Content-Type 和 Range；组件不会转码、解密 SDK 素材包或自动将 HLS/DASH 当成 MP4。Video.js 可通过它的独立 adapter 扩展流媒体；业务确实需要时再显式接入。
 
 示例位于“组件与交互 → 媒体预览”，音频与视频为本仓库生成的测试素材，图片为自绘 SVG，均不请求第三方演示 CDN。E2E 检查真实播放时间、互斥播放、定位、波形、按需请求、错误恢复与三种视口主题截图。
+
+音频卡片设置 `compact`，使用 Video.js 的公开 PlayButton、TimeSlider、Time 组件，仅显示播放、定位和时间，不放快进、快退、音量与倍速。已知 `duration` 在播放前直接显示；未知时长显示“—”，不为读时长预取媒体。开始播放后显示实际进度与媒体时长。详情保留默认完整控制栏，可另开 `waveform`。
 
 ## 无登录的资源浏览器
 

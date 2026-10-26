@@ -3,7 +3,7 @@ import { test, expect, openDashboard, screenshot } from './fixtures';
 async function openMedia(page: import('@playwright/test').Page) {
   await openDashboard(page, 'components');
   await page.getByRole('tab', { name: '媒体预览', exact: true }).click();
-  await expect(page.locator('[data-workerkit-media]')).toHaveCount(4);
+  await expect(page.locator('[data-workerkit-media]')).toHaveCount(5);
   await expect(page.getByRole('button', { name: '加载波形', exact: true }).first()).toBeEnabled();
 }
 
@@ -33,7 +33,7 @@ test('media loads on demand, decodes a real waveform, seeks and pauses other pla
 test('media handles unavailable files and large audio without decoding', async ({ page }) => {
   await page.route('**/media/unavailable.mp4', route => route.fulfill({ status: 404, body: 'Not found' }));
   await openMedia(page);
-  const large = page.locator('[data-workerkit-media=audio]').nth(1);
+  const large = page.locator('[data-workerkit-media=audio]').last();
   await expect(large.getByRole('button', { name: '加载波形' })).toBeDisabled();
   await expect(large.getByText('大音频或时长未知，使用流式试听')).toBeVisible();
   const missing = page.locator('[data-workerkit-media=video]').nth(1);
@@ -51,4 +51,38 @@ test('media keeps the approved appearance', async ({ page }) => {
   await expect(page.getByRole('img', { name: '山间日落', exact: true })).toBeVisible();
   await screenshot(page, 'components-media.png');
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize()!.width);
+});
+
+test('compact audio fits narrow cards, shows known duration without fetching, and supports keyboard seeking', async ({ page }) => {
+  const audioRequests: string[] = [];
+  page.on('request', r => { if (r.url().endsWith('/media/tone.wav')) audioRequests.push(r.url()); });
+  await openMedia(page);
+  const compact = page.locator('.wk-audio-compact');
+  await expect(compact.getByText('0:08', { exact: true })).toBeVisible();
+  await expect(compact.getByRole('button')).toHaveCount(1);
+  expect(audioRequests).toEqual([]);
+  const assertFit = async () => {
+    const bounds = await compact.evaluate(element => {
+      const outer = element.getBoundingClientRect();
+      const parts = ['.wk-audio-play', '.wk-audio-seek', '.wk-audio-time'].map(selector => {
+        const r = element.querySelector(selector)!.getBoundingClientRect();
+        return { left: r.left, right: r.right, width: r.width };
+      });
+      return { outer: { left: outer.left, right: outer.right, width: outer.width }, parts };
+    });
+    expect(bounds.outer.width).toBeLessThanOrEqual(240);
+    expect(bounds.parts[0].left).toBeGreaterThanOrEqual(bounds.outer.left);
+    expect(bounds.parts[0].right).toBeLessThan(bounds.parts[1].left);
+    expect(bounds.parts[1].width).toBeGreaterThan(60);
+    expect(bounds.parts[1].right).toBeLessThan(bounds.parts[2].left);
+    expect(bounds.parts[2].right).toBeLessThanOrEqual(bounds.outer.right);
+  };
+  await assertFit();
+  await compact.getByRole('button', { name: '播放', exact: true }).click();
+  await expect.poll(() => compact.locator('audio').evaluate(e => (e as HTMLMediaElement).currentTime)).toBeGreaterThan(0);
+  await compact.getByRole('button', { name: '暂停', exact: true }).click();
+  await compact.getByRole('slider', { name: '定位', exact: true }).press('End');
+  await expect.poll(() => compact.locator('audio').evaluate(e => (e as HTMLMediaElement).currentTime)).toBeGreaterThan(7);
+  await assertFit();
+  await screenshot(page, 'components-media-compact.png');
 });

@@ -11,6 +11,8 @@ export function MediaExamples() {
     <Col xs={24} lg={12}><Card title="音频试听" extra={<Typography.Text type="secondary">WaveSurfer + Video.js</Typography.Text>}>
       <MediaPlayer kind="audio" src="/media/tone.wav" title="示例提示音" bytes={256078} duration={8} waveform />
       <Typography.Paragraph type="secondary" style={{ marginBottom: 0 }}>按需生成真实波形，可点击定位；播放另一段媒体时暂停当前播放。</Typography.Paragraph>
+      <Typography.Paragraph type="secondary" style={{ marginTop: 16, marginBottom: 8 }}>列表试听（240 px 卡片）</Typography.Paragraph>
+      <div style={{ width: 240, maxWidth: '100%' }}><MediaPlayer kind="audio" src="/media/tone.wav" title="紧凑试听示例" duration={8} compact /></div>
     </Card></Col>
     <Col xs={24} lg={12}><Card title="视频播放" extra={<Typography.Text type="secondary">Video.js 10</Typography.Text>}>
       <MediaPlayer kind="video" src="/media/clip.mp4" poster="/media/landscape.svg" title="示例视频" />
