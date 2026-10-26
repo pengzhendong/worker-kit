@@ -24,10 +24,11 @@ function formatDuration(seconds?: number) {
   return `${minutes >= 60 ? `${Math.floor(minutes / 60)}:` : ''}${minutes >= 60 ? String(minutes % 60).padStart(2, '0') : minutes}:${String(whole % 60).padStart(2, '0')}`;
 }
 
-function CompactAudio({ title, duration, children }: Pick<MediaPlayerProps, 'title' | 'duration'> & { children: React.ReactNode }) {
+function CompactPlayback({ title, duration, children, video = false }: Pick<MediaPlayerProps, 'title' | 'duration'> & { children: React.ReactNode; video?: boolean }) {
   const knownDuration = formatDuration(duration);
-  return <Container className="wk-audio-compact" aria-label={`${title}播放器`}>
-    {children}
+  return <Container className={video ? "wk-video-compact" : "wk-audio-compact"} aria-label={`${title}播放器`}>
+    {video ? <div className="wk-media-visual">{children}</div> : children}
+    <div className="wk-media-controls">
     <PlayButton className="wk-audio-play" render={(attributes, state) => <button {...attributes}>
       {state.ended ? <ReloadOutlined /> : state.paused ? <CaretRightOutlined /> : <PauseOutlined />}
     </button>} />
@@ -44,6 +45,7 @@ function CompactAudio({ title, duration, children }: Pick<MediaPlayerProps, 'tit
         {state.unavailable ? knownDuration : state.text}
       </time>} />
     </Time.Group>
+    </div>
   </Container>;
 }
 
@@ -116,19 +118,22 @@ export default function Playback(props: MediaPlayerProps) {
     onError: () => setFailed(true), 'aria-label': title };
   return <div className={`wk-media-player wk-media-${kind} ${className || ''}`} style={colors} data-workerkit-media={kind}>
     <I18nProvider locale="zh-CN">
-      {kind === 'video' ? <VideoPlayer poster={poster}><NeutralVideoSkin key={attempt} className="wk-video-skin" aria-label={`${title}播放器`}>
+      {kind === 'video' ? <VideoPlayer poster={poster}>{compact ? <CompactPlayback key={attempt} title={title} duration={props.duration} video>
+        <Video {...events} poster={poster} ref={element => { media.current = element; }} playsInline />
+      </CompactPlayback> : <NeutralVideoSkin key={attempt} className="wk-video-skin" aria-label={`${title}播放器`}>
         <Video {...events} ref={element => { media.current = element; }} playsInline />
-      </NeutralVideoSkin></VideoPlayer> : <AudioPlayer title={title}>
+      </NeutralVideoSkin>}</VideoPlayer> : <AudioPlayer title={title}>
         {waveform && <div className="wk-waveform-toolbar">
           {showWave && media.current ? <Waveform media={media.current as HTMLAudioElement} source={props} />
             : <Button size="small" disabled={!canDecode} onClick={() => setShowWave(true)}>加载波形</Button>}
           {!canDecode && <Typography.Text type="secondary">大音频或时长未知，使用流式试听</Typography.Text>}
         </div>}
-        {compact ? <CompactAudio key={attempt} title={title} duration={props.duration}><Audio {...events} ref={element => { media.current = element; }} /></CompactAudio>
+        {compact ? <CompactPlayback key={attempt} title={title} duration={props.duration}><Audio {...events} ref={element => { media.current = element; }} /></CompactPlayback>
           : <NeutralAudioSkin key={attempt} className="wk-audio-skin"><Audio {...events} ref={element => { media.current = element; }} /></NeutralAudioSkin>}
       </AudioPlayer>}
     </I18nProvider>
-    {failed && <Alert type="warning" title="暂时无法播放" description="请重试，或下载后使用本地播放器打开。"
-      action={<Button size="small" onClick={() => { setFailed(false); setShowWave(false); setAttempt(v => v + 1); }}>重试播放</Button>} />}
+    {failed && (compact ? <div className="wk-media-compact-error" role="alert"><Button type="text" aria-label="无法播放，点击重试" icon={<ReloadOutlined aria-hidden />}
+      onClick={() => { setFailed(false); setAttempt(v => v + 1); }}>无法播放，点击重试</Button></div> : <Alert type="warning" title="暂时无法播放" description="请重试，或下载后使用本地播放器打开。"
+      action={<Button size="small" onClick={() => { setFailed(false); setShowWave(false); setAttempt(v => v + 1); }}>重试播放</Button>} />)}
   </div>;
 }

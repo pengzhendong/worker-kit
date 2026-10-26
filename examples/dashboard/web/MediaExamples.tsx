@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { App, Button, Card, Col, Input, Row, Typography } from 'antd';
 import { PageToolbar } from '@pengzhendong/worker-kit/web';
-import { ImageViewer, MediaCard, MediaGrid, MediaPlayer } from '@pengzhendong/worker-kit/web/media';
+import { ImageViewer, MediaList, MediaRow, MediaPlayer } from '@pengzhendong/worker-kit/web/media';
 import '@pengzhendong/worker-kit/web/media/styles.css';
 
 export function MediaExamples() {
   const [search, setSearch] = useState('');
   const { modal } = App.useApp();
-  const samples = ['短标题', '这是一段用于检查两行排版与作者行对齐的资源标题'].filter(title => title.includes(search));
-  return <><Row gutter={[16, 16]}>
+  const samples = [
+    { kind: 'image' as const, title: '短标题', src: '/media/landscape.svg' },
+    { kind: 'audio' as const, title: '这是一段用于检查两行排版与作者行对齐的资源标题', src: '/media/tone.wav' },
+    { kind: 'video' as const, title: '示例视频', src: '/media/clip.mp4' },
+  ].filter(item => item.title.includes(search));
+  return <><Row data-testid="media-player-examples" gutter={[16, 16]}>
     <Col xs={24} lg={12}><Card title="图片预览" extra={<Typography.Text type="secondary">Ant Design Image</Typography.Text>}>
       <div style={{ height: 200 }}><ImageViewer src="/media/landscape.svg" title="山间日落" /></div>
       <Typography.Paragraph type="secondary" style={{ marginBottom: 0 }}>点击图片可缩放、旋转和全屏查看，按 Escape 关闭。</Typography.Paragraph>
@@ -27,12 +31,12 @@ export function MediaExamples() {
       <Typography.Paragraph type="secondary">列表与大文件默认不下载音频生成波形。应用可提供预计算 peaks 和时长。</Typography.Paragraph>
       <MediaPlayer kind="video" src="/media/unavailable.mp4" title="不可用视频示例" />
     </Card></Col>
-  </Row><section data-testid="media-card-demo" style={{ marginTop: 16 }}>
-    <PageToolbar title="资源卡片" meta={`${samples.length} 项`} actions={<Input placeholder="搜索卡片示例" value={search}
+  </Row><section data-testid="media-list-demo" style={{ marginTop: 16 }}>
+    <PageToolbar title="资源列表" meta={`${samples.length} 项`} actions={<Input placeholder="搜索资源示例" value={search}
       onChange={event => setSearch(event.target.value)} style={{ width: 240, maxWidth: '100%' }} />} />
-    <MediaGrid>{samples.map(title => <MediaCard key={title} title={title} description="示例作者" extra="2.9 MB"
-      preview={<div style={{ height: 112 }}><ImageViewer src="/media/landscape.svg" title={`${title}封面`} /></div>}
+    <MediaList>{samples.map(({kind, title, src}) => <MediaRow key={title} title={title} kind={kind} src={src}
+      description="示例作者" extra="2.9 MB" poster="/media/landscape.svg" duration={8}
       onOpen={() => { modal.info({ title: '资源详情', content: title }); }}
-      action={<Button type="text" href="/media/landscape.svg" download aria-label={`下载 ${title}`}>下载</Button>} />)}</MediaGrid>
+      action={<Button type="text" href="/media/landscape.svg" download aria-label={`下载 ${title}`}>下载</Button>} />)}</MediaList>
   </section></>;
 }

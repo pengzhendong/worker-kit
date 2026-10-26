@@ -45,7 +45,7 @@ import { MediaCard, MediaGrid } from '@pengzhendong/worker-kit/web/media';
   onOpen={() => openDetails(item)} action={downloadButton(item)} />)}</MediaGrid>
 ```
 
-网格间距和卡片内边距为 16 px；标题最多两行，不额外预留空白行，同一行卡片的作者与操作区沿底部对齐。卡片直接使用 Ant Design Card；媒体来源、封面尺寸、分类、下载和弹窗内容由应用负责。`loading` 使用共享骨架正文，`preview` 可传应用自己的占位封面。
+网格间距和卡片内边距为 16 px；标题最多两行，不额外预留空白行，同一行卡片的作者与操作区沿底部对齐。卡片直接使用 Ant Design Card；媒体来源、分类、下载和弹窗内容由应用负责。`loading` 使用共享骨架正文，`preview` 可传应用自己的占位封面。
 
 ## 无登录的资源浏览器
 
@@ -58,3 +58,18 @@ import { MediaCard, MediaGrid } from '@pengzhendong/worker-kit/web/media';
 - [Video.js 10](https://videojs.org/docs/guides/installation/react)：Apache-2.0，音视频控制与可访问交互。
 
 播放器不包含 Mux Data、外部统计、广告或第三方播放器 CDN；这些扩展不在本次依赖和装配中。
+
+## 紧凑混合媒体列表
+
+素材检索和批量浏览优先使用 `MediaList`、`MediaRow`。每行高 64 px，桌面缩略图 56×40 px，名称/作者、行内预览、大小和下载操作在同一行；手机缩略图为 40×40 px，大小合并到副信息，保留播放和下载，进度定位在详情中完成。图片、音频、视频和普通文件保持相同高度，没有类型角标与独立卡片脚注。
+
+```tsx
+<MediaList>{items.map(item => <MediaRow key={item.id} kind={item.kind}
+  src={item.url} poster={item.poster} title={item.title} description={item.author}
+  duration={item.duration} extra={formatSize(item.bytes)}
+  onOpen={() => openDetails(item)} action={downloadButton(item)} />)}</MediaList>
+```
+
+音视频仍使用 Video.js 的原生播放、定位、时长组件，`preload=none`，不为填充时长主动下载媒体，也不加载波形。播放视频时缩略图显示实际画面；打开完整预览由应用的 `onOpen` 负责。播放失败与重试占用原来的控件位置，避免行高跳动。`loading` 使用相同行高的骨架。详情使用 `ImageViewer` 或默认完整 `MediaPlayer`。
+
+设计参考 [PhotoPrism 的 List View](https://docs.photoprism.app/user-guide/search/views/) 和 [Navidrome SongList](https://github.com/navidrome/navidrome/blob/master/ui/src/song/SongList.jsx)：借鉴缩略图、信息列、行内操作和响应式信息取舍，未引入它们的应用运行时或复制业务代码。
