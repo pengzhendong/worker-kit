@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { workerKitLayout } from './design';
 
-/** Fit fixed-height rows inside AdminShell, reserving the real pagination and content padding. */
-export function useAutoPageSize({ rowHeight = workerKitLayout.mediaRowHeight, min = 1, max = 100 }: {
+/** Fit fixed-height list/grid rows, reserving the real pagination and content padding. */
+export function useAutoPageSize({ rowHeight, min = 1, max = 100 }: {
   rowHeight?: number; min?: number; max?: number;
 } = {}) {
   const listRef = useRef<HTMLDivElement>(null), paginationRef = useRef<HTMLDivElement>(null);
@@ -21,7 +21,12 @@ export function useAutoPageSize({ rowHeight = workerKitLayout.mediaRowHeight, mi
       const footer = Math.max(pagination.getBoundingClientRect().height, pagination.scrollHeight) + pixels(footerStyle.marginTop) + pixels(footerStyle.marginBottom);
       const bottom = viewport === document.documentElement || !inner ? 0 : pixels(getComputedStyle(inner).paddingBottom);
       const height = viewport === document.documentElement ? window.innerHeight : viewport.clientHeight;
-      const next = Math.max(min, Math.min(max, Math.floor((height - offset - chrome - footer - bottom) / rowHeight)));
+      const itemHeight = rowHeight ?? (pixels(listStyle.getPropertyValue('--wk-media-row-height')) || workerKitLayout.mediaRowHeight);
+      const grid = listStyle.display === 'grid';
+      const columns = grid ? Math.max(1, listStyle.gridTemplateColumns.split(' ').filter(Boolean).length) : 1;
+      const gap = grid ? pixels(listStyle.rowGap) : 0;
+      const rows = Math.max(1, Math.floor((height - offset - chrome - footer - bottom + gap) / (itemHeight + gap)));
+      const next = Math.max(min, Math.min(max, rows * columns));
       setPageSize(previous => previous === next ? previous : next);
     };
     let timer: ReturnType<typeof setTimeout>;

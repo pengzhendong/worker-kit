@@ -58,8 +58,10 @@ export function ImageViewer({ src, title, poster, className }: MediaSource & { c
 }
 
 /** Compact mixed-media list. Applications own detail dialogs and download actions. */
-export function MediaList({ children, className = '', ...props }: ComponentPropsWithRef<'div'>) {
-  return <div {...props} role="list" className={`wk-media-list ${className}`}>{children}</div>;
+export function MediaList({ children, layout = 'list', className = '', ...props }: ComponentPropsWithRef<'div'> & {
+  layout?: 'list' | 'grid';
+}) {
+  return <div {...props} role="list" className={`wk-media-list ${layout === 'grid' ? 'wk-media-list-grid' : ''} ${className}`}>{children}</div>;
 }
 
 export function MediaRow({ kind, title, description, extra, action, onOpen, loading = false, ...source }: MediaSource & {

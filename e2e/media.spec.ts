@@ -180,3 +180,41 @@ test('mixed previews share controls, defer media requests, pause each other and 
   await video.getByRole('button', { name: '播放', exact: true }).click();
   await expect.poll(() => video.locator('video').evaluate(e => (e as HTMLMediaElement).paused)).toBe(false);
 });
+
+
+test('visual media grid keeps large previews and aligned controls without overflowing', async ({ page }) => {
+  await page.route('**/MediaExamples.tsx', async route => {
+    const response = await route.fetch(), original = await response.text();
+    const body = original.replace(/(\w*jsxDEV)\(MediaList, \{/, '$1(MediaList, { layout: "grid",');
+    expect(body).not.toBe(original);
+    await route.fulfill({ response, body });
+  });
+  await openMedia(page);
+  const demo = page.getByTestId('media-list-demo');
+  await expect(demo.locator('.wk-media-list-grid')).toHaveCount(1);
+  for (const card of await demo.getByRole('listitem').all()) {
+    const box = (await card.boundingBox())!, thumbnail = (await card.locator('.wk-media-thumbnail').boundingBox())!;
+    expect(box.height).toBe(144);
+    expect(thumbnail.height).toBe(112);
+    expect(thumbnail.width).toBe(page.viewportSize()!.width < 768 ? 96 : 112);
+    const action = (await card.locator('.wk-media-row-action').boundingBox())!;
+    const control = card.locator('.wk-media-controls, .wk-media-row-tools');
+    const controls = (await control.boundingBox())!;
+    expect(controls.x).toBeGreaterThan(thumbnail.x + thumbnail.width);
+    expect(controls.x + controls.width).toBeLessThanOrEqual(action.x);
+    expect(controls.y + controls.height).toBeLessThanOrEqual(box.y + box.height);
+    expect(action.x + action.width).toBeLessThanOrEqual(box.x + box.width);
+  }
+  const audio = demo.locator('[data-workerkit-media-row=audio]');
+  await audio.getByRole('button', { name: '播放', exact: true }).click();
+  await expect.poll(() => audio.locator('audio').evaluate(e => (e as HTMLMediaElement).currentTime)).toBeGreaterThan(0);
+  await audio.getByRole('button', { name: '暂停', exact: true }).click();
+  const video = demo.locator('[data-workerkit-media-row=video]');
+  await video.getByRole('button', { name: '播放', exact: true }).click();
+  await expect.poll(() => video.locator('video').evaluate(e => (e as HTMLMediaElement).currentTime)).toBeGreaterThan(0);
+  await video.getByRole('button', { name: '暂停', exact: true }).click();
+  await demo.locator('audio,video').evaluateAll(elements => elements.forEach(e => { (e as HTMLMediaElement).currentTime = 0; }));
+  await expect.poll(() => video.locator('video').evaluate(e => (e as HTMLMediaElement).seeking)).toBe(false);
+  await screenshot(page, 'media-visual-grid.png');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize()!.width);
+});

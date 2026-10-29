@@ -33,6 +33,7 @@ import '@pengzhendong/worker-kit/web/styles.css';
 | 页面边距 | ≥768 px 时 32 px，否则 16 px；内容最大宽 1440 px | `AdminShell` |
 | 紧凑资源列表 | `compactContent` 使用 16 px 内容边距；`PageToolbar` 到列表也为 16 px，标题与 32 px 控件垂直居中 | `AdminShell`、`PageToolbar` |
 | 紧凑混合资源 | 64 px 行高、56×40 px 缩略图；名称、作者、预览、大小和下载同行；手机使用 40×40 px 缩略图与简化操作 | `MediaList`、`MediaRow` |
+| 可视化资源浏览 | `MediaList layout="grid"` 按容器宽度排列多列，144 px 卡片、112×112 px 预览、12 px 间距；手机预览宽 96 px；标题最多两行，大小与作者同行，播放与下载沿底部对齐 | `MediaList`、`MediaRow` |
 | 资源卡片 | 16 px 网格间距与内边距，标题最多两行，同一行作者与操作沿底部对齐 | `MediaGrid`、`MediaCard`（可选媒体入口） |
 | 文件上传 | 示例使用 88 px 横条，文件列表紧随其后 | `workerKitLayout.uploadHeight` |
 

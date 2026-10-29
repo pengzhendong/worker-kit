@@ -71,3 +71,48 @@ button.wk-media-card-title:focus-visible { outline: 2px solid var(--wk-color-pri
   .wk-media-row .wk-media-compact-error .ant-btn { width: 32px; overflow: hidden; padding: 0; font-size: 0; }
   .wk-media-row .wk-media-compact-error .ant-btn-icon { font-size: 16px; }
 }
+
+/* Opt-in visual browsing: large previews without stretching a single row across the page. */
+.wk-media-list-grid {
+  --wk-media-row-height: 144px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
+  gap: 12px;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+  background: none;
+}
+.wk-media-list-grid > .wk-media-row {
+  grid-template-columns: 112px minmax(0, 1fr) minmax(32px, max-content);
+  grid-template-rows: minmax(0, 1fr) 32px;
+  grid-template-areas: "thumbnail info info" "thumbnail controls action";
+  gap: 8px 12px;
+  padding: 12px;
+  border: 1px solid var(--wk-color-border);
+  border-radius: 10px;
+  background: var(--wk-color-surface);
+}
+.wk-media-list-grid > .wk-media-row:hover { background: var(--wk-color-hover); }
+.wk-media-list-grid .wk-media-thumbnail,
+.wk-media-list-grid .wk-media-thumbnail .ant-skeleton-image,
+.wk-media-list-grid .wk-media-row .wk-media-visual { width: 112px; height: 112px; border-radius: 6px; }
+.wk-media-list-grid .wk-media-row-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.wk-media-list-grid .wk-media-row-meta { margin-top: 4px; }
+.wk-media-list-grid .wk-media-mobile-extra { display: inline; flex-shrink: 0; }
+.wk-media-list-grid .wk-media-row-extra { display: none; }
+.wk-media-list-grid .wk-media-row > .wk-media-player { display: contents; }
+.wk-media-list-grid > .ant-empty { grid-column: 1 / -1; }
+@media (max-width: 767px) {
+  .wk-media-list-grid > .wk-media-row { grid-template-columns: 96px minmax(0, 1fr) minmax(32px, max-content); }
+  .wk-media-list-grid .wk-media-thumbnail,
+  .wk-media-list-grid .wk-media-thumbnail .ant-skeleton-image,
+  .wk-media-list-grid .wk-media-row .wk-media-visual { width: 96px; height: 112px; }
+  .wk-media-list-grid .wk-media-row .wk-audio-seek { display: flex; }
+}

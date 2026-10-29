@@ -1,6 +1,6 @@
 import { test, expect, openDashboard } from './fixtures';
 
-test('automatic pagination fits real available height, reacts to resizing and ignores content scroll', async ({ page }) => {
+for (const layout of ['list', 'grid'] as const) test(`automatic ${layout} pagination fits real available height, reacts to resizing and ignores content scroll`, async ({ page }) => {
   // Render an isolated consumer through Vite's actual resolved imports, without production test switches.
   await page.route('**/MediaExamples.tsx', async route => {
     const response = await route.fetch(), original = await response.text();
@@ -21,7 +21,7 @@ test('automatic pagination fits real available height, reacts to resizing and ig
         const { pageSize, listRef, paginationRef } = useAutoPageSize({ max: 48 });
         return h('section', { 'data-testid': 'auto-page-demo' },
           h(PageToolbar, { title: '自适应分页', meta: h('output', { 'data-testid': 'capacity' }, pageSize || 0) }),
-          h(MediaList, { ref: listRef }, Array.from({ length: pageSize || 1 }, (_, index) => h(MediaRow, {
+          h(MediaList, { ref: listRef, layout: '${layout}' }, Array.from({ length: pageSize || 1 }, (_, index) => h(MediaRow, {
             key: index, kind: 'image', src: '/media/landscape.svg', title: '资源 ' + (index + 1), description: '示例作者', onOpen() {}
           }))),
           h('div', { ref: paginationRef, 'data-testid': 'pagination', style: { marginTop: 24 } },
@@ -54,11 +54,20 @@ test('automatic pagination fits real available height, reacts to resizing and ig
   await page.setViewportSize({ width: viewport.width, height: 8000 });
   await expect.poll(capacity).toBe(48);
   await page.setViewportSize({ width: viewport.width, height: 320 });
-  await expect.poll(capacity).toBe(1);
+  const columns = () => demo.locator('.wk-media-list').evaluate(e => getComputedStyle(e).display === 'grid' ? getComputedStyle(e).gridTemplateColumns.split(' ').length : 1);
+  await expect.poll(capacity).toBe(await columns());
   await page.locator('[data-workerkit-region="content"]').evaluate(element => { element.scrollTop = 100; });
   expect(await page.locator('[data-workerkit-region="content"]').evaluate(element => element.scrollTop)).toBeGreaterThan(0);
   await page.setViewportSize({ width: viewport.width - 1, height: 320 });
-  await expect.poll(capacity).toBe(1);
+  await expect.poll(capacity).toBe(await columns());
+  if (layout === 'grid') {
+    await page.setViewportSize({ width: 1920, height: 900 });
+    await expect.poll(columns).toBeGreaterThan(1);
+    await assertFit();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect.poll(columns).toBe(1);
+    await assertFit();
+  }
   await page.setViewportSize(viewport);
   await page.getByRole('tab', { name: '状态与反馈', exact: true }).click();
   await expect(demo).toHaveCount(0);
