@@ -98,3 +98,24 @@ const { pageSize, listRef, paginationRef } = useAutoPageSize({ max: 48 });
 ```
 
 `rowHeight` 可适配其他等高列表；`min` 默认 1，`max` 默认 100，由业务按后端限制设置。极矮窗口至少显示一行并允许内容滚动。页码与数据查询由消费项目负责；剪映保留首条资源的索引，容量改变后定位到包含该资源的页面。
+
+## 观影交互
+
+需要固定观影控制栏的应用可选用 `@pengzhendong/worker-kit/web/video-player` 的 `VideoPlayer`，并导入 `@pengzhendong/worker-kit/web/video-player/styles.css`。它与资源试听共用 Video.js 10，不另安装播放器引擎。播放、音量、进度、原生全屏、画中画、菜单和键盘使用上游公开组件；只为网页全屏、点击显隐、触摸滑动十秒、长按临时 2 倍速及截图/画面比例补充适配。
+
+```tsx
+import { VideoPlayer } from '@pengzhendong/worker-kit/web/video-player';
+import '@pengzhendong/worker-kit/web/video-player/styles.css';
+
+<VideoPlayer src={url} title="影片" poster={poster} sourceKey={episodeId} preload="none">
+  {businessOverlay}
+</VideoPlayer>
+```
+
+`videoRef` 取得原生 HTMLVideoElement；使用原生事件处理选集、续播和统计。`playerRef.current.prepareSourceChange()` 在读取当前倍速及修改来源前调用，先结束临时倍速和手势。保持组件挂载、变更 `src`，可保留同一个视频元素与全屏；倍速需要应用在修改来源前保存，并在 canplay/loadedmetadata 后恢复。不要给组件设置随集数变化的 React key。
+
+也可以不传 `src`，由消费应用通过 `videoRef` 将自己的 hls.js 实例 attach 到原生 video；引擎加载、参数、线路回退及销毁属于应用。`live` 隐藏点播定位和倍速，不从网络推断直播状态。`message`、`loading` 用于应用的解析提示，`allowScreenshot={false}` 禁止不满足跨域画布要求的来源截图。`children` 放置业务覆盖层，在元素全屏和网页全屏中保留。
+
+控制栏默认随活动显示；点击画面固定显隐，键盘仍可进入控件。全屏右半侧按住 450ms 临时 2×，松开、取消、移动超过阈值、失焦、暂停、切源或卸载恢复；左右触屏滑动定位十秒，直播不滑动定位。Esc 退出网页全屏并恢复页面滚动。网页全屏保留 DOM 归属，未把播放器移动到 body；不要把组件放进带 transform/contain 的裁剪祖先。
+
+观影 UI 继承 WorkerKit 的字体、字号和主色 CSS token，也可通过 `style` 的 `--wk-video-accent` 显式设定应用强调色。非全屏画面允许纵向滚动页面，横向滑动仍用于定位；进入全屏后关闭画面上的浏览器原生平移。

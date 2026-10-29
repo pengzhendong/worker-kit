@@ -10,13 +10,7 @@ import '@videojs/react/audio/neutral-skin.css';
 import '@videojs/react/video/neutral-skin.css';
 import type { MediaPlayerProps } from './media';
 import { useWorkerKitTheme } from './provider';
-
-// Coordinate only WorkerKit players, without pausing unrelated elements in the document.
-let activeMedia: HTMLMediaElement | null = null;
-function claimPlayback(media: HTMLMediaElement) {
-  if (activeMedia && activeMedia !== media) activeMedia.pause();
-  activeMedia = media;
-}
+import { claimPlayback, releasePlayback } from './media-session';
 
 function formatDuration(seconds?: number) {
   if (!seconds || !Number.isFinite(seconds) || seconds <= 0) return '—';
@@ -111,7 +105,7 @@ export default function Playback(props: MediaPlayerProps) {
     return () => {
       if (!element) return;
       element.pause(); element.removeAttribute('src'); element.load();
-      if (activeMedia === element) activeMedia = null;
+      releasePlayback(element);
     };
   }, [src, attempt]);
   const events = { src, preload: 'none' as const, onPlay: (event: React.SyntheticEvent<HTMLMediaElement>) => { setFailed(false); claimPlayback(event.currentTarget); },

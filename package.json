@@ -27,7 +27,9 @@
     "./http": "./src/server/streams.ts",
     "./web/session": "./src/web/session.ts",
     "./web/media": "./src/web/media.tsx",
-    "./web/media/styles.css": "./src/web/media.css"
+    "./web/media/styles.css": "./src/web/media.css",
+    "./web/video-player": "./src/web/video-player.tsx",
+    "./web/video-player/styles.css": "./src/web/video-player.css"
   },
   "scripts": {
     "dev": "npm run dev --workspace @worker-kit/dashboard",

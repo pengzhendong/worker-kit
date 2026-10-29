@@ -29,7 +29,7 @@ ModalForm 显式配置 `omitNil={false}`，保留接口要求的空地址和空�
 
 - Refine Core 是后续复杂 CRUD 的候选。当前 `@refinedev/antd@6.0.3` 的 peer 是 `antd@^5.23.0`，不通过忽略 peer 的方式接入当前 Ant Design 6 应用。出现跨页缓存、多资源 CRUD 等明确需求时再验证 Core 和数据/认证适配器，避免同时维护两套资源和权限体系。
 - Vidstack 官方已进入仅安全维护阶段并引导迁移至 Video.js 10；不新增接入。
-- ArtPlayer 保留为观影项目的候选，不为统一名称而替换已接入的 Video.js。字幕、选集、线路和弹幕等按真实业务需求评估。
+- 光屿观影交互经独立浏览器验证后复用 Video.js 10：使用公开 Controls / Menu / TimeSlider 等组件，最小补充长按、滑动与网页全屏。选集、续播、HLS 引擎配置、线路回退和弹幕继续由消费项目提供；不维护 ArtPlayer 兼容接口。
 - TanStack Query 适合共享查询缓存；当前简单 GET 无缓存，不为替换几十行 hook 引入第二个全局缓存。需要时使用上游原生 API，并接入会话取消和同步清缓存。
 
 ## 每次扩充怎样选择

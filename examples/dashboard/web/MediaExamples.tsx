@@ -1,8 +1,11 @@
-import { useState } from 'react';
-import { App, Button, Card, Col, Image, Input, Row, Typography } from 'antd';
+import { useRef, useState } from 'react';
+import { App, Button, Card, Col, Collapse, Image, Input, Row, Typography } from 'antd';
 import { PageToolbar } from '@pengzhendong/worker-kit/web';
 import { ImageViewer, MediaList, MediaRow, MediaPlayer } from '@pengzhendong/worker-kit/web/media';
 import '@pengzhendong/worker-kit/web/media/styles.css';
+import { VideoPlayer } from '@pengzhendong/worker-kit/web/video-player';
+import type { VideoPlayerHandle } from '@pengzhendong/worker-kit/web/video-player';
+import '@pengzhendong/worker-kit/web/video-player/styles.css';
 
 export function MediaExamples() {
   const [search, setSearch] = useState('');
@@ -41,5 +44,19 @@ export function MediaExamples() {
       description="示例作者" extra="2.9 MB" poster="/media/landscape.svg" duration={8}
       onOpen={() => { modal.info({ title: '资源详情', content: title }); }}
       action={<Button type="text" href="/media/landscape.svg" download aria-label={`下载 ${title}`}>下载</Button>} />)}</MediaList>
-  </section></>;
+  </section><Collapse style={{ marginTop: 16 }} destroyOnHidden items={[{key:'video', label:'观看场景播放器', children:<ViewingExample />}]} /></>;
+}
+
+function ViewingExample() {
+  const [episode, setEpisode] = useState(1);
+  const video = useRef<HTMLVideoElement>(null);
+  const controls = useRef<VideoPlayerHandle>(null);
+  const rate = useRef(1);
+  return <section data-testid="viewing-player-example">
+    <Button onClick={() => { controls.current?.prepareSourceChange(); rate.current = video.current?.playbackRate || 1; setEpisode(value => value + 1); }}>切换测试视频</Button>
+    <div style={{ marginTop: 12 }}><VideoPlayer title="观影示例" poster="/media/landscape.svg" videoRef={video} playerRef={controls} src={`/media/clip.mp4?episode=${episode}`} sourceKey={episode} preload="metadata"
+      onLoadedMetadata={() => { if (video.current) video.current.playbackRate = rate.current; }}>
+      <span data-testid="viewing-overlay" style={{ position:'absolute',top:'25%',left:'25%',pointerEvents:'none' }}>业务覆盖层</span>
+    </VideoPlayer></div>
+  </section>;
 }
