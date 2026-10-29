@@ -14,6 +14,12 @@ test.describe('read-only access', () => {
     await expect(page.getByRole('link', { name: '导出 JSON', exact: true })).toHaveCount(0);
     await expect(page.getByRole('checkbox')).toHaveCount(0);
     await expect(page.getByRole('button', { name: '示例订阅源', exact: true })).toHaveCount(0);
+    await page.getByRole('button', { name: '列设置', exact: true }).press('Enter');
+    const columns = page.locator('.ant-popover').filter({ hasText: '列展示' });
+    await expect(columns).toBeVisible();
+    await expect(columns.getByRole('checkbox', { name: '操作', exact: true })).toHaveCount(0);
+    await page.getByRole('heading', { name: '资源管理', exact: true }).click();
+    await expect(columns).toBeHidden();
     await screenshot(page, 'resources-read-only.png');
     await openNavigation(page);
     await expect(page.getByRole('menuitem', { name: '资源管理', exact: true })).toBeVisible();

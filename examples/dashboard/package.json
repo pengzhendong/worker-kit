@@ -5,17 +5,18 @@
   "type": "module",
   "dependencies": {
     "@ant-design/icons": "6.3.4",
+    "@ant-design/pro-components": "3.1.15-8",
     "@pengzhendong/worker-kit": "file:../..",
     "@scalar/api-reference-react": "0.9.82",
+    "@videojs/react": "10.2.0",
     "antd": "6.6.7",
     "hono": "4.13.13",
     "hono-openapi": "1.5.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "react-error-boundary": "6.1.6",
-    "zod": "4.6.7",
-    "@videojs/react": "10.2.0",
-    "wavesurfer.js": "8.0.3"
+    "wavesurfer.js": "8.0.3",
+    "zod": "4.6.7"
   },
   "scripts": {
     "dev": "npm run db:local && vite --host 127.0.0.1",

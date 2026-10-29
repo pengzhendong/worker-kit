@@ -33,6 +33,18 @@ import '@pengzhendong/worker-kit/web/media/styles.css';
 
 ## 列表工具栏与卡片
 
+图片组直接使用 Ant Design 原生 `Image.PreviewGroup`，无需新增 WorkerKit 轮播组件。`items` 可声明当前页原图地址，不预先挂载所有大图：
+
+```tsx
+import { Image } from 'antd';
+
+<Image.PreviewGroup items={images.map(image => ({ src: image.url, alt: image.title }))}>
+  <ImageViewer src={selected.url} poster={selected.thumbnail} title={selected.title} />
+</Image.PreviewGroup>
+```
+
+原生图片组处理上一张/下一张、缩放、旋转与关闭；应用负责资源范围和下载。详情播放器已经直接使用 Video.js 的 `NeutralAudioSkin` / `NeutralVideoSkin`，继续复用官方皮肤与控件；列表的紧凑排版是公开组件组合，不维护自己的播放状态机。后续选型遵守[开源优先约定](open-source-policy.md)。
+
 `AdminShell compactContent` 为资源浏览器采用 16 px 内容边距；`PageToolbar`（普通 web 入口）统一标题、数量与常规 32 px 操作控件，工具栏到列表为 16 px。不要在应用里另叠标题行 margin。
 
 ```tsx

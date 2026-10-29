@@ -134,6 +134,8 @@ Hono 负责 Cookie 签名和凭据比较。会话默认 12 小时；更改用户
 
 ## 前端接入
 
+扩充能力遵循[开源优先约定](docs/open-source-policy.md)：先使用现有依赖的原生组件，再验证其他开源方案，只为明确缺口写最小适配。dashboard 资源管理页局部试用 ProComponents 的 ProTable / ModalForm；其 Ant Design 6 兼容版本仍为预发布版，固定版本且不进入共享入口或强制消费依赖。
+
 图片缩放、音视频播放和按需波形通过可选的 [`web/media` 入口](docs/media.md) 接入，基于 Ant Design Image、Video.js 10 与 WaveSurfer。演示位置为“组件与交互 → 媒体预览”，不影响普通前后端入口的依赖。
 
 应用根部放置 `WorkerKitProvider`，按需组合 `LoginPage` 和 `AdminShell`。菜单、当前页面、导航行为和退出操作全部由业务传入。共享库不绑定 React Router，也不要求所有应用采用同一导航实现。

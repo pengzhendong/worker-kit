@@ -53,6 +53,22 @@ test('media keeps the approved appearance', async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize()!.width);
 });
 
+test('native image groups navigate with the keyboard and close', async ({ page }) => {
+  await openMedia(page);
+  const image = page.getByRole('img', { name: '山间日落', exact: true });
+  await image.click();
+  const preview = page.locator('.ant-image-preview');
+  await expect(preview).toBeVisible();
+  await expect(preview.locator('img.ant-image-preview-img')).toHaveAttribute('src', '/media/landscape.svg');
+  await page.keyboard.press('ArrowRight');
+  await expect(preview.locator('img.ant-image-preview-img')).toHaveAttribute('src', '/media/coast.svg');
+  await page.keyboard.press('ArrowLeft');
+  await expect(preview.locator('img.ant-image-preview-img')).toHaveAttribute('src', '/media/landscape.svg');
+  await page.keyboard.press('Escape');
+  await expect(preview).toBeHidden();
+  await expect(image).toBeVisible();
+});
+
 test('compact audio fits narrow cards, shows known duration without fetching, and supports keyboard seeking', async ({ page }) => {
   const audioRequests: string[] = [];
   page.on('request', r => { if (r.url().endsWith('/media/tone.wav')) audioRequests.push(r.url()); });

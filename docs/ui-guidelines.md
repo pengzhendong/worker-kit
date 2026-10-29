@@ -95,6 +95,8 @@ Scalar 放在独立文档中隔离样式与 hash；跟随父页主题，在线�
 
 新增公共组件时先复用现有 token 和 Ant Design 组件；只有真实消费需求重复出现后才提取新的公共封装。不为了规范引入另一套组件库或业务 DSL。
 
+扩充媒体、表格、表单等能力先遵守[开源优先约定](open-source-policy.md)。图片组直接组合 `Image.PreviewGroup`，音视频详情使用 Video.js 官方 skin；统一视觉优先调整主题和公开配置。ProComponents 当前仅在 dashboard 资源管理页固定版本试点，消费项目不随共享库升级被迫安装。
+
 ## 业务顶栏与紧凑标题
 
 `AdminShell.headerActions` 接收应用自己的 React 节点，例如发布按钮、发布状态和刷新。按钮仍由应用处理，框架不接管业务工作流；窄屏时应用应收起次要状态文字，避免挤压导航和主题入口。

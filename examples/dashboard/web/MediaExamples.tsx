@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { App, Button, Card, Col, Input, Row, Typography } from 'antd';
+import { App, Button, Card, Col, Image, Input, Row, Typography } from 'antd';
 import { PageToolbar } from '@pengzhendong/worker-kit/web';
 import { ImageViewer, MediaList, MediaRow, MediaPlayer } from '@pengzhendong/worker-kit/web/media';
 import '@pengzhendong/worker-kit/web/media/styles.css';
@@ -14,8 +14,11 @@ export function MediaExamples() {
   ].filter(item => item.title.includes(search));
   return <><Row data-testid="media-player-examples" gutter={[16, 16]}>
     <Col xs={24} lg={12}><Card title="图片预览" extra={<Typography.Text type="secondary">Ant Design Image</Typography.Text>}>
-      <div style={{ height: 200 }}><ImageViewer src="/media/landscape.svg" title="山间日落" /></div>
-      <Typography.Paragraph type="secondary" style={{ marginBottom: 0 }}>点击图片可缩放、旋转和全屏查看，按 Escape 关闭。</Typography.Paragraph>
+      <Image.PreviewGroup><div style={{ height: 200, display: 'flex', gap: 8 }}>
+        <ImageViewer src="/media/landscape.svg" title="山间日落" />
+        <ImageViewer src="/media/coast.svg" title="海边清晨" />
+      </div></Image.PreviewGroup>
+      <Typography.Paragraph type="secondary" style={{ marginBottom: 0 }}>点击图片可缩放、旋转和切换图片，按 Escape 关闭。</Typography.Paragraph>
     </Card></Col>
     <Col xs={24} lg={12}><Card title="音频试听" extra={<Typography.Text type="secondary">WaveSurfer + Video.js</Typography.Text>}>
       <MediaPlayer kind="audio" src="/media/tone.wav" title="示例提示音" bytes={256078} duration={8} waveform />

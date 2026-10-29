@@ -1,5 +1,54 @@
 import { test, expect, openDashboard, screenshot, resources } from './fixtures';
 
+test('upstream table controls change density, hide columns and refresh the scoped query', async ({ page }) => {
+  await openDashboard(page, 'resources');
+  const row = page.getByRole('row').filter({ has: page.getByRole('button', { name: '示例订阅源', exact: true }) });
+  const before = (await row.boundingBox())!.height;
+  await page.getByRole('button', { name: '表格密度', exact: true }).press('Enter');
+  await page.getByRole('menuitem', { name: '紧凑', exact: true }).click();
+  await expect.poll(async () => (await row.boundingBox())!.height).toBeLessThan(before);
+  await page.getByRole('button', { name: '列设置', exact: true }).press('Enter');
+  const settings = page.locator('.ant-popover').filter({ hasText: '列展示' });
+  await expect(settings).toBeVisible();
+  await settings.getByRole('checkbox', { name: '类型', exact: true }).uncheck();
+  await expect(page.getByRole('columnheader', { name: '类型', exact: true })).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await page.getByRole('heading', { name: '资源管理', exact: true }).click();
+  const refreshed = page.waitForRequest(request => new URL(request.url()).pathname === '/api/admin/resources');
+  await page.getByRole('button', { name: '刷新资源', exact: true }).press('Enter');
+  await refreshed;
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize()!.width);
+});
+
+test('upstream modal form prevents duplicate submission while keeping the draft on a server error', async ({ page }) => {
+  let saves = 0;
+  let release: () => void = () => {};
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  await page.route('**/api/admin/resources', async route => {
+    if (route.request().method() !== 'POST') return route.fallback();
+    saves++;
+    expect(route.request().postDataJSON()).toEqual({ name: '异步提交示例', kind: '配置', status: 'enabled', address: '', description: '' });
+    await pending;
+    return route.fulfill({ status: 503, json: { error: { code: 'unavailable', message: '暂时无法保存，请重试' } } });
+  });
+  try {
+    await openDashboard(page, 'resources');
+    await page.getByRole('button', { name: '＋ 新增资源', exact: true }).click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByLabel('名称', { exact: true }).fill('异步提交示例');
+    const save = dialog.getByRole('button', { name: /^保\s*存$/ });
+    await save.click();
+    await expect(save).toHaveClass(/ant-btn-loading/);
+    await save.press('Enter');
+    expect(saves).toBe(1);
+    release();
+    await expect(page.getByText('暂时无法保存，请重试', { exact: true })).toBeVisible();
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByLabel('名称', { exact: true })).toHaveValue('异步提交示例');
+    await expect(save).not.toHaveClass(/ant-btn-loading/);
+  } finally { release(); }
+});
+
 test('resource sorting sends a declared server-side query', async ({ page }) => {
   await openDashboard(page, 'resources');
   const response = page.waitForRequest((request) => {
@@ -33,7 +82,7 @@ test('server field errors retain the draft and clear after a successful retry', 
     .filter((animation) => animation.playState === 'running' && animation.effect?.getComputedTiming().iterations !== Infinity).length)).toBe(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize()!.width);
   const bounds = (await dialog.boundingBox())!;
-  for (const field of await dialog.locator('input, textarea, .ant-select').all()) {
+  for (const field of await dialog.locator('input, textarea, .ant-select').filter({ visible: true }).all()) {
     const control = (await field.boundingBox())!;
     expect(control.x).toBeGreaterThanOrEqual(bounds.x - 1);
     expect(control.x + control.width).toBeLessThanOrEqual(bounds.x + bounds.width + 1);

@@ -48,7 +48,7 @@ test('401 ends the old session once, clears drafts and reloads permissions on lo
   const theme = await page.evaluate(() => localStorage.getItem('workerkit.theme'));
   await page.getByRole('button', { name: '＋ 新增资源', exact: true }).click(); await page.getByLabel('名称', { exact: true }).fill('旧会话草稿');
   await page.getByRole('dialog').getByRole('button', { name: /^取\s*消$/ }).click();
-  expired = true; await page.getByRole('button', { name: /^刷\s*新$/ }).click();
+  expired = true; await page.getByRole('button', { name: '刷新资源', exact: true }).click();
   await expect(page.getByLabel('用户名', { exact: true })).toBeVisible();
   await expect(page.getByText('登录已过期，请重新登录', { exact: true })).toHaveCount(1);
   await page.getByLabel('用户名', { exact: true }).fill('admin'); await page.getByLabel('密码', { exact: true }).fill('password');
@@ -76,7 +76,7 @@ test('403, service failures and network errors keep the current identity and all
   await page.route('**/api/admin/resources?*', (route) => status === 'ok' ? route.fallback() : status === 'offline' ? route.abort('failed') : route.fulfill({ status: status === 'forbidden' ? 403 : 503, json: { error: { code: status, message: status === 'forbidden' ? '没有资源读取权限' : '资源服务暂时不可用' } } }));
   await openDashboard(page, 'resources');
   for (const [next, message] of [['forbidden', '没有资源读取权限'], ['unavailable', '资源服务暂时不可用'], ['offline', '网络连接失败，请稍后重试']] as const) {
-    status = next; await page.getByRole('button', { name: /^刷\s*新$/ }).click(); await expect(page.getByText(message, { exact: true })).toBeVisible();
+    status = next; await page.getByRole('button', { name: '刷新资源', exact: true }).click(); await expect(page.getByText(message, { exact: true })).toBeVisible();
     await expect(page.getByLabel('用户名', { exact: true })).toHaveCount(0);
     await expect(page.getByText('示例订阅源', { exact: true })).toBeVisible();
   }
