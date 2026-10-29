@@ -48,7 +48,8 @@ for (const layout of ['list', 'grid'] as const) test(`automatic ${layout} pagina
   await expect.poll(capacity).toBeGreaterThan(initial);
   await assertFit();
   const tall = await capacity();
-  await page.setViewportSize({ width: viewport.width, height: 600 });
+  // The gallery keeps at least one 144px card row; this demo also has a large page heading and tabs.
+  await page.setViewportSize({ width: viewport.width, height: layout === 'grid' ? 740 : 600 });
   await expect.poll(capacity).toBeLessThan(tall);
   await assertFit();
   await page.setViewportSize({ width: viewport.width, height: 8000 });
@@ -63,9 +64,11 @@ for (const layout of ['list', 'grid'] as const) test(`automatic ${layout} pagina
   if (layout === 'grid') {
     await page.setViewportSize({ width: 1920, height: 900 });
     await expect.poll(columns).toBeGreaterThan(1);
+    await expect.poll(capacity).toBeGreaterThan(1);
     await assertFit();
     await page.setViewportSize({ width: 390, height: 844 });
     await expect.poll(columns).toBe(1);
+    await expect.poll(async () => (await demo.getByTestId('pagination').boundingBox())!.y).toBeLessThan(800);
     await assertFit();
   }
   await page.setViewportSize(viewport);

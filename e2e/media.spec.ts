@@ -192,6 +192,7 @@ test('visual media grid keeps large previews and aligned controls without overfl
   await openMedia(page);
   const demo = page.getByTestId('media-list-demo');
   await expect(demo.locator('.wk-media-list-grid')).toHaveCount(1);
+  await demo.scrollIntoViewIfNeeded();
   for (const card of await demo.getByRole('listitem').all()) {
     const box = (await card.boundingBox())!, thumbnail = (await card.locator('.wk-media-thumbnail').boundingBox())!;
     expect(box.height).toBe(144);
@@ -205,6 +206,7 @@ test('visual media grid keeps large previews and aligned controls without overfl
     expect(controls.y + controls.height).toBeLessThanOrEqual(box.y + box.height);
     expect(action.x + action.width).toBeLessThanOrEqual(box.x + box.width);
   }
+  await screenshot(page, 'media-visual-grid.png');
   const audio = demo.locator('[data-workerkit-media-row=audio]');
   await audio.getByRole('button', { name: '播放', exact: true }).click();
   await expect.poll(() => audio.locator('audio').evaluate(e => (e as HTMLMediaElement).currentTime)).toBeGreaterThan(0);
@@ -213,8 +215,5 @@ test('visual media grid keeps large previews and aligned controls without overfl
   await video.getByRole('button', { name: '播放', exact: true }).click();
   await expect.poll(() => video.locator('video').evaluate(e => (e as HTMLMediaElement).currentTime)).toBeGreaterThan(0);
   await video.getByRole('button', { name: '暂停', exact: true }).click();
-  await demo.locator('audio,video').evaluateAll(elements => elements.forEach(e => { (e as HTMLMediaElement).currentTime = 0; }));
-  await expect.poll(() => video.locator('video').evaluate(e => (e as HTMLMediaElement).seeking)).toBe(false);
-  await screenshot(page, 'media-visual-grid.png');
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize()!.width);
 });
