@@ -10,7 +10,9 @@ const auth=createAdminAuth<typeof bindings>({passwordStore:e=>d1AdminPasswordSto
 const send=(path:string,body?:unknown,cookie='',source=origin)=>app.request(origin+'/auth/'+path,{method:body?'POST':'GET',headers:{Origin:source,'Content-Type':'application/json',Cookie:cookie},...(body?{body:JSON.stringify(body)}:{})},bindings);
 beforeEach(async()=>{await env.DB.exec('CREATE TABLE IF NOT EXISTS workerkit_admin_passwords(id TEXT PRIMARY KEY,password_hash TEXT NOT NULL); DELETE FROM workerkit_admin_passwords;');});
 it('requires the old password, persists only a salted hash, invalidates every old cookie and never falls back to the bootstrap password',async()=>{
+ expect((await send('password',{currentPassword:'original-password',newPassword:'new-valid-password'})).status).toBe(401);
  const a=await send('login',{username:'owner',password:'original-password'});const cookie=a.headers.get('set-cookie')!.split(';')[0];
+ const limited=await app.request(origin+'/auth/password',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json',Cookie:cookie},body:JSON.stringify({currentPassword:'original-password',newPassword:'new-valid-password'})},{...bindings,ADMIN_LOGIN_RATE_LIMITER:{limit:async()=>({success:false})}});expect(limited.status).toBe(429);expect(limited.headers.get('Retry-After')).toBe('60');
  const b=await send('login',{username:'owner',password:'original-password'});const other=b.headers.get('set-cookie')!.split(';')[0];
  expect((await send('password',{currentPassword:'wrong',newPassword:'new-valid-password'},cookie)).status).toBe(422);
  expect((await send('password',{currentPassword:'original-password',newPassword:'short'},cookie)).status).toBe(422);
