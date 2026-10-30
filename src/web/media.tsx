@@ -16,7 +16,8 @@ export function MediaCard({ preview, title, description, extra, action, onOpen, 
 }) {
   return <Card role="article" className="wk-media-card" cover={preview} classNames={{ body: 'wk-media-card-body' }}
     styles={{ body: { padding: 16, display: 'flex', flexDirection: 'column', flex: 1 } }}>
-    {loading ? <Skeleton active title paragraph={{ rows: 1 }} /> : <>
+    {loading ? <Skeleton active title paragraph={{ rows: 1 }}
+      styles={{ title: { margin: 0 }, paragraph: { margin: '8px 0 0' } }} /> : <>
       <div className="wk-media-card-heading">
         {onOpen ? <button type="button" className="wk-media-card-title" title={title} onClick={onOpen}>{title}</button>
           : <span className="wk-media-card-title" title={title}>{title}</span>}
