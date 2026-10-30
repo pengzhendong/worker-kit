@@ -103,3 +103,19 @@ Scalar 放在独立文档中隔离样式与 hash；跟随父页主题，在线�
 `AdminShell.headerActions` 接收应用自己的 React 节点，例如发布按钮、发布状态和刷新。按钮仍由应用处理，框架不接管业务工作流；窄屏时应用应收起次要状态文字，避免挤压导航和主题入口。
 
 设置 `pageTitleInHeader` 后，固定顶栏使用唯一的一级页面标题，内部 `PageHeader` 仅保留说明和页面操作，不再重复大标题。该选项默认关闭以兼容已有页面；IPTV 接入采用此紧凑模式。
+
+## 连续滚动网格（可选）
+
+大量等高卡片可从 `@pengzhendong/worker-kit/web/virtual-grid` 导入 `VirtualGrid`。消费项目按需安装 `@tanstack/react-virtual@^3.14.24`；普通 web、server 和媒体入口不引入它。底层使用 TanStack Virtual，WorkerKit 仅适配 AdminShell 的滚动容器、容器宽度计算列数、行间距与可访问的项目位置。
+
+```tsx
+import {VirtualGrid} from '@pengzhendong/worker-kit/web/virtual-grid';
+
+<VirtualGrid items={items} itemHeight={280} minItemWidth={240}
+  getItemKey={item => item.id} totalCount={total}
+  renderItem={item => <YourCard item={item}/>}/>
+```
+
+卡片必须填满等高容器，不适用于高度不定的瀑布流。`gap` 默认 16，`overscan` 默认 1 行；窗口或侧栏宽度变化时重新计算列数。默认查找祖先的 AdminShell 内容区；其他滚动区域通过稳定的 `getScrollElement` 回调指定。列表前的工具栏若异步改变高度，应让其保持固定尺寸或重新挂载网格，确保滚动偏移准确。
+
+数据源、筛选、加载下一批、失败重试、空状态和回顶由消费应用决定，不绑定接口协议。使用稳定的项目 key，切换筛选时重置列表与滚动；远离视口的项目会卸载，播放器停止、对象 URL 等由资源组件自身的清理逻辑释放。虚拟列表不会缩减已经取得的数据缓存，也不保证保留离屏播放器的进度。

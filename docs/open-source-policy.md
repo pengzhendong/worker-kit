@@ -45,3 +45,7 @@ ModalForm 显式配置 `omitNil={false}`，保留接口要求的空地址和空�
 参考：[Video.js 皮肤](https://videojs.org/docs/framework/react/guides/skins)、[Ant Design Image](https://ant.design/components/image/)、[WaveSurfer](https://wavesurfer.xyz/docs/)、[ProComponents](https://github.com/ant-design/pro-components)、[Refine](https://refine.dev/core/docs/)、[Vidstack 维护说明](https://github.com/vidstack/player)。
 
 管理员改密沿用 Hono Cookie、timingSafeEqual、原生 Web Crypto PBKDF2 和 D1 的原子 SQL，不引入新认证引擎。新增代码仅补充旧密码校验、可选存储协议与 Ant Design 表单组合；不是多用户认证系统。
+
+### 大量卡片的连续滚动
+
+`web/virtual-grid` 采用 TanStack Virtual 3.14.24（MIT，React peer 支持 19）。它处理视口观察、虚拟行与渲染范围，WorkerKit 只提供等高响应式网格与 AdminShell 滚动容器适配，不自写虚拟列表引擎。作为可选 peer，只在该独立入口导入；服务端、普通 UI 和无需大列表的消费者不增加依赖。剪映资源库按批请求和失败重试留在业务层；与单页自动分页 `useAutoPageSize` 分开使用。

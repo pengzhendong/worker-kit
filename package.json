@@ -29,7 +29,8 @@
     "./web/media": "./src/web/media.tsx",
     "./web/media/styles.css": "./src/web/media.css",
     "./web/video-player": "./src/web/video-player.tsx",
-    "./web/video-player/styles.css": "./src/web/video-player.css"
+    "./web/video-player/styles.css": "./src/web/video-player.css",
+    "./web/virtual-grid": "./src/web/virtual-grid.tsx"
   },
   "scripts": {
     "dev": "npm run dev --workspace @worker-kit/dashboard",
@@ -62,7 +63,8 @@
     "vite": "^8.0.0",
     "wrangler": "^4.152.0",
     "@videojs/react": "^10.2.0",
-    "wavesurfer.js": "^8.0.3"
+    "wavesurfer.js": "^8.0.3",
+    "@tanstack/react-virtual": "^3.14.24"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -112,6 +114,9 @@
     },
     "wavesurfer.js": {
       "optional": true
+    },
+    "@tanstack/react-virtual": {
+      "optional": true
     }
   },
   "devDependencies": {
@@ -135,7 +140,8 @@
     "vite": "8.3.5",
     "vitest": "4.1.12",
     "wavesurfer.js": "8.0.3",
-    "wrangler": "4.152.0"
+    "wrangler": "4.152.0",
+    "@tanstack/react-virtual": "3.14.24"
   },
   "bin": {
     "workerkit": "./src/tooling/doctor.mjs"

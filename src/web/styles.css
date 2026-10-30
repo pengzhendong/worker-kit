@@ -24,3 +24,8 @@ body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sa
   .wk-runtime-check > .ant-space { margin-left: 52px; }
   .wk-runtime-latency { margin-left: auto; }
 }
+
+/* Optional VirtualGrid: fixed-height cards in the application's scroll region. */
+.wk-virtual-grid { position:relative; min-width:0; }
+.wk-virtual-grid-row { position:absolute; top:0; left:0; width:100%; display:grid; gap:var(--wk-grid-gap,16px); }
+.wk-virtual-grid-item { min-width:0; height:100%; }
