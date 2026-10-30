@@ -94,3 +94,13 @@ doctor 不执行项目脚本、网络请求、安装、迁移或部署，也不�
 ## 原生 KV 会话适配
 
 `@pengzhendong/worker-kit/runtime` 的 `createKvAdminAuth` 供已有原生 Worker 接入可注销会话。它沿用 PT Runner 的随机会话标识与 KV 摘要键设计，校验有效期，并在登录凭据变化后拒绝旧会话；退出删除当前 KV 记录。调用方显式提供应用独立的 Cookie 名、KV 前缀和认证作用域，负责请求体上限、同源写请求校验、登录限流和路由授权。登录密码沿用应用已有 Secret，不生成新的通用访问令牌。CookieCloud 加密密码和上传令牌不能用于后台认证。
+
+## 单管理员修改密码（可选）
+
+`createAdminAuth({passwordStore: env => d1AdminPasswordStore(env.DB)})` 增加 `POST /password`，请求为 `{currentPassword,newPassword}`，必须已登录、同源且验证旧密码。`ChangePasswordModal` 提供旧密码、新密码及确认输入，应用通过回调连接接口；成功后必须清理会话缓存并返回登录页。未配置存储的旧应用不开放改密端点，原有 Cookie 格式不变。
+
+应用显式创建表：`CREATE TABLE workerkit_admin_passwords(id TEXT PRIMARY KEY,password_hash TEXT NOT NULL)`；库不自动迁移。默认键为 `administrator`，可传独立键。适配器使用 D1 `first-primary` 读取和条件更新，避免 KV 最终一致性造成旧会话继续生效，并防止并发改密覆盖。自定义适配器必须提供同等强一致读取和原子 compare-and-set。
+
+首次使用部署 Secret 验证；首次改密后只接受数据库中的 PBKDF2-SHA256（100000 次、随机盐）密码哈希，不再回退到 Secret。哈希参与会话签名，更新后所有旧 Cookie 失效。密码错误、存储失败和并发冲突不会写入新密码，不记录密码或哈希。默认新密码最少 12 位，单个应用可显式配置 `minimumPasswordLength`（最少 8 位）。
+
+恢复管理员访问需要运维明确删除该应用的密码记录并更新 bootstrap Secret；普通部署和改 Secret 不会覆盖已保存的登录密码。D1 只有一条认证记录，不保存明文密码或媒体数据。

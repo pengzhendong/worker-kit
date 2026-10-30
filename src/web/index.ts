@@ -14,3 +14,5 @@ export type { ApiRequestInit } from './api';
 export { workerKitDarkTokens, workerKitLayout, workerKitTokens } from './design';
 
 export { useAutoPageSize } from './auto-page-size';
+
+export { ChangePasswordModal } from "./change-password";

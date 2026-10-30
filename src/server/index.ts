@@ -14,3 +14,6 @@ export { inspectRuntime, readCloudflareMetrics } from './runtime';
 export type { RuntimeStatusOptions, CloudflareMetricsOptions } from './runtime';
 export { createApiKeys, apiKeyInfo, hashApiKey } from './api-keys';
 export type { ApiKeyRecord, ApiKeyInfo, ApiKeyStore } from './api-keys';
+
+export { d1AdminPasswordStore } from './password-store';
+export type { AdminPasswordStore } from './password-store';
