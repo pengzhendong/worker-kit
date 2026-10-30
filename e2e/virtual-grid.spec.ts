@@ -21,6 +21,8 @@ test('virtual grid bounds rendered cards, adapts columns, and keeps shell fixed 
   const content = page.locator('[data-workerkit-region=content]');
   await expect(grid).toHaveAttribute('aria-busy', 'true');
   await expect.poll(async () => {const rows = await grid.locator('.wk-virtual-grid-row').evaluateAll(rows => rows.map(row => row.childElementCount)); return rows.length === 2 && rows[0] === rows[1];}).toBe(true);
+  const rows = await grid.locator('.wk-virtual-grid-row').evaluateAll(rows => rows.map(row => ({height:row.getBoundingClientRect().height,children:[...row.children].map(child=>child.getBoundingClientRect().height)})));
+  for (const row of rows) for (const childHeight of row.children) expect(childHeight).toBeLessThanOrEqual(row.height);
   await page.getByRole('button', {name:'结束加载'}).click();
   await expect(grid.getByText('卡片 0', {exact:true})).toBeVisible();
   const fixedBefore = await page.getByRole('banner').boundingBox();
