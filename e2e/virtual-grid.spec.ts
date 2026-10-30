@@ -8,17 +8,20 @@ test('virtual grid bounds rendered cards, adapts columns, and keeps shell fixed 
     const virtual = web.replace(/\/index\.ts(?:\?.*)?$/, '/virtual-grid.tsx');
     await route.fulfill({response, body: `import React from ${JSON.stringify(react)};
       import {VirtualGrid} from ${JSON.stringify(virtual)};
-      const items=Array.from({length:10000},(_,id)=>({id}));
-      export function MediaExamples(){return React.createElement(VirtualGrid,{
-        items,itemHeight:160,minItemWidth:240,totalCount:10000,'aria-label':'大量卡片',
+      const {useState}=React;const items=Array.from({length:10000},(_,id)=>({id}));
+      export function MediaExamples(){const[loading,setLoading]=useState(true);return React.createElement(React.Fragment,null,React.createElement('button',{onClick:()=>setLoading(false)},'结束加载'),React.createElement(VirtualGrid,{
+        items:loading?[]:items,loading,renderPlaceholder:()=>React.createElement('div',{'data-placeholder':true},'加载占位'),itemHeight:160,minItemWidth:240,totalCount:10000,'aria-label':'大量卡片',
         getItemKey:item=>item.id,renderItem:item=>React.createElement('div',{
           style:{height:'100%',background:'var(--wk-color-surface)',padding:16,border:'1px solid var(--wk-color-border)',borderRadius:10}
-        },'卡片 '+item.id)})}`});
+        },'卡片 '+item.id)}))}`});
   });
   await openDashboard(page, 'components');
   await page.getByRole('tab', {name:'媒体预览', exact:true}).click();
   const grid = page.getByRole('list', {name:'大量卡片'});
   const content = page.locator('[data-workerkit-region=content]');
+  await expect(grid).toHaveAttribute('aria-busy', 'true');
+  await expect.poll(async () => {const rows = await grid.locator('.wk-virtual-grid-row').evaluateAll(rows => rows.map(row => row.childElementCount)); return rows.length === 2 && rows[0] === rows[1];}).toBe(true);
+  await page.getByRole('button', {name:'结束加载'}).click();
   await expect(grid.getByText('卡片 0', {exact:true})).toBeVisible();
   const fixedBefore = await page.getByRole('banner').boundingBox();
   await content.evaluate(el => {el.scrollTop = el.scrollHeight;});
