@@ -1,3 +1,4 @@
+import { TaskRejectedError } from './task-manager';
 import type { TaskDefinition, TaskInputs } from './task-manager';
 
 interface GitHubTarget {
@@ -30,6 +31,7 @@ export function githubTask(target: GitHubTarget): Pick<TaskDefinition, 'run' | '
       const response = await call('workflows/' + encodeURIComponent(target.workflow) + '/dispatches', {
         ref: target.ref, inputs,
       });
+      if (response.status >= 400 && response.status < 500) throw new TaskRejectedError('GitHub 拒绝触发（HTTP ' + response.status + '）');
       if (!response.ok) throw new Error('GitHub dispatch failed');
       const data = await response.json<{ workflow_run_id: number; html_url?: string }>();
       if (!Number.isSafeInteger(data.workflow_run_id) || data.workflow_run_id <= 0) throw new Error('Missing GitHub run ID');

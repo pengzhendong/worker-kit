@@ -28,6 +28,7 @@
     "./task-sources": "./src/server/task-sources.ts",
     "./task-manager": "./src/server/task-manager.ts",
     "./task-executors": "./src/server/task-executors.ts",
+    "./web/task-manager": "./src/web/task-manager.tsx",
     "./web/session": "./src/web/session.ts",
     "./web/media": "./src/web/media.tsx",
     "./web/media/styles.css": "./src/web/media.css",

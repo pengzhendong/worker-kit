@@ -12,6 +12,7 @@ export interface TaskRun {
   progress?: TaskProgress;
   externalId?: string;
   url?: string;
+  error?: string;
 }
 export interface TaskDefinition {
   label: string;
@@ -35,8 +36,11 @@ export interface SchedulePort {
 }
 
 class TaskInputError extends Error {}
+export class TaskRejectedError extends Error {}
 
 export class TaskManager {
+  private changes: Promise<unknown> = Promise.resolve();
+
   constructor(
     private readonly sql: SqlStorage,
     private readonly clock: SchedulePort,
@@ -87,9 +91,10 @@ export class TaskManager {
         run.externalId = outcome.externalId;
         run.url = outcome.url;
       } else run.finishedAt = Date.now();
-    } catch {
+    } catch (error) {
       // A transport failure can occur after an external dispatch was accepted.
-      run.status = this.definitions[plan.task]?.target === 'github' ? 'unknown' : 'failed';
+      run.status = this.definitions[plan.task]?.target === 'github' && !(error instanceof TaskRejectedError) ? 'unknown' : 'failed';
+      run.error = error instanceof TaskRejectedError ? error.message : run.status === 'unknown' ? '未能确认外部任务是否收到请求' : '执行失败';
       run.finishedAt = Date.now();
     }
     this.saveRun(run);
@@ -126,14 +131,23 @@ export class TaskManager {
     const path = new URL(request.url).pathname;
     if (request.method === 'GET' && path === '/api/managed-tasks') return Response.json(await this.inventory());
     if (request.method !== 'POST') return new Response(null, { status: 405 });
+    if (path === '/api/managed-tasks/run') return this.change(request, path);
+    const operation = this.changes.then(() => this.change(request, path));
+    this.changes = operation.catch(() => {});
+    return operation;
+  }
+
+  private async change(request: Request, path: string) {
     try {
       const raw = await request.text();
       if (raw.length > 8192) throw new TaskInputError('请求过大');
       let body;
       try { body = JSON.parse(raw); } catch { throw new TaskInputError('无效的 JSON'); }
       if (!body || typeof body !== 'object') throw new TaskInputError('无效的任务参数');
-      if (path === '/api/managed-tasks') {
-        const task = this.task(body.task);
+      if (path === '/api/managed-tasks' || path === '/api/managed-tasks/edit') {
+        const previous = path.endsWith('/edit') ? this.plan(body.id) : undefined;
+        const taskId = previous?.task ?? body.task;
+        const task = this.task(taskId);
         const cron = typeof body.cron === 'string' ? body.cron.trim() : '';
         if (cron.length > 100 || cron.split(/\s+/).length !== 5) throw new TaskInputError('请输入五字段 UTC Cron');
         const inputs: TaskInputs = {};
@@ -144,13 +158,18 @@ export class TaskManager {
           }
           if (value) inputs[field.name] = value;
         }
-        const plan: TaskPlan = { id: crypto.randomUUID(), task: body.task, inputs, cron };
-        // Persist a disabled plan first. An alarm from an interrupted creation cannot execute it.
+        const plan: TaskPlan = { id: previous?.id ?? crypto.randomUUID(), task: taskId, inputs, cron };
+        if (!previous || previous.scheduleId || previous.cron !== cron) {
+          try { plan.scheduleId = await this.clock.set(cron, plan.id); }
+          catch { throw new TaskInputError('无法保存计划，请检查 Cron'); }
+        }
+        if (previous && !previous.scheduleId && plan.scheduleId) {
+          await this.clock.cancel(plan.scheduleId);
+          delete plan.scheduleId;
+        }
         this.save(plan);
-        try { plan.scheduleId = await this.clock.set(cron, plan.id); }
-        catch { this.sql.exec('DELETE FROM wk_plans WHERE id = ?', plan.id); throw new TaskInputError('无法保存计划，请检查 Cron'); }
-        this.save(plan);
-        return Response.json(plan, { status: 201 });
+        if (previous?.scheduleId && previous.scheduleId !== plan.scheduleId) await this.clock.cancel(previous.scheduleId);
+        return Response.json(plan, { status: previous ? 200 : 201 });
       }
       const plan = this.plan(body.id);
       if (path === '/api/managed-tasks/run') return Response.json(await this.execute(plan.id));
