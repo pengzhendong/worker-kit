@@ -25,6 +25,7 @@
     "./openapi": "./src/openapi/index.ts",
     "./runtime": "./src/server/runtime-entry.ts",
     "./http": "./src/server/streams.ts",
+    "./task-sources": "./src/server/task-sources.ts",
     "./web/session": "./src/web/session.ts",
     "./web/media": "./src/web/media.tsx",
     "./web/media/styles.css": "./src/web/media.css",
