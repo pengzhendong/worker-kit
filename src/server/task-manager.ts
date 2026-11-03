@@ -1,3 +1,6 @@
+import { parseTaskSchedule } from '../contracts/task-schedule';
+import type { TaskSchedule } from '../contracts/task-schedule';
+
 export type TaskInputs = Record<string, string>;
 export type TaskProgress = { completed: number; total?: number; message?: string };
 export type TaskOutcome = { state: 'submitted'; externalId: string; url?: string } | { state: 'succeeded' };
@@ -25,14 +28,19 @@ interface TaskPlan {
   id: string;
   task: string;
   inputs: TaskInputs;
-  cron: string;
+  cron?: string;
+  schedule?: TaskSchedule;
   scheduleId?: string;
 }
 
 export interface SchedulePort {
-  set(cron: string, planId: string): Promise<string>;
+  set(schedule: TaskSchedule, planId: string): Promise<string>;
   cancel(id: string): Promise<unknown>;
   next(id: string): Promise<number | undefined>;
+}
+
+function planSchedule(plan: TaskPlan): TaskSchedule {
+  return plan.schedule ?? { kind: 'cron', cron: plan.cron ?? '' };
 }
 
 class TaskInputError extends Error {}
@@ -121,7 +129,7 @@ export class TaskManager {
     return {
       definitions: Object.entries(this.definitions).map(([id, { label, target, fields }]) => ({ id, label, target, fields })),
       plans: await Promise.all(plans.map(async plan => ({
-        ...plan, nextAt: plan.scheduleId ? await this.clock.next(plan.scheduleId) : undefined,
+        ...plan, schedule: planSchedule(plan), nextAt: plan.scheduleId ? await this.clock.next(plan.scheduleId) : undefined,
       }))),
       runs: runs.map(run => run.status === 'running' && Date.now() - run.startedAt > 60_000 ? { ...run, status: 'unknown' } : run),
     };
@@ -148,8 +156,9 @@ export class TaskManager {
         const previous = path.endsWith('/edit') ? this.plan(body.id) : undefined;
         const taskId = previous?.task ?? body.task;
         const task = this.task(taskId);
-        const cron = typeof body.cron === 'string' ? body.cron.trim() : '';
-        if (cron.length > 100 || cron.split(/\s+/).length !== 5) throw new TaskInputError('请输入五字段 UTC Cron');
+        let schedule: TaskSchedule;
+        try { schedule = parseTaskSchedule(body.schedule ?? { kind: 'cron', cron: body.cron }); }
+        catch (error) { throw new TaskInputError(error instanceof Error ? error.message : '运行频率无效'); }
         const inputs: TaskInputs = {};
         for (const field of task.fields) {
           const value = body.inputs?.[field.name] ?? '';
@@ -158,9 +167,9 @@ export class TaskManager {
           }
           if (value) inputs[field.name] = value;
         }
-        const plan: TaskPlan = { id: previous?.id ?? crypto.randomUUID(), task: taskId, inputs, cron };
-        if (!previous || previous.scheduleId || previous.cron !== cron) {
-          try { plan.scheduleId = await this.clock.set(cron, plan.id); }
+        const plan: TaskPlan = { id: previous?.id ?? crypto.randomUUID(), task: taskId, inputs, schedule };
+        if (!previous || previous.scheduleId || JSON.stringify(planSchedule(previous)) !== JSON.stringify(schedule)) {
+          try { plan.scheduleId = await this.clock.set(schedule, plan.id); }
           catch { throw new TaskInputError('无法保存计划，请检查 Cron'); }
         }
         if (previous && !previous.scheduleId && plan.scheduleId) {
@@ -182,7 +191,7 @@ export class TaskManager {
       }
       if (path === '/api/managed-tasks/resume') {
         this.task(plan.task);
-        if (!plan.scheduleId) plan.scheduleId = await this.clock.set(plan.cron, plan.id);
+        if (!plan.scheduleId) plan.scheduleId = await this.clock.set(planSchedule(plan), plan.id);
         this.save(plan);
         return Response.json(plan);
       }
