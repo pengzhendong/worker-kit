@@ -9,6 +9,7 @@ export interface TaskSourceEnv {
 export interface GitHubTaskSource {
   repo: string;
   workflows: string[];
+  public?: boolean;
 }
 
 interface WorkflowConfig {
@@ -16,9 +17,8 @@ interface WorkflowConfig {
 }
 
 async function api<T>(url: string, token: string | undefined, headers: Record<string, string> = {}) {
-  if (!token) throw new Error('缺少服务端凭据');
   const response = await fetch(url, {
-    headers: { Authorization: 'Bearer ' + token, 'User-Agent': 'worker-console', ...headers },
+    headers: { 'User-Agent': 'worker-kit-task-sources', ...(token ? { Authorization: 'Bearer ' + token } : {}), ...headers },
     signal: AbortSignal.timeout(8000),
   });
   if (!response.ok) throw new Error('上游 HTTP ' + response.status);
@@ -26,16 +26,19 @@ async function api<T>(url: string, token: string | undefined, headers: Record<st
 }
 
 export async function listCloudflareSchedules(worker: string, env: TaskSourceEnv): Promise<TaskRow[]> {
-  const account = encodeURIComponent(env.CF_ACCOUNT_ID ?? '');
+  if (!env.CF_ACCOUNT_ID || !env.CF_API_TOKEN) throw new Error('缺少 Cloudflare 账号或读取凭据');
+  const account = encodeURIComponent(env.CF_ACCOUNT_ID);
   const script = encodeURIComponent(worker);
   const base = 'https://api.cloudflare.com/client/v4/accounts/' + account;
   const data = await api<{ success: boolean; result?: { schedules?: { cron: string }[] } }>(base + '/workers/scripts/' + script + '/schedules', env.CF_API_TOKEN);
   if (!data.success || !Array.isArray(data.result?.schedules)) throw new Error('无法读取 Cron 配置');
-  return data.result.schedules.map(({ cron }: { cron: string }): TaskRow => ['Cloudflare', worker, cron, '查看平台运行记录',
+  return data.result.schedules.map(({ cron }: { cron: string }): TaskRow => ['Cloudflare', worker, cron + ' · UTC', '查看平台运行记录',
     'https://dash.cloudflare.com/' + account + '/workers/services/view/' + script + '/production']);
 }
 
-export async function listGitHubSchedules({ repo, workflows }: GitHubTaskSource, env: TaskSourceEnv, parseWorkflow: (source: string) => WorkflowConfig): Promise<TaskRow[]> {
+export async function listGitHubSchedules({ repo, workflows, public: isPublic }: GitHubTaskSource, env: TaskSourceEnv, parseWorkflow: (source: string) => WorkflowConfig): Promise<TaskRow[]> {
+  if (!env.GITHUB_TOKEN && !isPublic) throw new Error('缺少 GitHub 读取凭据');
+  if (!/^[^/]+\/[^/]+$/.test(repo)) throw new Error('GitHub 仓库应为 owner/repo');
   const [owner, name] = repo.split('/').map(encodeURIComponent);
   const base = 'https://api.github.com/repos/' + owner + '/' + name;
   const get = <T>(path: string) => api<T>(base + path, env.GITHUB_TOKEN, { Accept: 'application/vnd.github+json' });
@@ -56,4 +59,3 @@ export async function listGitHubSchedules({ repo, workflows }: GitHubTaskSource,
     ]);
   }))).flat();
 }
-
