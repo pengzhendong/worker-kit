@@ -49,3 +49,11 @@ ModalForm 显式配置 `omitNil={false}`，保留接口要求的空地址和空�
 ### 大量卡片的连续滚动
 
 `web/virtual-grid` 采用 TanStack Virtual 3.14.24（MIT，React peer 支持 19）。它处理视口观察、虚拟行与渲染范围，WorkerKit 只提供等高响应式网格与 AdminShell 滚动容器适配，不自写虚拟列表引擎。作为可选 peer，只在该独立入口导入；服务端、普通 UI 和无需大列表的消费者不增加依赖。剪映资源库按批请求和失败重试留在业务层；与单页自动分页 `useAutoPageSize` 分开使用。
+
+## 定时任务
+
+WorkerKit 的任务管理器通过 SchedulePort 接入调度引擎。Worker Console 使用
+[Cloudflare Agents Scheduler](https://developers.cloudflare.com/agents/runtime/capabilities/scheduler/)
+的独立 schedules 与 lifecycle 入口（agents 0.32.0，MIT）。调度、Cron 解析和 Alarm
+由开源实现负责。计划参数校验、运行记录、进度及业务执行适配留在 WorkerKit。
+agents 仅由启用调度的消费项目安装。

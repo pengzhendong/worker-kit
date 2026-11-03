@@ -26,6 +26,8 @@
     "./runtime": "./src/server/runtime-entry.ts",
     "./http": "./src/server/streams.ts",
     "./task-sources": "./src/server/task-sources.ts",
+    "./task-manager": "./src/server/task-manager.ts",
+    "./task-executors": "./src/server/task-executors.ts",
     "./web/session": "./src/web/session.ts",
     "./web/media": "./src/web/media.tsx",
     "./web/media/styles.css": "./src/web/media.css",
