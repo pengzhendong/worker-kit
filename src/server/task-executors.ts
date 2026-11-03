@@ -47,3 +47,27 @@ export function githubTask(target: GitHubTarget): Pick<TaskDefinition, 'run' | '
     },
   };
 }
+
+/** Dispatch a short, allowlisted action through a Cloudflare Service Binding. */
+export function workerTask(binding: Fetcher, path: string): Pick<TaskDefinition, 'run'> {
+  const url = new URL(path, 'https://workerkit.internal');
+  if (url.origin !== 'https://workerkit.internal' || !path.startsWith('/') || url.search || url.hash) {
+    throw new Error('Invalid task action path');
+  }
+  return {
+    async run(inputs, { id, report }) {
+      const response = await binding.fetch(new Request(url, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'idempotency-key': id },
+        body: JSON.stringify({ runId: id, inputs }),
+        signal: AbortSignal.timeout(10_000),
+      }));
+      if (!response.ok) throw new TaskRejectedError('业务 Worker 返回 HTTP ' + response.status);
+      if (response.headers.get('content-type')?.includes('application/json')) {
+        const result = await response.json<{ progress?: { completed: number; total?: number; message?: string } }>();
+        if (result?.progress) report(result.progress);
+      }
+      return { state: 'succeeded' };
+    },
+  };
+}
