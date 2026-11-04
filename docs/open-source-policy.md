@@ -15,6 +15,10 @@
 | 路由、Cookie、开发绑定 | Hono / Wrangler / Cloudflare Vite plugin | 应用配置与绑定适配 |
 | 页面错误边界、视觉回归 | react-error-boundary / Playwright | 会话重置键、测试夹具与人工确认的基准 |
 
+Worker Console 的脚本编辑页按需加载 CodeMirror 6，通过 React 适配器使用 JavaScript 高亮和行号。依赖仅由 Console 安装，WorkerKit 通过可选的编辑器组件接入表单。
+
+脚本的 JSON 返回值通过 Console 注入的 react-inspector 展示，使用内置 Chrome 亮色和暗色主题。WorkerKit 负责解析返回值和显示文本日志。
+
 ### ProComponents 局部试点
 
 发布包检查：正式版 `2.8.10` 声明支持 Ant Design 4/5；预发布版 `3.1.15-8` 声明支持 Ant Design 6。dashboard 已使用 Ant Design 6，因此仅在 dashboard 的懒加载资源管理页面固定使用 `3.1.15-8`，不强制其他项目安装，也不从 WorkerKit 公共入口导出。
@@ -49,3 +53,15 @@ ModalForm 显式配置 `omitNil={false}`，保留接口要求的空地址和空�
 ### 大量卡片的连续滚动
 
 `web/virtual-grid` 采用 TanStack Virtual 3.14.24（MIT，React peer 支持 19）。它处理视口观察、虚拟行与渲染范围，WorkerKit 只提供等高响应式网格与 AdminShell 滚动容器适配，不自写虚拟列表引擎。作为可选 peer，只在该独立入口导入；服务端、普通 UI 和无需大列表的消费者不增加依赖。剪映资源库按批请求和失败重试留在业务层；与单页自动分页 `useAutoPageSize` 分开使用。
+
+## 定时任务
+
+WorkerKit 的任务管理器通过 SchedulePort 接入调度引擎。Worker Console 使用
+[Cloudflare Agents Scheduler](https://developers.cloudflare.com/agents/runtime/capabilities/scheduler/)
+的独立 schedules 与 lifecycle 入口（agents 0.32.0，MIT）。调度、Cron 解析和 Alarm
+由开源实现负责。计划参数校验、运行记录、进度及业务执行适配留在 WorkerKit。
+agents 仅由启用调度的消费项目安装。
+
+GitHub 定时任务发现直接使用 [GitHub Actions API](https://docs.github.com/en/rest/actions/workflows#list-repository-workflows) 和 [仓库内容 API](https://docs.github.com/en/rest/repos/contents#get-repository-content)。WorkerKit 负责分页、筛选 `on.schedule` 及读取最近的定时运行。YAML 解析沿用 Worker Console 已安装的 `yaml`，由消费项目传入，无需增加依赖。
+
+Worker Console 的小脚本试点使用 [QuickJS Emscripten](https://github.com/justjake/quickjs-emscripten) 0.32.0（MIT），复用上游的 WebAssembly 运行时。Console 单独安装依赖并限制脚本可用的 HTTP 能力。WorkerKit 只提供表单、试跑接口、调度和结果展示。
