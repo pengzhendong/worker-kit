@@ -104,6 +104,8 @@ Scalar 放在独立文档中隔离样式与 hash；跟随父页主题，在线�
 
 设置 `pageTitleInHeader` 后，固定顶栏使用唯一的一级页面标题，内部 `PageHeader` 仅保留说明和页面操作，不再重复大标题。该选项默认关闭以兼容已有页面；IPTV 接入采用此紧凑模式。
 
+短标题可通过 `PageHeader placement="header"` 放入固定顶栏，正文从 16 px 的顶部留白开始。页面操作靠近对应内容，例如列表操作放在卡片标题行，编辑操作放在表单底部。
+
 ## 连续滚动网格（可选）
 
 大量等高卡片可从 `@pengzhendong/worker-kit/web/virtual-grid` 导入 `VirtualGrid`。消费项目按需安装 `@tanstack/react-virtual@^3.14.24`；普通 web、server 和媒体入口不引入它。底层使用 TanStack Virtual，WorkerKit 仅适配 AdminShell 的滚动容器、容器宽度计算列数、行间距与可访问的项目位置。

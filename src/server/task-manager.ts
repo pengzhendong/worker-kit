@@ -3,7 +3,8 @@ import type { TaskSchedule } from '../contracts/task-schedule';
 
 export type TaskInputs = Record<string, string>;
 export type TaskProgress = { completed: number; total?: number; message?: string };
-export type TaskOutcome = { state: 'submitted'; externalId: string; url?: string } | { state: 'succeeded' };
+export type TaskOutput = { value?: string; logs: string[] };
+export type TaskOutcome = { state: 'submitted'; externalId: string; url?: string } | { state: 'succeeded'; output?: TaskOutput };
 export type TaskStatus = 'running' | 'succeeded' | 'failed' | 'submitted' | 'unknown';
 export interface TaskRun {
   id: string;
@@ -16,11 +17,23 @@ export interface TaskRun {
   externalId?: string;
   url?: string;
   error?: string;
+  output?: TaskOutput;
 }
 export interface TaskDefinition {
   label: string;
   target: 'cloudflare' | 'github';
-  fields: readonly { name: string; label: string; required?: boolean }[];
+  fields: readonly {
+    name: string;
+    label: string;
+    required?: boolean;
+    saveOnly?: boolean;
+    multiline?: boolean;
+    maxLength?: number;
+    hint?: string;
+    defaultValue?: string;
+  }[];
+  preview?: (inputs: TaskInputs) => Promise<TaskOutput>;
+  validateInputs?: (inputs: TaskInputs) => string | undefined;
   run(inputs: TaskInputs, context: { id: string; report: (progress: TaskProgress) => void }): Promise<TaskOutcome>;
   status?(externalId: string): Promise<'submitted' | 'succeeded' | 'failed'>;
 }
@@ -44,7 +57,9 @@ function planSchedule(plan: TaskPlan): TaskSchedule {
 }
 
 class TaskInputError extends Error {}
-export class TaskRejectedError extends Error {}
+export class TaskRejectedError extends Error {
+  constructor(message: string, readonly output?: TaskOutput) { super(message); }
+}
 
 export class TaskManager {
   private changes: Promise<unknown> = Promise.resolve();
@@ -77,9 +92,37 @@ export class TaskManager {
     this.sql.exec('UPDATE wk_runs SET value = ? WHERE id = ?', JSON.stringify(run), run.id);
   }
 
-  async execute(planId: string, occurrence?: { id: string; time: number }) {
+  private inputs(task: TaskDefinition, raw: unknown, preview = false): TaskInputs {
+    const values = raw && typeof raw === 'object' ? raw as Record<string, unknown> : {};
+    const inputs: TaskInputs = {};
+    for (const field of task.fields) {
+      if (preview && field.saveOnly) continue;
+      const value = Object.hasOwn(values, field.name) ? values[field.name] : '';
+      if (typeof value !== 'string' || value.length > (field.maxLength ?? 500) || (field.required && !value.trim())) {
+        throw new TaskInputError('请检查参数：' + field.label);
+      }
+      if (value) inputs[field.name] = value;
+    }
+    const error = task.validateInputs?.(inputs);
+    if (error) throw new TaskInputError(error);
+    return inputs;
+  }
+
+  private async scheduledPlan(planId: string, occurrence: { id: string }) {
     const plan = this.plan(planId);
-    if (occurrence && occurrence.id !== plan.scheduleId) return;
+    if (occurrence.id !== plan.scheduleId) return;
+    const schedule = planSchedule(plan);
+    if (schedule.kind !== 'interval' && schedule.timeZone) {
+      // A dated alarm runs once. Arm the next occurrence before executing the task.
+      plan.scheduleId = await this.clock.set(schedule, planId);
+      this.save(plan);
+    }
+    return plan;
+  }
+
+  async execute(planId: string, occurrence?: { id: string; time: number }) {
+    const plan = occurrence ? await this.enqueue(() => this.scheduledPlan(planId, occurrence)) : this.plan(planId);
+    if (!plan) return;
     const id = occurrence ? plan.id + ':' + occurrence.time : crypto.randomUUID();
     const run: TaskRun = { id, planId, task: plan.task, startedAt: Date.now(), status: 'running' };
     const claimed = this.sql.exec('INSERT OR IGNORE INTO wk_runs VALUES (?, ?, ?) RETURNING id', id, run.startedAt, JSON.stringify(run)).toArray();
@@ -98,11 +141,15 @@ export class TaskManager {
       if (outcome.state === 'submitted') {
         run.externalId = outcome.externalId;
         run.url = outcome.url;
-      } else run.finishedAt = Date.now();
+      } else {
+        run.finishedAt = Date.now();
+        run.output = outcome.output;
+      }
     } catch (error) {
       // A transport failure can occur after an external dispatch was accepted.
       run.status = this.definitions[plan.task]?.target === 'github' && !(error instanceof TaskRejectedError) ? 'unknown' : 'failed';
       run.error = error instanceof TaskRejectedError ? error.message : run.status === 'unknown' ? '未能确认外部任务是否收到请求' : '执行失败';
+      if (error instanceof TaskRejectedError) run.output = error.output;
       run.finishedAt = Date.now();
     }
     this.saveRun(run);
@@ -127,7 +174,7 @@ export class TaskManager {
       } catch { /* A failed status lookup preserves the submitted state. */ }
     }));
     return {
-      definitions: Object.entries(this.definitions).map(([id, { label, target, fields }]) => ({ id, label, target, fields })),
+      definitions: Object.entries(this.definitions).map(([id, { label, target, fields, preview }]) => ({ id, label, target, fields, ...(preview && { canPreview: true }) })),
       plans: await Promise.all(plans.map(async plan => ({
         ...plan, schedule: planSchedule(plan), nextAt: plan.scheduleId ? await this.clock.next(plan.scheduleId) : undefined,
       }))),
@@ -139,8 +186,12 @@ export class TaskManager {
     const path = new URL(request.url).pathname;
     if (request.method === 'GET' && path === '/api/managed-tasks') return Response.json(await this.inventory());
     if (request.method !== 'POST') return new Response(null, { status: 405 });
-    if (path === '/api/managed-tasks/run') return this.change(request, path);
-    const operation = this.changes.then(() => this.change(request, path));
+    if (path === '/api/managed-tasks/run' || path === '/api/managed-tasks/preview') return this.change(request, path);
+    return this.enqueue(() => this.change(request, path));
+  }
+
+  private enqueue<T>(action: () => Promise<T>) {
+    const operation = this.changes.then(action);
     this.changes = operation.catch(() => {});
     return operation;
   }
@@ -152,6 +203,11 @@ export class TaskManager {
       let body;
       try { body = JSON.parse(raw); } catch { throw new TaskInputError('无效的 JSON'); }
       if (!body || typeof body !== 'object') throw new TaskInputError('无效的任务参数');
+      if (path === '/api/managed-tasks/preview') {
+        const task = this.task(body.task);
+        if (!task.preview) throw new TaskInputError('此执行目标不支持试跑草稿');
+        return Response.json({ output: await task.preview(this.inputs(task, body.inputs, true)) });
+      }
       if (path === '/api/managed-tasks' || path === '/api/managed-tasks/edit') {
         const previous = path.endsWith('/edit') ? this.plan(body.id) : undefined;
         const taskId = previous?.task ?? body.task;
@@ -159,14 +215,7 @@ export class TaskManager {
         let schedule: TaskSchedule;
         try { schedule = parseTaskSchedule(body.schedule ?? { kind: 'cron', cron: body.cron }); }
         catch (error) { throw new TaskInputError(error instanceof Error ? error.message : '运行频率无效'); }
-        const inputs: TaskInputs = {};
-        for (const field of task.fields) {
-          const value = body.inputs?.[field.name] ?? '';
-          if (typeof value !== 'string' || value.length > 500 || (field.required && !value.trim())) {
-            throw new TaskInputError('请检查参数：' + field.label);
-          }
-          if (value) inputs[field.name] = value;
-        }
+        const inputs = this.inputs(task, body.inputs);
         const plan: TaskPlan = { id: previous?.id ?? crypto.randomUUID(), task: taskId, inputs, schedule };
         if (!previous || previous.scheduleId || JSON.stringify(planSchedule(previous)) !== JSON.stringify(schedule)) {
           try { plan.scheduleId = await this.clock.set(schedule, plan.id); }
@@ -197,6 +246,7 @@ export class TaskManager {
       }
       return new Response(null, { status: 404 });
     } catch (error) {
+      if (error instanceof TaskRejectedError) return Response.json({ error: error.message, output: error.output }, { status: 422 });
       return Response.json({ error: error instanceof TaskInputError ? error.message : '任务操作失败' }, {
         status: error instanceof TaskInputError ? 400 : 500,
       });

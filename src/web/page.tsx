@@ -1,12 +1,22 @@
 import type { ReactNode } from 'react';
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useLayoutEffect } from 'react';
 
 export const PageTitleInHeader = createContext(false);
+export const ShellPageTitle = createContext<((title: string | null) => void) | null>(null);
 import { Card, Flex, Statistic, Typography, theme } from 'antd';
 import { workerKitLayout } from './design';
 
-export function PageHeader({ title, description, actions }: { title: string; description?: string; actions?: ReactNode }) {
+export function PageHeader({ title, description, actions, placement }: {
+  title: string; description?: string; actions?: ReactNode; placement?: 'header';
+}) {
   const compact = useContext(PageTitleInHeader);
+  const setShellTitle = useContext(ShellPageTitle);
+  const inHeader = placement === 'header' && Boolean(setShellTitle);
+  useLayoutEffect(() => {
+    if (!inHeader || !setShellTitle) return;
+    setShellTitle(title);
+    return () => setShellTitle(null);
+  }, [inHeader, setShellTitle, title]);
   if (compact && !description && !actions) return null;
   return <Flex data-workerkit-page-header justify="space-between" align="start" gap={16} wrap style={{ marginBottom: workerKitLayout.pageHeaderGap }}>
     <div>{!compact && <Typography.Title level={2} style={{ margin: '0 0 8px', fontSize: workerKitLayout.pageTitleSize }}>{title}</Typography.Title>}{description && <Typography.Text type="secondary">{description}</Typography.Text>}</div>

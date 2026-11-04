@@ -5,7 +5,7 @@ import { Avatar, Button, ConfigProvider, Drawer, Dropdown, Flex, Grid, Layout, M
 import { useWorkerKitTheme } from './provider';
 import { workerKitLayout as ui } from './design';
 import { IconBox } from './icon';
-import { PageTitleInHeader } from './page';
+import { PageTitleInHeader, ShellPageTitle } from './page';
 
 export interface NavigationItem { key: string; label: string; icon?: ReactNode; extra?: ReactNode; children?: NavigationItem[] }
 
@@ -59,8 +59,10 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
   }, [collapsed, sidebarStorageKey]);
   const sidebarId = useId();
   const contentRef = useRef<HTMLElement>(null);
-  useEffect(() => { contentRef.current?.scrollTo({ top: 0, left: 0 }); }, [activeKey]);
+  const [pageTitle, setPageTitle] = useState<string | null>(null);
+  useEffect(() => { contentRef.current?.scrollTo({ top: 0, left: 0 }); }, [activeKey, pageTitle]);
   const screens = Grid.useBreakpoint();
+  const contentPadding = compactContent ? ui.compactPagePadding : screens.md ? ui.pagePadding : ui.mobilePagePadding;
   const compact = !!screens.lg && collapsed;
   const nested = items.some(item => item.children?.length);
   const activePath = navigationPath(items, activeKey);
@@ -139,11 +141,15 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
       : <Drawer title={title} placement="left" open={open} onClose={() => { setOpen(false); setUserMenuOpen(false); }} styles={{ body: { padding: 0, display: 'flex', flexDirection: 'column', minHeight: 0 } }}>{navigationActions}{navigation}{account}</Drawer>}
     <Layout style={{ height: '100%', minHeight: 0, minWidth: 0, overflow: 'hidden' }}>
       <Layout.Header data-workerkit-region="header" style={{ height: ui.headerHeight, lineHeight: 'normal', flexShrink: 0, paddingInline: screens.md ? ui.pagePadding : ui.mobilePagePadding, background: token.colorBgContainer, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderBottom: `1px solid ${token.colorBorderSecondary}` }}>
-        <Flex align="center" gap={8}>{screens.lg ? <Tooltip title={compact ? '展开侧栏' : '收起侧栏'}><Button type="text" aria-label={compact ? '展开侧栏' : '收起侧栏'} aria-expanded={!compact} aria-controls={sidebarId} onClick={() => { setUserMenuOpen(false); setCollapsed((value) => !value); }} icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3" /><path d="M9 4v16" /></svg>} /></Tooltip> : <Button onClick={() => setOpen(true)} aria-label="打开导航">菜单</Button>}<Typography.Text strong role={pageTitleInHeader ? 'heading' : undefined} aria-level={pageTitleInHeader ? 1 : undefined}>{activePath.at(-1)?.label ?? userMenuItems.find(item => item.key === activeKey)?.label ?? title}</Typography.Text></Flex>
+        <Flex align="center" gap={8}>{screens.lg ? <Tooltip title={compact ? '展开侧栏' : '收起侧栏'}><Button type="text" aria-label={compact ? '展开侧栏' : '收起侧栏'} aria-expanded={!compact} aria-controls={sidebarId} onClick={() => { setUserMenuOpen(false); setCollapsed((value) => !value); }} icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3" /><path d="M9 4v16" /></svg>} /></Tooltip> : <Button onClick={() => setOpen(true)} aria-label="打开导航">菜单</Button>}<Typography.Text strong role={pageTitleInHeader ? 'heading' : undefined} aria-level={pageTitleInHeader ? 1 : undefined}>{pageTitle ?? activePath.at(-1)?.label ?? userMenuItems.find(item => item.key === activeKey)?.label ?? title}</Typography.Text></Flex>
         <Flex data-workerkit-header-actions align="center" gap={8} style={{ minWidth: 0 }}>{headerActions}<Tooltip title={themeLabel}><Button type="text" shape="circle" icon={themeIcon} onClick={toggle} aria-label={themeLabel} aria-pressed={dark} /></Tooltip></Flex>
       </Layout.Header>
       <Layout.Content ref={contentRef} data-workerkit-region="content" style={{ flex: 1, minHeight: 0, minWidth: 0, overflow: 'auto', overscrollBehavior: 'contain', scrollbarGutter: 'stable' }}>
-        <div style={{ boxSizing: 'border-box', padding: compactContent ? ui.compactPagePadding : screens.md ? ui.pagePadding : ui.mobilePagePadding, width: '100%', maxWidth: ui.contentMaxWidth, marginInline: 'auto' }}><PageTitleInHeader.Provider value={pageTitleInHeader}>{children}</PageTitleInHeader.Provider></div>
+        <div style={{ boxSizing: 'border-box', padding: contentPadding, paddingBlockStart: pageTitle ? ui.compactPagePadding : undefined, paddingBlockEnd: `var(--wk-content-padding-end, ${contentPadding}px)`, width: '100%', maxWidth: ui.contentMaxWidth, marginInline: 'auto' }}>
+          <PageTitleInHeader.Provider value={pageTitleInHeader}>
+            <ShellPageTitle.Provider value={pageTitleInHeader ? setPageTitle : null}>{children}</ShellPageTitle.Provider>
+          </PageTitleInHeader.Provider>
+        </div>
       </Layout.Content>
     </Layout>
   </Layout>;
