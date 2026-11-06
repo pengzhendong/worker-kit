@@ -3,6 +3,11 @@ import { readBytesLimited } from '@pengzhendong/worker-kit/http'
 // @ts-ignore Built by the optional NuxtHub example before the unified Worker build.
 import hub from '../../../../nuxthub-dashboard/app/.output/server/index.mjs'
 export async function serveHub(request: Request, env: CloudflareEnv, ctx: ExecutionContext) {
+ const url = new URL(request.url)
+ if (['GET', 'HEAD'].includes(request.method) && ['/hub/hub', '/hub/hub/'].includes(url.pathname)) {
+  url.pathname = '/hub/'
+  return Response.redirect(url.href, 308)
+ }
  // Nitro's Cloudflare adapter buffers a request before H3 handlers run. Enforce
  // the public workbench limit before entering that adapter, including bad routes.
  if (!['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {

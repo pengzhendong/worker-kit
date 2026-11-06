@@ -14,6 +14,7 @@ const api=context.request;let previous,issuedId,noteId,filePath,oldLabel;const u
 await mkdir('test-results/native-hub',{recursive:true});
 try {
  console.log('Checking anonymous boundaries');
+ const duplicate=await guest.get(base+'/hub/hub/?from=check',{maxRedirects:0});assert.equal(duplicate.status(),308);assert.equal(duplicate.headers().location,base+'/hub/?from=check');
  for(const path of ['/native/api/settings','/native/api/keys','/hub/api/probe'])assert.equal((await guest.get(base+path)).status(),401);
  assert.equal((await guest.post(base+'/native/api/auth/login',{data:{username:'admin',password:'password'}})).status(),403);
  await page.goto(base+'/native/');await page.getByLabel('用户名',{exact:true}).fill('admin');await page.getByLabel('密码',{exact:true}).fill('password');await page.getByRole('button',{name:'登录',exact:true}).click();
@@ -37,6 +38,7 @@ try {
  console.log('Native UI checks passed');
  // Independent NuxtHub identity and its actual SQL/KV/Blob/Cache SDKs.
  await page.setViewportSize({width:1440,height:1000});await page.goto(base+'/hub/');await page.getByLabel('用户名',{exact:true}).fill('admin');await page.getByLabel('密码',{exact:true}).fill('password');await page.getByRole('button',{name:'登录',exact:true}).click();await expect(page.getByRole('heading',{name:'NuxtHub 全栈工作台',exact:true})).toBeVisible();
+ const workbench=page.getByRole('link',{name:'全栈工作台',exact:true});await expect(workbench).toHaveAttribute('href','/hub/');await workbench.click();await expect(page).toHaveURL(base+'/hub/');await expect(page.getByText('怎么体验？',{exact:true})).toBeVisible();
  assert.equal((await api.get(base+'/native/api/settings')).status(),401);
  const initial=await(await api.get(base+'/hub/api/probe')).json();oldLabel=initial.label;const cache=initial.cache.generatedAt;const nextCache=(await(await api.get(base+'/hub/api/probe')).json()).cache.generatedAt;if(process.env.WORKERKIT_DEPLOYED==='1'){assert.ok(Number.isFinite(Date.parse(nextCache)));}else{assert.equal(nextCache,cache);}
  assert.equal((await api.post(base+'/hub/api/notes',{headers:{Origin:'https://untrusted.test'},data:{title:unique}})).status(),403);
