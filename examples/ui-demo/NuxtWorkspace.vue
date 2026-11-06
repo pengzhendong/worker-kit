@@ -42,7 +42,7 @@ onUnmounted(() => {
 </script>
 <template>
   <div data-workspace>
-    <div class="page-heading">
+    <div class="workspace-heading">
       <div>
         <h2 v-if="showHeading !== false">业务工作台</h2>
         <p v-if="showHeading !== false">
@@ -55,6 +55,8 @@ onUnmounted(() => {
       v-if="state.busy && !state.data"
       title="正在更新工作台数据…"
       color="neutral"
+      variant="soft"
+      data-workspace-loading
       class="mb-5"
     />
     <UAlert
@@ -203,3 +205,31 @@ onUnmounted(() => {
     </template>
   </div>
 </template>
+<style scoped>
+.workspace-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.workspace-heading h2 {
+  font-size: 28px;
+  line-height: 1.3;
+  font-weight: 650;
+  letter-spacing: -0.6px;
+}
+.workspace-heading p {
+  margin-top: 8px;
+  color: var(--ui-text-muted);
+}
+@media (max-width: 767px) {
+  .workspace-heading {
+    margin-bottom: 16px;
+  }
+  .workspace-heading h2 {
+    font-size: 24px;
+  }
+}
+</style>
