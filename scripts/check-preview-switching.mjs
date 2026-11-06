@@ -113,11 +113,50 @@ try {
   await page.getByRole('button', { name: '手机', exact: true }).click();
   await select('Tabler', '/tabler/workspace', true);
   await expect(page.locator('#preview')).toHaveClass('mobile');
-  // Switching native CMS or backend drops old app instances, including hidden ones.
+  // Native CMS retains prepared frameworks, but clears hidden private data.
+  const kept = await page.locator('iframe[src="' + base + '/nuxt/workspace"]').elementHandle();
+  const beforeCms = documents.length;
+  let cmsRelease, cmsHeld = false;
+  const cmsGate = new Promise(resolve => { cmsRelease = resolve; });
+  await page.route('**/api/workerkit/workspace', async route => {
+    if (!cmsHeld && new URL(route.request().frame().url()).pathname === '/tabler/workspace') {
+      cmsHeld = true; await cmsGate;
+      await route.fulfill({ json: oldData }).catch(() => {});
+    } else await route.continue();
+  });
+  await workspace().getByRole('button', { name: '刷新', exact: true }).click();
+  await expect.poll(() => cmsHeld).toBe(true);
   await page.getByRole('tab', { name: 'Payload', exact: true }).click();
-  await expect(page.locator('iframe')).toHaveCount(1);
+  await expect(page.locator('iframe')).toHaveCount(9);
+  await expect(page.locator('button[data-preload-status=ready]')).toHaveCount(8);
+  expect(await kept.evaluate(element => element.isConnected)).toBe(true);
+  await expect.poll(() => kept.contentFrame().then(child => child.locator('[data-workspace]').innerText())).not.toContain('依赖正常');
+  const suspendedTabler = page.frames().find(child => new URL(child.url()).pathname === '/tabler/workspace');
+  await expect(suspendedTabler.locator('[data-workspace]')).not.toContainText('依赖正常');
+  cmsRelease();
+  await page.unroute('**/api/workerkit/workspace');
+  await context.clearCookies();
+  await page.getByRole('tab', { name: 'Nuxt UI', exact: true }).click();
+  await expect(workspace()).toContainText('登录后端');
+  expect(documents.slice(beforeCms).every(url => /^\/admin(?:\/|$)/.test(new URL(url).pathname))).toBe(true);
+  expect(await page.frameLocator('#preview').locator('body').evaluate(() => window.__previewTest)).toBe('kept');
+  await login();
+  await page.getByRole('tab', { name: 'Tabler', exact: true }).click();
   await page.getByRole('tab', { name: 'Nuxt UI', exact: true }).click();
   await expect(workspace()).toContainText('依赖正常', { timeout: 30000 });
+  await page.getByRole('button', { name: '桌面', exact: true }).click();
+  // Public component state also survives a native CMS visit; its workspace
+  // client resumes reading only after returning to the business route.
+  await page.getByRole('tab', { name: 'Tabler', exact: true }).click();
+  const tabler = page.frameLocator('#preview');
+  await tabler.getByRole('link', { name: /布局/ }).first().click();
+  await tabler.getByRole('button', { name: '填充长内容', exact: true }).click();
+  await page.getByRole('tab', { name: 'Payload', exact: true }).click();
+  await page.getByRole('tab', { name: 'Tabler', exact: true }).click();
+  await expect(tabler.getByRole('button', { name: '收起长内容', exact: true })).toBeVisible();
+  await tabler.getByRole('link', { name: /业务工作台/ }).first().click();
+  await expect(workspace()).toContainText('依赖正常');
+  await page.getByRole('tab', { name: 'Nuxt UI', exact: true }).click();
   await page.getByRole('combobox', { name: '选择后端' }).selectOption('sonic');
   await expect(page.locator('#preview')).toHaveAttribute('src', sonic + '/nuxt/workspace');
   await expect(page.locator('iframe')).toHaveCount(1);

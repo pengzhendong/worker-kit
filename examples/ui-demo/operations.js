@@ -3,7 +3,7 @@ import { ApiClientError, createApiClient } from '../../src/client/index.ts';
 const previewParentOrigin = typeof window !== 'undefined' && window.parent !== window && document.referrer ? new URL(document.referrer).origin : null;
 const isPublicPreviewPage = () => !document.querySelector('[data-workspace]') && (/^\/(nuxt|prime|vben|pro|refine|tabler|adminlte)\/(?:tasks|resources|logs|settings|components\/(?:table|form|dialogs|preview|layout|theme))?\/?$/.test(location.pathname)
   || /^\/docs\/(?:index|guide|components|features|upgrades|alternatives|architecture|migration)?(?:\.html)?\/?$/.test(location.pathname));
-const fromPreviewParent = event => previewParentOrigin && event.source === window.parent && event.origin === previewParentOrigin && event.data?.type === 'workerkit:preview-refresh' && typeof event.data.id === 'string';
+const fromPreviewParent = event => previewParentOrigin && event.source === window.parent && event.origin === previewParentOrigin && ['workerkit:preview-refresh', 'workerkit:preview-suspend'].includes(event.data?.type) && typeof event.data.id === 'string';
 // Public component demos have no server identity/data. Keep their forms, dialogs
 // and route mounted too; leaving Workspace must not force a framework reboot.
 if (previewParentOrigin) window.addEventListener('message', event => {
@@ -49,10 +49,20 @@ export function createOperationsClient() {
   const parentOrigin = previewParentOrigin;
   const notify = message => { if (parentOrigin) window.parent.postMessage(message, parentOrigin); };
   const onPreview = async event => {
-    if (!fromPreviewParent(event) || isPublicPreviewPage()) return;
+    if (!fromPreviewParent(event)) return;
     const id = event.data.id;
+    if (event.data.type === 'workerkit:preview-suspend') {
+      ++revision;
+      controller?.abort();
+      preloadOnly = true;
+      activationId = undefined;
+      emit({ data: null, busy: false, unauthorized: false, error: '' });
+      notify({ type: 'workerkit:preview-cleared', id });
+      return;
+    }
     window.name = '';
     preloadOnly = false;
+    if (isPublicPreviewPage() || activationId === id) return;
     activationId = id;
     const started = ++revision;
     emit({ data: null, unauthorized: false, error: '' });

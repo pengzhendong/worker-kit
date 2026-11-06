@@ -265,8 +265,8 @@ async function selectView(view, nextBackend = backend) {
   const ticket = ++selection;
   stopWarm(url);
   setBusy(true);
-  // CMS login/logout and backend changes discard mounted business data.
-  if (previousBackend !== backend || ['payload', 'sonic'].includes(view)) {
+  // Different backend origins own different identities and data.
+  if (previousBackend !== backend) {
     attempted.clear();
     for (const entry of [...frames.values()]) discard(entry);
   }
@@ -274,6 +274,16 @@ async function selectView(view, nextBackend = backend) {
     entry.finish?.(false);
     entry.frame.hidden = true;
     entry.frame.removeAttribute('id');
+    // A native CMS may change the session. Clear private data and cancel reads
+    // without destroying the prepared framework or fetching hidden workspaces.
+    if (integrated && ['payload', 'sonic'].includes(view)) {
+      entry.request = crypto.randomUUID();
+      entry.settled = false;
+      entry.frame.contentWindow.postMessage(
+        { type: 'workerkit:preview-suspend', id: entry.request },
+        new URL(entry.key).origin,
+      );
+    }
     if (
       ['/admin/', '/admin'].includes(new URL(entry.key, location.href).pathname)
     )
@@ -282,10 +292,12 @@ async function selectView(view, nextBackend = backend) {
   let entry = frames.get(url),
     reused = !!entry;
   if (!entry) entry = createFrame(url, url);
-  // Touch the LRU, leaving at most eight mounted apps in memory.
+  // Keep eight frontend instances plus one on-demand native CMS.
+  // The native page must not evict an already prepared frontend.
   frames.delete(url);
   frames.set(url, entry);
-  while (frames.size > 8) discard(frames.values().next().value);
+  const limit = frontendViews.length + (['payload', 'sonic'].includes(view) ? 1 : 0);
+  while (frames.size > limit) discard(frames.values().next().value);
   frame = entry.frame;
   frame.id = 'preview';
   if (frame.dataset.preloadState) frame.dataset.preloadState = 'foreground';
@@ -296,16 +308,21 @@ async function selectView(view, nextBackend = backend) {
     const refreshed = await new Promise((resolve) => {
       const finish = (ok) => {
         clearTimeout(activationTimeout);
+        clearInterval(activationRetry);
         if (entry.finish === finish) entry.finish = undefined;
         resolve(ok);
       };
       const activationTimeout = setTimeout(() => finish(false), 6000);
-      entry.finish = finish;
-      entry.request = crypto.randomUUID();
-      frame.contentWindow.postMessage(
+      const send = () => entry.frame.contentWindow.postMessage(
         { type: 'workerkit:preview-refresh', id: entry.request },
         new URL(url).origin,
       );
+      // A native route transition may briefly have no mounted receiver.
+      // Retry the same id; the child acknowledges each activation only once.
+      const activationRetry = setInterval(send, 100);
+      entry.finish = finish;
+      entry.request = crypto.randomUUID();
+      send();
     });
     if (ticket !== selection) return;
     if (!refreshed) {

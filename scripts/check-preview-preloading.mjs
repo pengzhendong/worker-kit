@@ -63,6 +63,17 @@ try {
         console.log(JSON.stringify(samples.at(-1)));
       }
       expect(reads).toHaveLength(8);
+      // Opening the current CMS keeps all eight green markers and documents.
+      const beforeCms = navigations.length;
+      await page.getByRole('tab', { name: 'Payload', exact: true }).click();
+      await expect(page.locator('iframe')).toHaveCount(9);
+      await expect(page.locator('button[data-preload-status=ready]')).toHaveCount(8);
+      await page.waitForTimeout(300);
+      expect(reads).toHaveLength(8);
+      await page.getByRole('tab', { name: 'Nuxt UI', exact: true }).click();
+      await expect(workspace(page)).toContainText('依赖正常');
+      expect(navigations.slice(beforeCms).every(url => /^\/admin(?:\/|$)/.test(new URL(url).pathname))).toBe(true);
+      await expect(page.locator('button[data-preload-status=ready]')).toHaveCount(8);
       await page.getByLabel('选择后端').selectOption('sonic');
       await expect(workspace(page)).toContainText('登录后端', { timeout: 30000 });
       await expect(page.locator('iframe[data-preload-state="ready"]').first()).toBeAttached({ timeout: 60000 });
@@ -72,7 +83,7 @@ try {
       await expect(page.locator('iframe')).toHaveCount(1);
       await page.waitForTimeout(500);
       await expect(page.locator('iframe')).toHaveCount(1);
-      console.log('Backend switch discards old preloads; native CMS is not preloaded.');
+      console.log('Same-backend CMS keeps prepared frameworks; backend switch isolates instances; native CMS is not preloaded.');
     } finally { release(); await context.close(); }
   }
   {

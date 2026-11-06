@@ -92,7 +92,7 @@ Static Assets 的 Range 缺口使用原生 Cache API 补齐，仅适用于构建
 
 使用已发布的 `@sonicjs-cms/core@3.0.0`（MIT）及原生 Hono app、CollectionConfig、Better Auth、RBAC 和 D1 迁移，只进入可选的完整示例。未修改依赖包源码，未新增 submodule。SonicJS 没有完整的管理端子路径挂载配置，因此一个 Worker 按两个同站点主机名分流，保留根路由、原生表单、Cookie 和内部链接；避免使用 HTML/JS 正则改写或全局切换 Cookie。仅增加明确的绑定组合、同源写请求检查与受限的 iframe 响应策略。两套 CMS 用各自的 D1/R2/认证，登录和数据不互相冒用。首次本地管理员通过已发布的 Better Auth 密码哈希与 SonicJS RBAC SDK 创建；已有用户不重置。升级时运行两套 CMS 的原生 workerd 功能和切换回归。
 
-跨框架预览继续使用浏览器原生 iframe 隔离样式，最多保留八套已访问的前端实例。父子窗口只通过校验来源的 `postMessage` 请求工作台重新读取原生认证接口；不传递用户数据或令牌，不保存 API 响应。选择器承担这一小段展示与刷新协调，不添加新的缓存库或框架包装层。业务组件与页面标题仍使用各上游的原生布局。预加载沿用这些 iframe，用浏览器原生 requestIdleCallback（不可用时用定时器）逐个准备前端；正在浏览的界面和点击操作优先。后台实例通过命名标记暂停业务读取，真正激活时由既有刷新协议恢复，不预先访问两套 CMS。
+跨框架预览继续使用浏览器原生 iframe 隔离样式，最多保留八套已访问的前端实例，查看同一后端的原生 CMS 时临时增加一个原生页面，离开后移除。进入原生 CMS 清空隐藏工作台的私有数据并取消旧请求，保留已准备的界面；返回时重新读取身份与业务数据。切换后端仍销毁旧实例，避免跨身份复用。父子窗口只通过校验来源的 `postMessage` 请求工作台重新读取原生认证接口；不传递用户数据或令牌，不保存 API 响应。选择器承担这一小段展示与刷新协调，不添加新的缓存库或框架包装层。业务组件与页面标题仍使用各上游的原生布局。预加载沿用这些 iframe，用浏览器原生 requestIdleCallback（不可用时用定时器）逐个准备前端；正在浏览的界面和点击操作优先。后台实例通过命名标记暂停业务读取，真正激活时由既有刷新协议恢复，不预先访问两套 CMS。
 
 预览站静态资源加速使用 Cloudflare 原生 Static Assets、`_headers` 和 `run_worker_first` 排除规则（[官方说明](https://developers.cloudflare.com/workers/static-assets/binding/)），不引入运行时代理缓存。SonicJS 固定公共依赖随构建发布，保留 Tailwind/Alpine/Chart.js 的 MIT、HTMX 的 0BSD 与 Inter 的 OFL 许可证，并校验 SHA-256。按已发布 SDK 的实际能力，未发现 CDN URL 配置项，因此只用原生 HTMLRewriter 做资源属性和字体 URL 的有限替换，不修改安装包或原生业务代码。SDK 个别确认弹窗仍引用 Tailwind Plus Elements；它使用独立商业许可证，不在本地镜像清单内，不能将 SonicJS 自身的 MIT 误解为所有引用脚本都适用 MIT。
 
