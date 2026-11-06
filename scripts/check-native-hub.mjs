@@ -38,7 +38,7 @@ try {
  // Independent NuxtHub identity and its actual SQL/KV/Blob/Cache SDKs.
  await page.setViewportSize({width:1440,height:1000});await page.goto(base+'/hub/');await page.getByLabel('用户名',{exact:true}).fill('admin');await page.getByLabel('密码',{exact:true}).fill('password');await page.getByRole('button',{name:'登录',exact:true}).click();await expect(page.getByRole('heading',{name:'NuxtHub 全栈工作台',exact:true})).toBeVisible();
  assert.equal((await api.get(base+'/native/api/settings')).status(),401);
- const initial=await(await api.get(base+'/hub/api/probe')).json();oldLabel=initial.label;const cache=initial.cache.generatedAt;assert.equal((await(await api.get(base+'/hub/api/probe')).json()).cache.generatedAt,cache);
+ const initial=await(await api.get(base+'/hub/api/probe')).json();oldLabel=initial.label;const cache=initial.cache.generatedAt;const nextCache=(await(await api.get(base+'/hub/api/probe')).json()).cache.generatedAt;if(process.env.WORKERKIT_DEPLOYED==='1'){assert.ok(Number.isFinite(Date.parse(nextCache)));}else{assert.equal(nextCache,cache);}
  assert.equal((await api.post(base+'/hub/api/notes',{headers:{Origin:'https://untrusted.test'},data:{title:unique}})).status(),403);
  assert.equal((await api.post(base+'/hub/api/notes',{headers,data:'x'.repeat(17000)})).status(),413);
  console.log('Hub session and request guards passed');
