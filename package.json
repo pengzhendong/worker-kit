@@ -1,6 +1,6 @@
 {
   "name": "@pengzhendong/worker-kit",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "description": "Shared Cloudflare Workers foundations, consumed as a Git submodule.",
@@ -44,7 +44,9 @@
     "./web/video-player/styles.css": "./src/web/video-player.css",
     "./web/virtual-grid": "./src/web/virtual-grid.tsx",
     "./native": "./src/server/native-admin.ts",
-    "./vue": "./src/vue/index.ts"
+    "./vue": "./src/vue/index.ts",
+    "./management": "./src/server/management.ts",
+    "./task-worker": "./src/server/task-worker.ts"
   },
   "scripts": {
     "demo": "node scripts/preview-suite.mjs",
@@ -90,7 +92,12 @@
     "build:native": "npm run build --workspace @worker-kit/native-dashboard",
     "dev:native": "npm run build:native && npm run dev --workspace @worker-kit/native-dashboard",
     "build:hub": "npm --prefix examples/nuxthub-dashboard/app --workspaces=false run build",
-    "test:native-hub": "node scripts/check-native-hub.mjs"
+    "test:native-hub": "node scripts/check-native-hub.mjs",
+    "check:native-hub": "npm run check --workspace @worker-kit/native-dashboard && npm --prefix examples/nuxthub-dashboard/app --workspaces=false run check",
+    "test:integration": "node scripts/run-integrated-checks.mjs",
+    "test:generated": "node scripts/check-generated.mjs",
+    "test:management": "node scripts/check-management-parity.mjs",
+    "format:check": "prettier --check examples/ui-suite/preview.js examples/ui-suite/preview-protocol.js examples/ui-suite/frame-store.js examples/ui-demo/operations.js examples/ui-demo/operations.d.ts \"examples/ui-demo/Management*.vue\" examples/ui-demo/NuxtWorkspace.vue src/server/management.ts src/server/native-admin.ts src/server/task-worker.ts src/tooling/create.mjs src/tooling/native-template.mjs src/tooling/hub-template.mjs"
   },
   "peerDependencies": {
     "@ant-design/icons": "^6.3.4",
@@ -110,7 +117,9 @@
     "@videojs/react": "^10.2.0",
     "wavesurfer.js": "^8.0.3",
     "@tanstack/react-virtual": "^3.14.24",
-    "vue": "^3.5.0"
+    "vue": "^3.5.0",
+    "agents": "^0.32.0",
+    "cron-schedule": "^6.0.0"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -166,6 +175,12 @@
     },
     "vue": {
       "optional": true
+    },
+    "agents": {
+      "optional": true
+    },
+    "cron-schedule": {
+      "optional": true
     }
   },
   "devDependencies": {
@@ -190,7 +205,11 @@
     "vitest": "4.1.12",
     "wavesurfer.js": "8.0.3",
     "wrangler": "4.152.0",
-    "@tanstack/react-virtual": "3.14.24"
+    "@tanstack/react-virtual": "3.14.24",
+    "agents": "0.32.0",
+    "cron-schedule": "6.0.0",
+    "@scalar/api-reference": "1.75.1",
+    "prettier": "3.6.2"
   },
   "bin": {
     "workerkit": "./src/tooling/cli.mjs"

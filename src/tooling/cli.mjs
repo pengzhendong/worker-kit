@@ -3,6 +3,9 @@ const command = process.argv[2];
 if (command === 'create') {
   const { createProject } = await import('./create.mjs');
   await createProject(process.argv.slice(3));
+} else if (command === 'rollback') {
+  const { rollbackKit } = await import('./create.mjs');
+  await rollbackKit(process.argv.slice(3));
 } else if (command === 'sync') {
   const { syncKit } = await import('./create.mjs');
   await syncKit(process.argv.slice(3));

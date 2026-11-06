@@ -1,0 +1,14 @@
+node_modules/
+**/node_modules/
+.wrangler/
+**/.wrangler/
+dist/
+**/dist/
+**/.output/
+**/.nuxt/
+**/.next/
+**/.open-next/
+**/package-lock.json
+**/.env*
+**/.dev.vars*
+test-results/

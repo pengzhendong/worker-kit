@@ -1,9 +1,17 @@
+import { createFrameStore } from './frame-store.js';
+import {
+  activateFrame,
+  previewMessageEntry,
+  suspendFrame,
+} from './preview-protocol.js';
 import { frontendViews, frontendTitles, preloadLabels } from './catalog.js';
 
 const views = { ...frontendTitles };
 const integrated = document.body.dataset.workerkitMode === 'integrated';
 if (integrated) {
-  document.querySelectorAll('[data-integrated-only]').forEach(link => { link.hidden = false; });
+  document.querySelectorAll('[data-integrated-only]').forEach((link) => {
+    link.hidden = false;
+  });
   views.payload = 'Payload 原生后台 · 共享登录与真实 D1/R2';
   document.querySelector('[data-view="payload"]').hidden = false;
   if (document.body.dataset.sonicOrigin) {
@@ -30,7 +38,21 @@ const viewUrl = (view) =>
         : `/${view}/`;
 const stage = document.querySelector('.stage'),
   loading = document.querySelector('#loading');
-const frames = new Map();
+const store = createFrameStore({
+  stage,
+  integrated,
+  isMobile: () => mobile,
+  onChange: () => updateTabStates(),
+  onLoad(entry) {
+    if (frame === entry.frame && !entry.frame.hidden) setBusy(false);
+    progressWarm(entry);
+    updateTabStates();
+    scheduleWarm();
+  },
+});
+const frames = store.entries,
+  createFrame = store.create,
+  discard = store.discard;
 let frame,
   selection = 0,
   mobile = false;
@@ -75,12 +97,6 @@ function updateTabStates() {
     document.getElementById('preview-status-' + view).textContent = label;
   }
 }
-const discard = (entry) => {
-  entry.finish?.(false);
-  entry.frame.remove();
-  frames.delete(entry.key);
-  updateTabStates();
-};
 // Warm one frontend at a time, after foreground rendering/data have settled.
 function cancelIdle() {
   if (idle !== undefined) {
@@ -168,49 +184,8 @@ function scheduleWarm(view) {
     ? requestIdleCallback(run, { timeout: 1500 })
     : setTimeout(run, 300);
 }
-function createFrame(key, url, background = false) {
-  const element = document.createElement('iframe');
-  element.title = 'WorkerKit 界面预览';
-  element.classList.toggle('mobile', mobile);
-  element.hidden = true;
-  const entry = {
-    key,
-    frame: element,
-    refreshable: false,
-    loaded: false,
-    settled: false,
-  };
-  frames.set(key, entry);
-  if (background) {
-    element.name = integrated ? 'workerkit-preload' : '';
-    element.dataset.preloadState = 'loading';
-    element.hidden = false;
-    element.setAttribute('aria-hidden', 'true');
-    // A real offscreen viewport lets native responsive layouts initialize correctly.
-    const width = Math.max(
-      1,
-      Math.min(stage.clientWidth - 20, mobile ? 390 : Infinity),
-    );
-    element.style.cssText = `position:fixed;left:-100000px;top:0;width:${width}px;height:${Math.max(1, stage.clientHeight - 18)}px;visibility:hidden;pointer-events:none`;
-  }
-  element.onload = () => {
-    entry.loaded = true;
-    if (frame === element && !element.hidden) setBusy(false);
-    progressWarm(entry);
-    updateTabStates();
-    scheduleWarm();
-  };
-  element.src = url;
-  stage.append(element);
-  updateTabStates();
-  return entry;
-}
 window.addEventListener('message', (event) => {
-  const entry = [...frames.values()].find(
-    (item) =>
-      item.frame.contentWindow === event.source &&
-      new URL(item.key, location.href).origin === event.origin,
-  );
+  const entry = previewMessageEntry(frames, event);
   if (!entry) return;
   if (event.data?.type === 'workerkit:preview-ready') {
     entry.refreshable = event.data.ready === true;
@@ -277,12 +252,7 @@ async function selectView(view, nextBackend = backend) {
     // A native CMS may change the session. Clear private data and cancel reads
     // without destroying the prepared framework or fetching hidden workspaces.
     if (integrated && ['payload', 'sonic'].includes(view)) {
-      entry.request = crypto.randomUUID();
-      entry.settled = false;
-      entry.frame.contentWindow.postMessage(
-        { type: 'workerkit:preview-suspend', id: entry.request },
-        new URL(entry.key).origin,
-      );
+      suspendFrame(entry);
     }
     if (
       ['/admin/', '/admin'].includes(new URL(entry.key, location.href).pathname)
@@ -294,10 +264,9 @@ async function selectView(view, nextBackend = backend) {
   if (!entry) entry = createFrame(url, url);
   // Keep eight frontend instances plus one on-demand native CMS.
   // The native page must not evict an already prepared frontend.
-  frames.delete(url);
-  frames.set(url, entry);
-  const limit = frontendViews.length + (['payload', 'sonic'].includes(view) ? 1 : 0);
-  while (frames.size > limit) discard(frames.values().next().value);
+  const limit =
+    frontendViews.length + (['payload', 'sonic'].includes(view) ? 1 : 0);
+  store.touch(entry, limit);
   frame = entry.frame;
   frame.id = 'preview';
   if (frame.dataset.preloadState) frame.dataset.preloadState = 'foreground';
@@ -305,25 +274,7 @@ async function selectView(view, nextBackend = backend) {
   frame.removeAttribute('aria-hidden');
   entry.settled = false;
   if (reused && integrated) {
-    const refreshed = await new Promise((resolve) => {
-      const finish = (ok) => {
-        clearTimeout(activationTimeout);
-        clearInterval(activationRetry);
-        if (entry.finish === finish) entry.finish = undefined;
-        resolve(ok);
-      };
-      const activationTimeout = setTimeout(() => finish(false), 6000);
-      const send = () => entry.frame.contentWindow.postMessage(
-        { type: 'workerkit:preview-refresh', id: entry.request },
-        new URL(url).origin,
-      );
-      // A native route transition may briefly have no mounted receiver.
-      // Retry the same id; the child acknowledges each activation only once.
-      const activationRetry = setInterval(send, 100);
-      entry.finish = finish;
-      entry.request = crypto.randomUUID();
-      send();
-    });
+    const refreshed = await activateFrame(entry);
     if (ticket !== selection) return;
     if (!refreshed) {
       discard(entry);

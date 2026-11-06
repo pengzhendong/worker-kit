@@ -79,7 +79,7 @@ npm run check
 
 新项目不再使用旧 Ant Design 6 AdminShell、旧单管理员登录和 fixture 业务页面。旧项目仍有引用，所以本轮保留兼容导出；后续逐个迁移并通过认证、任务、存储和页面检查后，删除旧页面、兼容转发及不再引用的依赖。不要为了换外观丢掉任务执行、访问密钥的权限边界或私有文件访问规则。
 
-API Key、完整 KV 配置管理和历史操作审计还没有全部接入新工作台；本轮不把 CMS 的相似菜单称为这些能力已迁移。普通内容、媒体与用户已优先使用上游实现；剩余能力按真实业务需求逐项接入。
+0.4.0 的四条路线已对齐声明式 KV 设置、受限 API Key、管理操作审计、任务与运行检查；CMS 工作台复用原生身份与角色，不把 API Key 视为管理员会话。普通内容、媒体与用户继续使用 CMS 原生实现。
 
 ## 验证
 
@@ -100,10 +100,16 @@ API Key、完整 KV 配置管理和历史操作审计还没有全部接入新工
 本次线上验证通过原生登录、16 种工作台组合、文档预览入口、无 localhost 导航、Vben 工作台正文边距，以及两套后端的任务创建、执行和记录持久化。任务日志默认显示最近 5 条，历史记录继续保留。
 
 
-## 轻量路线与 Nuxt 全栈（0.3.0）
+## 轻量路线与 Nuxt 全栈（0.4.0）
 
-`--frontend nuxt --backend native` 创建 CMS-free 项目，根目录有 `worker.ts`、`wrangler.jsonc`、`web/` 与 vendor 快照。一个父项目 lockfile，保留业务和部署所有权，只需 KV 与登录限流；配置、密钥和审计使用命名空间，不开放任意 KV 浏览。已有凭据不被 setup 重置。其他前端目前仍使用上面的 CMS 创建器，轻量路线不声称覆盖全部八套界面。
+`--frontend nuxt --backend native` 创建 CMS-free 项目，根目录有 `worker.ts`、`wrangler.jsonc`、`web/` 与 vendor 快照。一个父项目 lockfile，保留业务和部署所有权，默认使用 KV、登录限流与 SQLite 任务 DO；配置、密钥和审计使用命名空间，不开放任意 KV 浏览。已有凭据不被 setup 重置。其他前端目前仍使用上面的 CMS 创建器，轻量路线不声称覆盖全部八套界面。
 
-NuxtHub 示例在 `examples/nuxthub-dashboard/app`，作为完整 Nuxt + Nitro 构建，由统一 Worker 的 `/hub/` 分流；不是 CMS 后端的一键替换项。发布前通过独立依赖安装、构建、Nuxt 类型检查、workerd 存储和身份检查。公共 `/native` 和 `/vue` SDK 由消费应用显式导入，未把 Vue、CMS 或 NuxtHub 加入所有服务端入口。
+NuxtHub 示例在 `examples/nuxthub-dashboard/app`，也可通过 `--frontend nuxt --backend hub` 创建独立项目；作为完整 Nuxt + Nitro 构建，由统一 Worker 的 `/hub/` 分流；不是 CMS 后端的一键替换项。发布前通过独立依赖安装、构建、Nuxt 类型检查、workerd 存储和身份检查。公共 `/native` 和 `/vue` SDK 由消费应用显式导入，未把 Vue、CMS 或 NuxtHub 加入所有服务端入口。
 
 统一站顶部“开发方案”进入技术地图、轻量模板或 NuxtHub。线上文档区分真实业务工作台与 fixture 组件体验，并补充接入和升级指南。
+
+## 自动验收与回滚
+
+`npm run test:integration` 在空闲 5184 端口启动真实本地统一 Worker，依次验证组合、切换、预加载、布局、NuxtHub 存储和四条路线的管理能力。`npm run test:generated` 从临时目录验证新项目、重复 setup、SDK 升级与回滚；CI 自动运行。
+
+快照回滚使用 `npm run kit:rollback -- --backup worker-kit.previous-TIMESTAMP`，当前 SDK 和备份的所有文件都会先验摘要，有本地变更则拒绝覆盖。恢复后重新安装依赖并执行 check。submodule 消费项目通过 Git 恢复审核提交；数据库迁移不由这两个流程自动撤销。

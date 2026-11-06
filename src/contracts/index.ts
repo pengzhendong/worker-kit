@@ -11,17 +11,31 @@ export interface ApiFailure {
   requestId: string;
 }
 
-export interface Sort<Field extends string = string> { field: Field; order: 'asc' | 'desc' }
-export interface PageQuery<Field extends string = string, Filter extends string = string> {
+export interface Sort<Field extends string = string> {
+  field: Field;
+  order: 'asc' | 'desc';
+}
+export interface PageQuery<
+  Field extends string = string,
+  Filter extends string = string,
+> {
   page: number;
   pageSize: number;
   q: string;
   sort?: Sort<Field>;
   filters: Partial<Record<Filter, string>>;
 }
-export interface PageList<Item> { items: Item[]; total: number; page: number; pageSize: number }
+export interface PageList<Item> {
+  items: Item[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
 /** Opaque cursor; null means the final page. No invented total or page number. */
-export interface CursorList<Item> { items: Item[]; cursor: string | null }
+export interface CursorList<Item> {
+  items: Item[];
+  cursor: string | null;
+}
 
 /** Every distinct requested ID must occur in exactly one of these arrays. */
 export interface BatchResult<Id extends string | number = string> {
@@ -29,6 +43,19 @@ export interface BatchResult<Id extends string | number = string> {
   failed: { id: Id; code: string; message: string }[];
 }
 export type { ApiKeyInfo } from './api-keys';
-export type { RuntimeSnapshot, RuntimeCheck, RuntimeCheckKind, RuntimeMetrics } from './runtime';
+export type {
+  RuntimeSnapshot,
+  RuntimeCheck,
+  RuntimeCheckKind,
+  RuntimeMetrics,
+} from './runtime';
 
 export { runtimeSnapshotSchema, runtimeMetricsSchema } from './runtime.ts';
+
+export type {
+  ManagementPrincipal,
+  ManagementCapabilities,
+  ManagementSnapshot,
+  ManagementPage,
+  AuditEntry,
+} from './management';

@@ -17,9 +17,9 @@ WorkerKit 将界面、应用框架、业务后端和存储分开。选中一种�
 
 ### 轻量 Worker
 
-**Nuxt UI → 原生 Worker / Hono → KV**
+**Nuxt UI → 原生 Worker / Hono → KV + 任务 DO**
 
-[打开轻量管理模板](/native/){target="_top"}：真实登录、运行检查、KV 设置、访问密钥、操作审计和 API 文档。不强制使用 CMS、Next.js、D1 或 R2。
+[打开轻量管理模板](/native/){target="_top"}：真实登录、运行检查、KV 设置、访问密钥、操作审计、任务管理和 API 文档。不强制使用 CMS、Next.js、D1 或 R2。
 
 适合已有接口、少量配置、同步/代理服务，以及保留原有协议的 Worker。已有任务管理器仍可按需要显式装配。
 
@@ -31,7 +31,7 @@ npm run setup
 npm run dev
 ```
 
-本轮轻量创建器验证 Nuxt UI；其他七套前端仍通过 Payload / SonicJS 创建器提供。不要将尚未验证的组合标成可直接使用。
+轻量创建器使用 Nuxt UI；其他七套前端通过 Payload / SonicJS 创建器提供。展示站的公共管理功能已对齐，创建支持范围见[功能矩阵](./features)。
 
 ### CMS 后端
 
@@ -45,9 +45,9 @@ npm run dev
 
 **Nuxt + Nuxt UI → Nitro API + NuxtHub → D1 / KV / R2 / Cache**
 
-[打开 NuxtHub 全栈示例](/hub/){target="_top"}：实际使用 SQL、KV、Blob 与缓存 SDK；业务管理登录复用 WorkerKit 的 KV 会话。它不冒充 CMS，也不放入八套界面的 CMS 下拉选项。
+[打开 NuxtHub 全栈示例](/hub/){target="_top"}：公共管理工作台与其他路线对齐；存储示例实际使用 SQL、KV、Blob 与缓存 SDK。管理登录复用 WorkerKit 的 KV 会话。它不冒充 CMS，也不放入八套界面的 CMS 下拉选项。
 
-业务代码在 `examples/nuxthub-dashboard/app`。这条路线采用完整 Nuxt，不能通过给 Vue + Vite 安装一个 UI 插件来完成迁移。NuxtHub 的旧托管 Admin 已弃用；本例由自己的 Wrangler 和 Cloudflare 账户部署。
+创建独立应用：`npm run create -- ../my-nuxt-app --frontend nuxt --backend hub`，然后安装依赖并执行 setup / dev。业务代码在 `examples/nuxthub-dashboard/app`。这条路线采用完整 Nuxt，不能通过给 Vue + Vite 安装一个 UI 插件来完成迁移。NuxtHub 的旧托管 Admin 已弃用；本例由自己的 Wrangler 和 Cloudflare 账户部署。
 
 ## 怎么选
 

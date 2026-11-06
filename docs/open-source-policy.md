@@ -116,3 +116,16 @@ NuxtHub 0.10.12 的 package.json 声明 Apache-2.0，但随包 LICENSE 为 MIT�
 Cloudflare Node v2 的 `console.createTask` 暴露为抛错 stub，当前 Hookable 将它误判为可用调试功能。NuxtHub 的 Nitro `unenv.inject` 只在该构建中使用最小 console adapter，保留原生日志并隐藏这个非必要的 profiling 方法；不修改 Worker 全局或其他后端。升级 Hookable/Nitro 后应重新验证并评估移除。Nitro Cloudflare adapter 会在 H3 前缓存请求体，因此组合入口复用现有 `readBytesLimited` 限制写请求，不能只靠业务 handler 读取后才检查大小。
 
 Dashboard Vue 仅作为官方模板与布局参考；业务页面由消费应用拥有，不新增嵌套 submodule。SDK 用 Git 审核提交，npm 依赖用 lockfile，源码模板用固定 commit 和 SHA，边界在技术地图中明确。
+
+
+### 统一管理与创建器收尾（0.4.0）
+
+配置、受限密钥、管理操作审计和运行检查从单管理员包装中分离为 `createManagementRoutes`，宿主提供现有身份与权限；Payload/SonicJS 不新增会话体系。任务 DO 外壳继续组合 agents Lifecycle/Scheduler、cron-schedule 和原 TaskManager，消费者声明业务定义；通过可选 `/task-worker` 入口使用，不给纯 HTTP 消费者强制引入调度依赖。界面按各方案原生组件装配，共用框架无关的操作客户端；完整令牌只在当前签发交互中显示，刷新、取消和身份重验证时清除。
+
+NuxtHub 0.10.12 在模块 setup 中强制打开 Nitro deployConfig。自有 Worker 需要导出任务 DO，因此使用 Nuxt 原生 `nitro:config` hook 明确关闭该重定向，保留自己的 Wrangler 入口；不修改 NuxtHub 依赖源码。它可能在 close hook 提示没有自动 wrangler.json，使用的是应用自己的配置。
+
+该版本 Nitro 的 Cloudflare adapter 只预读 POST/PUT/PATCH，DELETE 请求体仍留在平台 Request 上。NuxtHub 示例用 H3 平台上下文读取该 Request，并复用 SDK 的 8 KiB 有界读取，避免等待不会收到数据的合成 Node 流。没有修改 Nitro 包；浏览器回归覆盖笔记和文件的真实删除及超限拒绝。WorkerKit 诊断密钥也在 SonicJS 入口限定用途，避免将它误送入会在校验错误中输出输入令牌的上游 JWT 解析器。
+
+创建器支持 16 个 CMS 组合、Nuxt UI 轻量起点及 NuxtHub 全栈起点。模板运行脚本以普通模块保存，快照升级与回滚先校验所有文件；不引入模板插件引擎、嵌套 submodule 或隐式业务覆盖。
+
+新模板将 Tailwind、Vite/Node 适配器及 Oxide 固定为已验证的 4.3.4，避免首次安装因传递依赖浮动而与现有演示的 lockfile 不同。4.3.5 已在 npm 官方注册表发布，但本轮使用的镜像尚未完整同步；没有使用强制安装跳过依赖检查。后续升级应同时更新这一组版本并复跑新建项目检查。

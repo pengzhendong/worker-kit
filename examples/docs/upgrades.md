@@ -31,3 +31,19 @@ WorkerKit 自身可继续由消费项目作为 submodule 引用。组件库使�
 NuxtHub 的依赖和 lockfile 在 `examples/nuxthub-dashboard/app`；使用 `npm run build:hub` 和该目录的 `npm run check`，组合后运行 `npm run test:native-hub` 验证真实存储、同源写请求、独立会话与移动界面。D1 迁移是单独步骤，不因构建成功就自动应用到线上。
 
 展示站需要最后执行统一构建、部署 dry-run 和线上入口检查。免费套餐 CPU、首次加载和缓存后切换是不同指标，不能互相替代；按真实 Observability 数据评估。
+
+## 自动回归与回滚
+
+`npm run test:integration` 启动并关闭独立的本地统一 Worker，验证八套界面和四条后端路线的真实行为；执行前先运行 `npm run build:payload`，5184 端口必须空闲。它不会接管现有预览。CI 使用固定 Playwright 容器与 Chromium，本机默认使用 Chrome。
+
+`npm run test:generated` 在临时目录创建轻量与 NuxtHub 项目，执行全新安装、setup、类型检查、构建和真实任务验证；同时检查源码快照的升级、回滚与业务文件保护。
+
+快照项目升级前核对来源提交与摘要。`kit:sync` 只替换未修改的 vendor，并保留 `worker-kit.previous-TIMESTAMP`；需要撤回时执行：
+
+```sh
+npm run kit:rollback -- --backup worker-kit.previous-TIMESTAMP
+npm install
+npm run check
+```
+
+当前 vendor 或备份有修改时拒绝覆盖。回滚只恢复 SDK，页面、配置、数据迁移与 Secret 仍归应用；数据库迁移必须另行审核。submodule 项目继续用 Git 固定和恢复提交，不与快照命令混用。

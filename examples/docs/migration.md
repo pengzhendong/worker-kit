@@ -15,6 +15,8 @@
 | `@pengzhendong/worker-kit/client` | HTTP 客户端、会话取消、接口目录提取；无 Vue / React 运行时依赖 |
 | `@pengzhendong/worker-kit/vue` | 页面生命周期内的 Vue 异步资源状态；沿用客户端的取消与身份隔离 |
 | `@pengzhendong/worker-kit/runtime` | KV 会话、运行检查；可直接用于原生 Worker |
+| `@pengzhendong/worker-kit/management` | 在原生身份后复用配置、受限密钥、审计、运行状态与 API 文档 |
+| `@pengzhendong/worker-kit/task-worker` | 可选的原生 agents 调度与现有 TaskManager 组合，业务任务由应用声明 |
 | `@pengzhendong/worker-kit/native` | 可选 Hono 管理接口组合，包含登录、设置、受限密钥与安全审计 |
 | `@pengzhendong/worker-kit/operations` | 在已有身份验证之后组合任务工作台与任务接口 |
 
@@ -27,3 +29,5 @@ KV 是最终一致存储，跨区域的注销与撤销可能短暂延迟。最�
 已有 submodule 消费项目继续固定 Git 提交。创建器生成的源码快照使用文件摘要校验和显式 `kit:sync`，二者不要混用。
 
 公共 SDK 升级与业务页面升级分别审核。同步工具不会自动覆盖业务页面、迁移或部署配置；模板的上游大版本变化仍需处理，不承诺零改动升级。
+
+公共能力按权限逐项开放。任务与工作台接口在返回私有数据前检查原生身份；只读用户的工作台不会附带管理数据。既有 CMS 不另建管理员会话，API Key 也不替代 CMS 用户权限。

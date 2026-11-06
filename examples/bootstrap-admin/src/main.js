@@ -1,5 +1,16 @@
+import { installManagement } from '../../ui-demo/management-bootstrap';
 import { Modal, Collapse, Toast } from 'bootstrap';
-import { state, base, subscribe, changed, runTask, createTask, addFiles, statusText, exportLogs } from '../../ui-demo/store';
+import {
+  state,
+  base,
+  subscribe,
+  changed,
+  runTask,
+  createTask,
+  addFiles,
+  statusText,
+  exportLogs,
+} from '../../ui-demo/store';
 import { init, use } from 'echarts/core';
 import { LineChart } from 'echarts/charts';
 import { GridComponent, TooltipComponent } from 'echarts/components';
@@ -13,31 +24,91 @@ const kind = __DEMO_KIND__;
 let PushMenu;
 if (kind === 'tabler') await import('@tabler/core/dist/css/tabler.min.css');
 else await import('admin-lte/dist/css/adminlte.min.css');
-const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
-const pages = [{ path: '/workspace', title: '业务工作台', icon: 'ϟ' }, { path: '/', title: '运行概览', icon: '▦' }, { path: '/tasks', title: '任务调度', icon: '◷' }, { path: '/resources', title: '资源管理', icon: '▱' }, { path: '/logs', title: '运行日志', icon: '≡' }, { path: '/settings', title: '应用设置', icon: '⚙' }];
-const componentIcons = { table: 'pi-table', form: 'pi-pencil', dialogs: 'pi-window-maximize', preview: 'pi-eye', layout: 'pi-th-large', theme: 'pi-palette' };
-pages.push(...componentPages.map(page => ({ ...page, icon: `<i class="pi ${componentIcons[page.key]}"></i>` })));
-let longContent = false; let dialogResult = '';
-const href = path => base + path.replace(/^\//, '');
-const getPath = () => '/' + location.pathname.slice(base.length).replace(/^\//, '');
-let path = getPath(); let query = ''; let filter = 'all'; let period = '7'; let chart; let observer; let selected;
-const tones = { success: 'success', warning: 'warning', paused: 'secondary', running: 'primary' };
-const badge = status => `<span class="badge ${kind === 'tabler' ? `bg-${tones[status]}-lt` : `text-bg-${tones[status]}`}">${statusText[status]}</span>`;
-const field = (label, id, input) => `<div class="mb-4"><label class="form-label" for="${id}">${label}</label>${input}</div>`;
-const button = (text, action, cls = 'btn-outline-secondary') => `<button type="button" class="btn ${cls}" data-action="${action}">${text}</button>`;
-const nav = pages.map((page, index) => `${index === 6 ? '<li class="nav-item px-3 pt-4 pb-2 text-secondary small">组件体验</li>' : ''}<li class="nav-item"><a class="nav-link" href="${href(page.path)}" data-go="${page.path}" aria-label="${page.title}"><span class="nav-link-icon" aria-hidden="true">${page.icon}</span><${kind === 'tabler' ? 'span' : 'p'}>${page.title}</${kind === 'tabler' ? 'span' : 'p'}></a></li>`).join('');
-document.body.className = kind === 'adminlte' ? 'layout-fixed sidebar-expand-lg bg-body-tertiary' : '';
-let dark = false; try { dark = localStorage.getItem(`workerkit-${kind}-dark`) === 'true'; } catch {}
+const escape = (value) =>
+  String(value ?? '').replace(
+    /[&<>"']/g,
+    (char) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[
+        char
+      ],
+  );
+const pages = [
+  { path: '/workspace', title: '业务工作台', icon: 'ϟ' },
+  { path: '/', title: '运行概览', icon: '▦' },
+  { path: '/tasks', title: '任务调度', icon: '◷' },
+  { path: '/resources', title: '资源管理', icon: '▱' },
+  { path: '/logs', title: '运行日志', icon: '≡' },
+  { path: '/settings', title: '应用设置', icon: '⚙' },
+];
+const componentIcons = {
+  table: 'pi-table',
+  form: 'pi-pencil',
+  dialogs: 'pi-window-maximize',
+  preview: 'pi-eye',
+  layout: 'pi-th-large',
+  theme: 'pi-palette',
+};
+pages.push(
+  ...componentPages.map((page) => ({
+    ...page,
+    icon: `<i class="pi ${componentIcons[page.key]}"></i>`,
+  })),
+);
+let longContent = false;
+let dialogResult = '';
+const href = (path) => base + path.replace(/^\//, '');
+const getPath = () =>
+  '/' + location.pathname.slice(base.length).replace(/^\//, '');
+let path = getPath();
+let query = '';
+let filter = 'all';
+let period = '7';
+let chart;
+let observer;
+let selected;
+const tones = {
+  success: 'success',
+  warning: 'warning',
+  paused: 'secondary',
+  running: 'primary',
+};
+const badge = (status) =>
+  `<span class="badge ${kind === 'tabler' ? `bg-${tones[status]}-lt` : `text-bg-${tones[status]}`}">${statusText[status]}</span>`;
+const field = (label, id, input) =>
+  `<div class="mb-4"><label class="form-label" for="${id}">${label}</label>${input}</div>`;
+const button = (text, action, cls = 'btn-outline-secondary') =>
+  `<button type="button" class="btn ${cls}" data-action="${action}">${text}</button>`;
+const nav = pages
+  .map(
+    (page, index) =>
+      `${index === 6 ? '<li class="nav-item px-3 pt-4 pb-2 text-secondary small">组件体验</li>' : ''}<li class="nav-item"><a class="nav-link" href="${href(page.path)}" data-go="${page.path}" aria-label="${page.title}"><span class="nav-link-icon" aria-hidden="true">${page.icon}</span><${kind === 'tabler' ? 'span' : 'p'}>${page.title}</${kind === 'tabler' ? 'span' : 'p'}></a></li>`,
+  )
+  .join('');
+document.body.className =
+  kind === 'adminlte' ? 'layout-fixed sidebar-expand-lg bg-body-tertiary' : '';
+let dark = false;
+try {
+  dark = localStorage.getItem(`workerkit-${kind}-dark`) === 'true';
+} catch {}
 document.documentElement.dataset.bsTheme = dark ? 'dark' : 'light';
 const topActions = `<span class="badge ${kind === 'tabler' ? 'bg-blue-lt' : 'text-bg-primary'}">${kind === 'tabler' ? 'Tabler' : 'AdminLTE'}</span><button class="btn btn-sm btn-outline-secondary" data-action="theme" aria-label="切换明暗主题">${dark ? '☀' : '☾'}</button><span class="demo-user">Demo User</span>`;
-if (kind === 'tabler') document.getElementById('app').innerHTML = `<div class="page"><aside class="navbar navbar-vertical navbar-expand-lg"><div class="container-fluid"><button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu" aria-controls="sidebar-menu" aria-expanded="false" aria-label="打开导航"><span class="navbar-toggler-icon"></span></button><a class="navbar-brand" href="${base}" data-go="/"><img src="${base}favicon.svg" alt="" width="32" height="32">WorkerKit</a><div class="collapse navbar-collapse" id="sidebar-menu"><ul class="navbar-nav pt-lg-3">${nav}</ul><div class="demo-sidebar-note text-secondary" data-demo-note></div></div></div></aside><div class="page-wrapper"><header class="navbar demo-topbar"><div class="container-fluid"><span id="breadcrumb">运行概览</span><div class="d-flex align-items-center gap-3">${topActions}</div></div></header><main class="demo-main-scroll"><div class="container-xl"><div class="page-header"><div class="row align-items-center"><div class="col"><div class="page-pretitle">示例工作空间</div><h1 class="page-title" id="page-title"></h1><p class="text-secondary mt-2" id="page-description"></p></div><div class="col-auto" id="page-action"></div></div></div><div class="page-body" id="content"></div><footer class="demo-footer text-secondary">WorkerKit · Tabler · 演示数据</footer></div></main></div></div>`;
-else document.getElementById('app').innerHTML = `<div class="app-wrapper"><header class="app-header navbar navbar-expand bg-body"><div class="container-fluid"><ul class="navbar-nav"><li class="nav-item"><button class="nav-link" data-lte-toggle="sidebar" aria-label="打开导航"><span aria-hidden="true">☰</span></button></li><li class="nav-item d-none d-sm-block"><span class="nav-link" id="breadcrumb">运行概览</span></li></ul><div class="d-flex align-items-center gap-3">${topActions}</div></div></header><aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark"><div class="sidebar-brand"><a href="${base}" data-go="/" class="brand-link"><img src="${base}favicon.svg" alt="" width="32" height="32"><span class="brand-text fw-semibold">WorkerKit</span></a></div><div class="sidebar-wrapper"><nav><ul class="nav sidebar-menu flex-column" role="menu">${nav}</ul></nav><div class="demo-sidebar-note text-secondary" data-demo-note></div></div></aside><main class="app-main demo-main-scroll"><div class="app-content-header"><div class="container-fluid d-flex justify-content-between align-items-center gap-3"><div><h1 class="fs-3 mb-2" id="page-title"></h1><p class="text-secondary mb-0" id="page-description"></p></div><div id="page-action"></div></div></div><div class="app-content"><div class="container-fluid" id="content"></div><footer class="demo-footer text-secondary">WorkerKit · AdminLTE · 演示数据</footer></div></main></div>`;
+if (kind === 'tabler')
+  document.getElementById('app').innerHTML =
+    `<div class="page"><aside class="navbar navbar-vertical navbar-expand-lg"><div class="container-fluid"><button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu" aria-controls="sidebar-menu" aria-expanded="false" aria-label="打开导航"><span class="navbar-toggler-icon"></span></button><a class="navbar-brand" href="${base}" data-go="/"><img src="${base}favicon.svg" alt="" width="32" height="32">WorkerKit</a><div class="collapse navbar-collapse" id="sidebar-menu"><ul class="navbar-nav pt-lg-3">${nav}</ul><div class="demo-sidebar-note text-secondary" data-demo-note></div></div></div></aside><div class="page-wrapper"><header class="navbar demo-topbar"><div class="container-fluid"><span id="breadcrumb">运行概览</span><div class="d-flex align-items-center gap-3">${topActions}</div></div></header><main class="demo-main-scroll"><div class="container-xl"><div class="page-header"><div class="row align-items-center"><div class="col"><div class="page-pretitle">示例工作空间</div><h1 class="page-title" id="page-title"></h1><p class="text-secondary mt-2" id="page-description"></p></div><div class="col-auto" id="page-action"></div></div></div><div class="page-body" id="content"></div><footer class="demo-footer text-secondary">WorkerKit · Tabler · 演示数据</footer></div></main></div></div>`;
+else
+  document.getElementById('app').innerHTML =
+    `<div class="app-wrapper"><header class="app-header navbar navbar-expand bg-body"><div class="container-fluid"><ul class="navbar-nav"><li class="nav-item"><button class="nav-link" data-lte-toggle="sidebar" aria-label="打开导航"><span aria-hidden="true">☰</span></button></li><li class="nav-item d-none d-sm-block"><span class="nav-link" id="breadcrumb">运行概览</span></li></ul><div class="d-flex align-items-center gap-3">${topActions}</div></div></header><aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark"><div class="sidebar-brand"><a href="${base}" data-go="/" class="brand-link"><img src="${base}favicon.svg" alt="" width="32" height="32"><span class="brand-text fw-semibold">WorkerKit</span></a></div><div class="sidebar-wrapper"><nav><ul class="nav sidebar-menu flex-column" role="menu">${nav}</ul></nav><div class="demo-sidebar-note text-secondary" data-demo-note></div></div></aside><main class="app-main demo-main-scroll"><div class="app-content-header"><div class="container-fluid d-flex justify-content-between align-items-center gap-3"><div><h1 class="fs-3 mb-2" id="page-title"></h1><p class="text-secondary mb-0" id="page-description"></p></div><div id="page-action"></div></div></div><div class="app-content"><div class="container-fluid" id="content"></div><footer class="demo-footer text-secondary">WorkerKit · AdminLTE · 演示数据</footer></div></main></div>`;
 
 // Load AdminLTE after its shell exists so the native sidebar lifecycle initializes.
-if (kind === 'adminlte') ({ PushMenu } = await import('admin-lte/dist/js/adminlte.js'));
+if (kind === 'adminlte')
+  ({ PushMenu } = await import('admin-lte/dist/js/adminlte.js'));
 
-document.body.insertAdjacentHTML('beforeend', `<div class="modal fade" id="task-modal" tabindex="-1" aria-labelledby="task-modal-title" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form id="task-form"><div class="modal-header"><h2 class="modal-title fs-5" id="task-modal-title">新建演示任务</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button></div><div class="modal-body">${field('任务名称', 'task-name', '<input class="form-control" id="task-name" name="name" required minlength="2" placeholder="例如：每日数据同步">')}${field('所属应用', 'task-app', '<select class="form-select" id="task-app" name="app"><option>demo-api</option><option>demo-jobs</option><option>demo-storage</option><option>demo-assets</option></select>')}${field('执行计划', 'task-schedule', '<select class="form-select" id="task-schedule" name="schedule"><option>每天 09:00</option><option>每天 15:00</option><option>每 30 分钟</option><option>每 6 小时</option></select>')}<div class="text-danger" id="task-error" role="alert"></div></div><div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button><button type="submit" class="btn btn-primary">创建任务</button></div></form></div></div></div><div class="modal fade" id="preview-modal" tabindex="-1" aria-labelledby="preview-title" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h2 class="modal-title fs-5" id="preview-title"></h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button></div><div class="modal-body" id="preview-content"></div></div></div></div><input type="file" id="file-picker" multiple hidden><div class="toast-container position-fixed bottom-0 end-0 p-3" id="feedback" aria-live="polite"></div>`);
-const taskModal = new Modal(document.getElementById('task-modal')); const previewModal = new Modal(document.getElementById('preview-modal'));
+document.body.insertAdjacentHTML(
+  'beforeend',
+  `<div class="modal fade" id="task-modal" tabindex="-1" aria-labelledby="task-modal-title" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form id="task-form"><div class="modal-header"><h2 class="modal-title fs-5" id="task-modal-title">新建演示任务</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button></div><div class="modal-body">${field('任务名称', 'task-name', '<input class="form-control" id="task-name" name="name" required minlength="2" placeholder="例如：每日数据同步">')}${field('所属应用', 'task-app', '<select class="form-select" id="task-app" name="app"><option>demo-api</option><option>demo-jobs</option><option>demo-storage</option><option>demo-assets</option></select>')}${field('执行计划', 'task-schedule', '<select class="form-select" id="task-schedule" name="schedule"><option>每天 09:00</option><option>每天 15:00</option><option>每 30 分钟</option><option>每 6 小时</option></select>')}<div class="text-danger" id="task-error" role="alert"></div></div><div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button><button type="submit" class="btn btn-primary">创建任务</button></div></form></div></div></div><div class="modal fade" id="preview-modal" tabindex="-1" aria-labelledby="preview-title" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h2 class="modal-title fs-5" id="preview-title"></h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button></div><div class="modal-body" id="preview-content"></div></div></div></div><input type="file" id="file-picker" multiple hidden><div class="toast-container position-fixed bottom-0 end-0 p-3" id="feedback" aria-live="polite"></div>`,
+);
+const taskModal = new Modal(document.getElementById('task-modal'));
+const previewModal = new Modal(document.getElementById('preview-modal'));
 const content = document.getElementById('content');
 function notify(text, error = false) {
   const element = document.createElement('div');
@@ -45,93 +116,457 @@ function notify(text, error = false) {
   element.setAttribute('role', error ? 'alert' : 'status');
   element.setAttribute('aria-live', error ? 'assertive' : 'polite');
   element.setAttribute('aria-atomic', 'true');
-  element.innerHTML = '<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="关闭提示"></button></div>';
+  element.innerHTML =
+    '<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="关闭提示"></button></div>';
   element.querySelector('.toast-body').textContent = text;
   document.getElementById('feedback').append(element);
   const toast = new Toast(element, { delay: 3500 });
-  element.addEventListener('hidden.bs.toast', () => { toast.dispose(); element.remove(); }, { once: true });
+  element.addEventListener(
+    'hidden.bs.toast',
+    () => {
+      toast.dispose();
+      element.remove();
+    },
+    { once: true },
+  );
   toast.show();
 }
-function toolbar(search, options) { return `<div class="card-header d-flex gap-3 justify-content-between flex-wrap"><input class="form-control demo-search" id="search" aria-label="${search}" placeholder="${search}或应用…" value="${escape(query)}"><select class="form-select demo-filter" id="filter" aria-label="${path === '/logs' ? '日志级别筛选' : '任务状态筛选'}">${options.map(([value, text]) => `<option value="${value}" ${value === filter ? 'selected' : ''}>${text}</option>`).join('')}</select></div>`; }
-function table(headers, rows) { return `<div class="table-responsive"><table class="table table-vcenter ${kind === 'adminlte' ? 'table-striped' : 'card-table'} mb-0"><thead><tr>${headers.map(header => `<th>${header}</th>`).join('')}</tr></thead><tbody>${rows.length ? rows.join('') : `<tr><td colspan="${headers.length}" class="text-center py-5 text-secondary">没有符合条件的记录</td></tr>`}</tbody></table></div>`; }
+function toolbar(search, options) {
+  return `<div class="card-header d-flex gap-3 justify-content-between flex-wrap"><input class="form-control demo-search" id="search" aria-label="${search}" placeholder="${search}或应用…" value="${escape(query)}"><select class="form-select demo-filter" id="filter" aria-label="${path === '/logs' ? '日志级别筛选' : '任务状态筛选'}">${options.map(([value, text]) => `<option value="${value}" ${value === filter ? 'selected' : ''}>${text}</option>`).join('')}</select></div>`;
+}
+function table(headers, rows) {
+  return `<div class="table-responsive"><table class="table table-vcenter ${kind === 'adminlte' ? 'table-striped' : 'card-table'} mb-0"><thead><tr>${headers.map((header) => `<th>${header}</th>`).join('')}</tr></thead><tbody>${rows.length ? rows.join('') : `<tr><td colspan="${headers.length}" class="text-center py-5 text-secondary">没有符合条件的记录</td></tr>`}</tbody></table></div>`;
+}
 function overview() {
-  const stats = [{ label: 'Worker 应用', value: '8', unit: '个', note: '7 个正常 · 1 个需关注' }, { label: '今日任务执行', value: '124', unit: '次', note: '较昨日增加 18 次' }, { label: '任务成功率', value: '98.4', unit: '%', note: '122 次成功 · 2 次异常' }, { label: '资源存储', value: '1.28', unit: 'GB', note: '已使用配额的 12.8%' }];
-  return `<div class="row g-3 mb-4">${stats.map(stat => `<div class="col-6 col-xl-3">${kind === 'adminlte' ? `<div class="small-box ${stat.label === '任务成功率' ? 'text-bg-success' : stat.label === '今日任务执行' ? 'text-bg-primary' : stat.label === '资源存储' ? 'text-bg-warning' : 'text-bg-info'}"><div class="inner"><p>${stat.label}</p><h3>${stat.value}<small class="fs-6 ms-2">${stat.unit}</small></h3><p class="demo-stat-note">${stat.note}</p></div></div>` : `<div class="card"><div class="card-body"><div class="subheader">${stat.label}</div><div class="h1 mb-3 mt-3">${stat.value}<small class="fs-6 text-secondary ms-2">${stat.unit}</small></div><div class="text-secondary small">${stat.note}</div></div></div>`}</div>`).join('')}</div><div class="row g-4 mb-4"><div class="col-xl-8"><div class="card h-100"><div class="card-header"><h2 class="card-title">请求趋势</h2><select id="period" class="form-select demo-filter ms-auto" aria-label="趋势时间范围"><option value="7" ${period === '7' ? 'selected' : ''}>近 7 天</option><option value="14" ${period === '14' ? 'selected' : ''}>近 14 天</option></select></div><div class="card-body"><p class="text-secondary small">各应用请求量的示例分布</p><div class="d-flex align-items-baseline gap-3"><strong class="fs-2">${period === '7' ? '31,702' : '64,518'}</strong><span class="text-secondary small">次请求</span><span class="text-success small">+12.6%</span></div><div id="trend" class="demo-chart" role="img" aria-label="请求趋势，演示数据"></div></div></div></div><div class="col-xl-4"><div class="card h-100"><div class="card-header"><h2 class="card-title">服务状态</h2><span class="badge text-bg-secondary ms-auto">示例</span></div><div class="card-body demo-services">${state.services.map(service => `<div class="d-flex align-items-center gap-3"><span class="avatar rounded">${service.name.slice(5, 6)}</span><div class="flex-grow-1"><strong>${service.name}</strong><div class="text-secondary small mt-1">${service.description}</div></div><span class="small ${service.status === '正常' ? 'text-success' : 'text-warning'}">● ${service.status}</span></div>`).join('')}</div></div></div></div><div class="card"><div class="card-header"><h2 class="card-title">最近执行</h2><a href="${href('/tasks')}" data-go="/tasks" class="ms-auto">全部任务 →</a></div>${table(['任务名称', '应用', '上次执行', '耗时', '结果'], state.tasks.slice(0, 4).map(task => `<tr><td>${task.name}</td><td>${task.app}</td><td>${task.lastRun}</td><td>${task.duration}</td><td>${badge(task.status)}</td></tr>`))}</div>`;
+  const stats = [
+    {
+      label: 'Worker 应用',
+      value: '8',
+      unit: '个',
+      note: '7 个正常 · 1 个需关注',
+    },
+    {
+      label: '今日任务执行',
+      value: '124',
+      unit: '次',
+      note: '较昨日增加 18 次',
+    },
+    {
+      label: '任务成功率',
+      value: '98.4',
+      unit: '%',
+      note: '122 次成功 · 2 次异常',
+    },
+    {
+      label: '资源存储',
+      value: '1.28',
+      unit: 'GB',
+      note: '已使用配额的 12.8%',
+    },
+  ];
+  return `<div class="row g-3 mb-4">${stats.map((stat) => `<div class="col-6 col-xl-3">${kind === 'adminlte' ? `<div class="small-box ${stat.label === '任务成功率' ? 'text-bg-success' : stat.label === '今日任务执行' ? 'text-bg-primary' : stat.label === '资源存储' ? 'text-bg-warning' : 'text-bg-info'}"><div class="inner"><p>${stat.label}</p><h3>${stat.value}<small class="fs-6 ms-2">${stat.unit}</small></h3><p class="demo-stat-note">${stat.note}</p></div></div>` : `<div class="card"><div class="card-body"><div class="subheader">${stat.label}</div><div class="h1 mb-3 mt-3">${stat.value}<small class="fs-6 text-secondary ms-2">${stat.unit}</small></div><div class="text-secondary small">${stat.note}</div></div></div>`}</div>`).join('')}</div><div class="row g-4 mb-4"><div class="col-xl-8"><div class="card h-100"><div class="card-header"><h2 class="card-title">请求趋势</h2><select id="period" class="form-select demo-filter ms-auto" aria-label="趋势时间范围"><option value="7" ${period === '7' ? 'selected' : ''}>近 7 天</option><option value="14" ${period === '14' ? 'selected' : ''}>近 14 天</option></select></div><div class="card-body"><p class="text-secondary small">各应用请求量的示例分布</p><div class="d-flex align-items-baseline gap-3"><strong class="fs-2">${period === '7' ? '31,702' : '64,518'}</strong><span class="text-secondary small">次请求</span><span class="text-success small">+12.6%</span></div><div id="trend" class="demo-chart" role="img" aria-label="请求趋势，演示数据"></div></div></div></div><div class="col-xl-4"><div class="card h-100"><div class="card-header"><h2 class="card-title">服务状态</h2><span class="badge text-bg-secondary ms-auto">示例</span></div><div class="card-body demo-services">${state.services.map((service) => `<div class="d-flex align-items-center gap-3"><span class="avatar rounded">${service.name.slice(5, 6)}</span><div class="flex-grow-1"><strong>${service.name}</strong><div class="text-secondary small mt-1">${service.description}</div></div><span class="small ${service.status === '正常' ? 'text-success' : 'text-warning'}">● ${service.status}</span></div>`).join('')}</div></div></div></div><div class="card"><div class="card-header"><h2 class="card-title">最近执行</h2><a href="${href('/tasks')}" data-go="/tasks" class="ms-auto">全部任务 →</a></div>${table(
+    ['任务名称', '应用', '上次执行', '耗时', '结果'],
+    state.tasks
+      .slice(0, 4)
+      .map(
+        (task) =>
+          `<tr><td>${task.name}</td><td>${task.app}</td><td>${task.lastRun}</td><td>${task.duration}</td><td>${badge(task.status)}</td></tr>`,
+      ),
+  )}</div>`;
 }
 function tasks() {
-  const rows = state.tasks.filter(task => `${task.name} ${task.app}`.toLowerCase().includes(query.toLowerCase()) && (filter === 'all' || task.enabled === (filter === 'enabled')));
-  return `<div class="card">${toolbar('搜索任务', [['all', '全部计划'], ['enabled', '已启用'], ['paused', '已暂停']])}${table(['任务名称', '应用', '执行计划', '最近结果', '上次执行', '启用', '操作'], rows.map(task => `<tr><td><strong>${escape(task.name)}</strong><div class="text-secondary small mt-1">${escape(task.description)}</div></td><td>${escape(task.app)}</td><td>${escape(task.schedule)}</td><td>${badge(task.status)}</td><td class="text-secondary small">${escape(task.lastRun)}</td><td><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" data-toggle-task="${task.id}" aria-label="启用${escape(task.name)}" ${task.enabled ? 'checked' : ''}></div></td><td><button class="btn btn-sm btn-outline-primary" data-run="${task.id}" aria-label="运行${escape(task.name)}" ${task.status === 'running' ? 'disabled' : ''}>${task.status === 'running' ? '运行中…' : '运行'}</button></td></tr>`))}<div class="card-footer text-secondary small">显示 ${rows.length} / ${state.tasks.length} 个任务 · 时间按 Asia/Shanghai 展示</div></div><div class="alert alert-info mt-4">本页只模拟任务状态，执行结果会出现在运行日志中；刷新后恢复初始示例。</div>`;
+  const rows = state.tasks.filter(
+    (task) =>
+      `${task.name} ${task.app}`.toLowerCase().includes(query.toLowerCase()) &&
+      (filter === 'all' || task.enabled === (filter === 'enabled')),
+  );
+  return `<div class="card">${toolbar('搜索任务', [
+    ['all', '全部计划'],
+    ['enabled', '已启用'],
+    ['paused', '已暂停'],
+  ])}${table(
+    ['任务名称', '应用', '执行计划', '最近结果', '上次执行', '启用', '操作'],
+    rows.map(
+      (task) =>
+        `<tr><td><strong>${escape(task.name)}</strong><div class="text-secondary small mt-1">${escape(task.description)}</div></td><td>${escape(task.app)}</td><td>${escape(task.schedule)}</td><td>${badge(task.status)}</td><td class="text-secondary small">${escape(task.lastRun)}</td><td><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" data-toggle-task="${task.id}" aria-label="启用${escape(task.name)}" ${task.enabled ? 'checked' : ''}></div></td><td><button class="btn btn-sm btn-outline-primary" data-run="${task.id}" aria-label="运行${escape(task.name)}" ${task.status === 'running' ? 'disabled' : ''}>${task.status === 'running' ? '运行中…' : '运行'}</button></td></tr>`,
+    ),
+  )}<div class="card-footer text-secondary small">显示 ${rows.length} / ${state.tasks.length} 个任务 · 时间按 Asia/Shanghai 展示</div></div><div class="alert alert-info mt-4">本页只模拟任务状态，执行结果会出现在运行日志中；刷新后恢复初始示例。</div>`;
 }
 const types = { image: '图片', video: '视频', audio: '音频', document: '文档' };
 function resources() {
-  return `<div class="d-flex gap-3 justify-content-between flex-wrap mb-4"><div class="btn-group" role="group" aria-label="资源分类">${[['all', '全部资源'], ...Object.entries(types)].map(([value, label]) => `<button class="btn ${filter === value ? 'btn-primary' : 'btn-outline-secondary'}" data-category="${value}">${label}</button>`).join('')}</div><input class="form-control demo-search" id="search" value="${escape(query)}" placeholder="搜索资源…" aria-label="搜索资源"></div><div class="row g-4">${state.resources.filter(resource => resource.name.includes(query) && (filter === 'all' || resource.type === filter)).map(resource => `<div class="col-md-6 col-xl-4"><div class="card"><button class="demo-resource-preview" data-preview="${resource.id}" aria-label="预览${escape(resource.name)}">${resource.type === 'image' && resource.url ? `<img src="${escape(resource.url)}" alt="${escape(resource.name)}">` : `<span>${types[resource.type]}</span>`}</button><div class="card-body"><div class="d-flex align-items-center justify-content-between gap-2"><strong class="text-truncate">${escape(resource.name)}</strong><span class="badge text-bg-secondary">${types[resource.type]}</span></div><p class="text-secondary small mt-2">${escape(resource.size)} · ${escape(resource.date)}</p><div class="d-flex align-items-center justify-content-between"><span class="text-secondary small">${escape(resource.tag)}</span><button class="btn btn-sm btn-outline-secondary" data-preview="${resource.id}">预览</button></div></div></div></div>`).join('')}</div>`;
+  return `<div class="d-flex gap-3 justify-content-between flex-wrap mb-4"><div class="btn-group" role="group" aria-label="资源分类">${[['all', '全部资源'], ...Object.entries(types)].map(([value, label]) => `<button class="btn ${filter === value ? 'btn-primary' : 'btn-outline-secondary'}" data-category="${value}">${label}</button>`).join('')}</div><input class="form-control demo-search" id="search" value="${escape(query)}" placeholder="搜索资源…" aria-label="搜索资源"></div><div class="row g-4">${state.resources
+    .filter(
+      (resource) =>
+        resource.name.includes(query) &&
+        (filter === 'all' || resource.type === filter),
+    )
+    .map(
+      (resource) =>
+        `<div class="col-md-6 col-xl-4"><div class="card"><button class="demo-resource-preview" data-preview="${resource.id}" aria-label="预览${escape(resource.name)}">${resource.type === 'image' && resource.url ? `<img src="${escape(resource.url)}" alt="${escape(resource.name)}">` : `<span>${types[resource.type]}</span>`}</button><div class="card-body"><div class="d-flex align-items-center justify-content-between gap-2"><strong class="text-truncate">${escape(resource.name)}</strong><span class="badge text-bg-secondary">${types[resource.type]}</span></div><p class="text-secondary small mt-2">${escape(resource.size)} · ${escape(resource.date)}</p><div class="d-flex align-items-center justify-content-between"><span class="text-secondary small">${escape(resource.tag)}</span><button class="btn btn-sm btn-outline-secondary" data-preview="${resource.id}">预览</button></div></div></div></div>`,
+    )
+    .join('')}</div>`;
 }
-function filteredLogs() { return state.logs.filter(log => `${log.message} ${log.app}`.includes(query) && (filter === 'all' || log.level === filter)); }
-function logs() { return `<div class="alert alert-warning mb-4">示例异常：上游请求超时，已有缓存仍可使用。</div><div class="card">${toolbar('搜索日志', [['all', '全部级别'], ['info', '信息'], ['warn', '警告'], ['error', '错误']])}${table(['时间', '级别', '应用', '事件内容', '耗时'], filteredLogs().map(log => `<tr><td class="text-secondary small">${log.time}</td><td><span class="badge text-bg-${{ info: 'info', warn: 'warning', error: 'danger' }[log.level]}">${log.level}</span></td><td>${escape(log.app)}</td><td>${escape(log.message)}</td><td>${log.duration}</td></tr>`))}</div>`; }
+function filteredLogs() {
+  return state.logs.filter(
+    (log) =>
+      `${log.message} ${log.app}`.includes(query) &&
+      (filter === 'all' || log.level === filter),
+  );
+}
+function logs() {
+  return `<div class="alert alert-warning mb-4">示例异常：上游请求超时，已有缓存仍可使用。</div><div class="card">${toolbar(
+    '搜索日志',
+    [
+      ['all', '全部级别'],
+      ['info', '信息'],
+      ['warn', '警告'],
+      ['error', '错误'],
+    ],
+  )}${table(
+    ['时间', '级别', '应用', '事件内容', '耗时'],
+    filteredLogs().map(
+      (log) =>
+        `<tr><td class="text-secondary small">${log.time}</td><td><span class="badge text-bg-${{ info: 'info', warn: 'warning', error: 'danger' }[log.level]}">${log.level}</span></td><td>${escape(log.app)}</td><td>${escape(log.message)}</td><td>${log.duration}</td></tr>`,
+    ),
+  )}</div>`;
+}
 function settings() {
-  let value = { name: 'WorkerKit 工作空间', description: '通用后台界面示例', timezone: 'Asia/Shanghai', retention: 30, failureNotice: true, dailyDigest: false }; try { value = { ...value, ...JSON.parse(localStorage.getItem(`workerkit-${kind}-settings`) || '{}') }; } catch {}
-  return `<form id="settings-form" class="demo-settings"><div class="card mb-4"><div class="card-header"><h2 class="card-title">基本信息</h2></div><div class="card-body">${field('工作空间名称', 'setting-name', `<input id="setting-name" class="form-control" name="name" required value="${escape(value.name)}">`)}${field('说明', 'setting-description', `<textarea id="setting-description" class="form-control" name="description" rows="2">${escape(value.description)}</textarea>`)}<div class="row"><div class="col-sm-6">${field('显示时区', 'setting-timezone', `<select id="setting-timezone" class="form-select" name="timezone">${['Asia/Shanghai', 'Asia/Hong_Kong', 'UTC'].map(zone => `<option ${value.timezone === zone ? 'selected' : ''}>${zone}</option>`).join('')}</select>`)}</div><div class="col-sm-6">${field('日志保留天数', 'setting-retention', `<input id="setting-retention" class="form-control" type="number" name="retention" min="1" max="90" required value="${escape(value.retention)}">`)}</div></div></div></div><div class="card mb-4"><div class="card-header"><h2 class="card-title">通知偏好</h2></div><div class="card-body"><p class="text-secondary small">演示表单，尚未连接消息发送服务</p>${[['failureNotice', '任务失败提醒'], ['dailyDigest', '每日运行摘要']].map(([name, label]) => `<div class="form-check form-switch my-4"><input class="form-check-input" type="checkbox" role="switch" id="setting-${name}" name="${name}" ${value[name] ? 'checked' : ''}><label class="form-check-label" for="setting-${name}">${label}</label></div>`).join('')}</div></div><div class="d-flex align-items-center justify-content-between"><span class="text-secondary small">仅保存到当前浏览器</span><button type="submit" class="btn btn-primary">保存设置</button></div></form>`;
+  let value = {
+    name: 'WorkerKit 工作空间',
+    description: '通用后台界面示例',
+    timezone: 'Asia/Shanghai',
+    retention: 30,
+    failureNotice: true,
+    dailyDigest: false,
+  };
+  try {
+    value = {
+      ...value,
+      ...JSON.parse(localStorage.getItem(`workerkit-${kind}-settings`) || '{}'),
+    };
+  } catch {}
+  return `<form id="settings-form" class="demo-settings"><div class="card mb-4"><div class="card-header"><h2 class="card-title">基本信息</h2></div><div class="card-body">${field('工作空间名称', 'setting-name', `<input id="setting-name" class="form-control" name="name" required value="${escape(value.name)}">`)}${field('说明', 'setting-description', `<textarea id="setting-description" class="form-control" name="description" rows="2">${escape(value.description)}</textarea>`)}<div class="row"><div class="col-sm-6">${field('显示时区', 'setting-timezone', `<select id="setting-timezone" class="form-select" name="timezone">${['Asia/Shanghai', 'Asia/Hong_Kong', 'UTC'].map((zone) => `<option ${value.timezone === zone ? 'selected' : ''}>${zone}</option>`).join('')}</select>`)}</div><div class="col-sm-6">${field('日志保留天数', 'setting-retention', `<input id="setting-retention" class="form-control" type="number" name="retention" min="1" max="90" required value="${escape(value.retention)}">`)}</div></div></div></div><div class="card mb-4"><div class="card-header"><h2 class="card-title">通知偏好</h2></div><div class="card-body"><p class="text-secondary small">演示表单，尚未连接消息发送服务</p>${[
+    ['failureNotice', '任务失败提醒'],
+    ['dailyDigest', '每日运行摘要'],
+  ]
+    .map(
+      ([name, label]) =>
+        `<div class="form-check form-switch my-4"><input class="form-check-input" type="checkbox" role="switch" id="setting-${name}" name="${name}" ${value[name] ? 'checked' : ''}><label class="form-check-label" for="setting-${name}">${label}</label></div>`,
+    )
+    .join(
+      '',
+    )}</div></div><div class="d-flex align-items-center justify-content-between"><span class="text-secondary small">仅保存到当前浏览器</span><button type="submit" class="btn btn-primary">保存设置</button></div></form>`;
 }
 
-document.body.insertAdjacentHTML('beforeend', `<div class="modal fade" id="component-dialog" tabindex="-1" aria-labelledby="component-dialog-title" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h2 class="modal-title fs-5" id="component-dialog-title">示例弹窗</h2><button class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button></div><div class="modal-body">这是本地组件示例，可试试取消、确认或按 Escape 关闭。</div><div class="modal-footer"><button class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button><button class="btn btn-primary" id="component-dialog-finish" data-action="finish-dialog">完成操作</button></div></div></div></div>`);
+document.body.insertAdjacentHTML(
+  'beforeend',
+  `<div class="modal fade" id="component-dialog" tabindex="-1" aria-labelledby="component-dialog-title" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h2 class="modal-title fs-5" id="component-dialog-title">示例弹窗</h2><button class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button></div><div class="modal-body">这是本地组件示例，可试试取消、确认或按 Escape 关闭。</div><div class="modal-footer"><button class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button><button class="btn btn-primary" id="component-dialog-finish" data-action="finish-dialog">完成操作</button></div></div></div></div>`,
+);
 const componentModal = new Modal(document.getElementById('component-dialog'));
 let componentTrigger;
-document.getElementById('component-dialog').addEventListener('show.bs.modal', event => { componentTrigger = event.relatedTarget; });
-document.getElementById('component-dialog').addEventListener('hidden.bs.modal', () => componentTrigger?.focus());
+document
+  .getElementById('component-dialog')
+  .addEventListener('show.bs.modal', (event) => {
+    componentTrigger = event.relatedTarget;
+  });
+document
+  .getElementById('component-dialog')
+  .addEventListener('hidden.bs.modal', () => componentTrigger?.focus());
 function componentExperience(key) {
-  if (key === 'dialogs') return `<div class="card"><div class="card-body"><h2 class="card-title mb-3">弹窗交互</h2><p class="text-secondary">比较遮罩、焦点、取消、确认以及 Escape 关闭。</p><div class="d-flex flex-wrap gap-3">${button('打开示例弹窗', 'example-dialog', 'btn-primary')}${button('打开确认弹窗', 'confirm-dialog')}</div><p id="component-result" class="text-success mt-4" role="status">${escape(dialogResult)}</p></div></div>`;
-  if (key === 'layout') return `<div class="card mb-4"><div class="card-body"><h2 class="card-title mb-3">响应式布局</h2><p class="text-secondary">调整窗口宽度或切换手机预览；填充长内容后比较侧栏、顶栏与页面滚动。</p>${button(longContent ? '收起长内容' : '填充长内容', 'long-content', 'btn-primary')}</div></div><div class="row g-3">${Array.from({length: longContent ? 36 : 6}, (_, i) => `<div class="col-12 col-md-6 col-xl-4"><div class="card h-100"><div class="card-body"><h2 class="card-title mb-3">布局卡片 ${i+1}</h2><p class="text-secondary mb-0">相同内容在不同宽度下自动排列，可以观察间距和滚动表现。</p></div></div></div>`).join('')}</div>`;
+  if (key === 'dialogs')
+    return `<div class="card"><div class="card-body"><h2 class="card-title mb-3">弹窗交互</h2><p class="text-secondary">比较遮罩、焦点、取消、确认以及 Escape 关闭。</p><div class="d-flex flex-wrap gap-3">${button('打开示例弹窗', 'example-dialog', 'btn-primary')}${button('打开确认弹窗', 'confirm-dialog')}</div><p id="component-result" class="text-success mt-4" role="status">${escape(dialogResult)}</p></div></div>`;
+  if (key === 'layout')
+    return `<div class="card mb-4"><div class="card-body"><h2 class="card-title mb-3">响应式布局</h2><p class="text-secondary">调整窗口宽度或切换手机预览；填充长内容后比较侧栏、顶栏与页面滚动。</p>${button(longContent ? '收起长内容' : '填充长内容', 'long-content', 'btn-primary')}</div></div><div class="row g-3">${Array.from({ length: longContent ? 36 : 6 }, (_, i) => `<div class="col-12 col-md-6 col-xl-4"><div class="card h-100"><div class="card-body"><h2 class="card-title mb-3">布局卡片 ${i + 1}</h2><p class="text-secondary mb-0">相同内容在不同宽度下自动排列，可以观察间距和滚动表现。</p></div></div></div>`).join('')}</div>`;
   return `<div class="card"><div class="card-body"><h2 class="card-title mb-3">主题与状态</h2><p class="text-secondary">使用框架原生主题，比较文字、背景、边框与状态颜色。</p><button class="btn btn-primary mb-4" data-action="theme" aria-label="切换示例主题">切换明暗主题</button><div class="d-flex flex-wrap gap-3 mb-4"><button class="btn btn-primary">主要按钮</button><button class="btn btn-outline-primary">描边按钮</button><button class="btn btn-secondary">次要按钮</button><button class="btn btn-primary" disabled>禁用按钮</button></div><div class="d-flex gap-3"><span class="badge text-bg-success">成功</span><span class="badge text-bg-warning">注意</span><span class="badge text-bg-danger">错误</span></div></div></div>`;
 }
 
 function render() {
-  const componentPage = componentPages.find(page => page.path === path);
+  const componentPage = componentPages.find((page) => page.path === path);
   const activePath = componentPage?.example || path;
-  const input = document.activeElement?.id === 'search' ? document.activeElement : null; const selection = input?.selectionStart;
-  chart?.dispose(); observer?.disconnect();
-  document.getElementById('page-title').textContent = pages.find(page => page.path === path)?.title || '页面不存在'; document.getElementById('breadcrumb').textContent = document.getElementById('page-title').textContent;
+  const input =
+    document.activeElement?.id === 'search' ? document.activeElement : null;
+  const selection = input?.selectionStart;
+  chart?.dispose();
+  observer?.disconnect();
+  document.getElementById('page-title').textContent =
+    pages.find((page) => page.path === path)?.title || '页面不存在';
+  document.getElementById('breadcrumb').textContent =
+    document.getElementById('page-title').textContent;
   document.title = `WorkerKit · ${document.getElementById('page-title').textContent} · ${kind === 'tabler' ? 'Tabler' : 'AdminLTE'}`;
-  document.getElementById('page-description').textContent = path === '/workspace' ? '查看当前后端的任务、运行记录与依赖状态。' : '组件与交互示例，操作仅保存在当前浏览器。';
-  document.querySelector('[data-demo-note]').textContent = path === '/workspace' ? '业务工作台 · 当前后端数据' : '组件与交互 · 浏览器演示';
-  const footer = document.querySelector('footer'); if (footer) footer.textContent = path === '/workspace' ? 'WorkerKit · 任务与诊断 · 服务端数据' : 'WorkerKit · 演示数据 · 未连接生产服务';
-  for (const link of document.querySelectorAll('[data-go]')) link.classList.toggle('active', link.dataset.go === path);
-  document.getElementById('page-action').innerHTML = activePath === '/tasks' ? button('＋ 新建任务', 'new', 'btn-primary') : activePath === '/resources' ? button('添加文件', 'upload', 'btn-primary') : activePath === '/logs' ? button('导出日志', 'export') : activePath === '/' ? `<a class="btn btn-outline-secondary" href="${href('/tasks')}" data-go="/tasks">查看任务 ↗</a>` : '';
-  content.innerHTML = path === '/workspace' ? workspace() : componentPage && !componentPage.example ? `<div class="component-experience">${componentExperience(componentPage.key)}</div>` : activePath === '/' ? overview() : activePath === '/tasks' ? tasks() : activePath === '/resources' ? resources() : activePath === '/logs' ? logs() : activePath === '/settings' ? settings() : '<div class="alert alert-warning">页面不存在</div>';
-  if (input) { const search = document.getElementById('search'); search?.focus(); search?.setSelectionRange(selection, selection); }
+  document.getElementById('page-description').textContent =
+    path === '/workspace'
+      ? '查看当前后端的任务、运行记录与依赖状态。'
+      : '组件与交互示例，操作仅保存在当前浏览器。';
+  document.querySelector('[data-demo-note]').textContent =
+    path === '/workspace'
+      ? '业务工作台 · 当前后端数据'
+      : '组件与交互 · 浏览器演示';
+  const footer = document.querySelector('footer');
+  if (footer)
+    footer.textContent =
+      path === '/workspace'
+        ? 'WorkerKit · 任务与诊断 · 服务端数据'
+        : 'WorkerKit · 演示数据 · 未连接生产服务';
+  for (const link of document.querySelectorAll('[data-go]'))
+    link.classList.toggle('active', link.dataset.go === path);
+  document.getElementById('page-action').innerHTML =
+    activePath === '/tasks'
+      ? button('＋ 新建任务', 'new', 'btn-primary')
+      : activePath === '/resources'
+        ? button('添加文件', 'upload', 'btn-primary')
+        : activePath === '/logs'
+          ? button('导出日志', 'export')
+          : activePath === '/'
+            ? `<a class="btn btn-outline-secondary" href="${href('/tasks')}" data-go="/tasks">查看任务 ↗</a>`
+            : '';
+  content.innerHTML =
+    path === '/workspace'
+      ? workspace()
+      : componentPage && !componentPage.example
+        ? `<div class="component-experience">${componentExperience(componentPage.key)}</div>`
+        : activePath === '/'
+          ? overview()
+          : activePath === '/tasks'
+            ? tasks()
+            : activePath === '/resources'
+              ? resources()
+              : activePath === '/logs'
+                ? logs()
+                : activePath === '/settings'
+                  ? settings()
+                  : '<div class="alert alert-warning">页面不存在</div>';
+  if (input) {
+    const search = document.getElementById('search');
+    search?.focus();
+    search?.setSelectionRange(selection, selection);
+  }
   if (path === '/') {
-    const el = document.getElementById('trend'); chart = init(el); chart.setOption({ tooltip: { trigger: 'axis' }, grid: { left: 45, right: 16, top: 20, bottom: 28 }, xAxis: { type: 'category', data: period === '7' ? ['10/30', '10/31', '11/01', '11/02', '11/03', '11/04', '11/05'] : ['10/23', '10/25', '10/27', '10/29', '10/31', '11/02', '11/05'], axisLine: { show: false }, axisTick: { show: false } }, yAxis: { type: 'value', splitLine: { lineStyle: { color: '#cbd5e133' } } }, series: [{ name: '请求量（示例）', type: 'line', smooth: true, data: period === '7' ? [3800, 5100, 4400, 6800, 5600, 8200, 7300] : [6800, 9100, 7400, 10800, 9600, 12200, 9300], itemStyle: { color: kind === 'tabler' ? '#206bc4' : '#0d6efd' }, areaStyle: { opacity: .08 } }] }); observer = new ResizeObserver(() => chart.resize()); observer.observe(el);
+    const el = document.getElementById('trend');
+    chart = init(el);
+    chart.setOption({
+      tooltip: { trigger: 'axis' },
+      grid: { left: 45, right: 16, top: 20, bottom: 28 },
+      xAxis: {
+        type: 'category',
+        data:
+          period === '7'
+            ? ['10/30', '10/31', '11/01', '11/02', '11/03', '11/04', '11/05']
+            : ['10/23', '10/25', '10/27', '10/29', '10/31', '11/02', '11/05'],
+        axisLine: { show: false },
+        axisTick: { show: false },
+      },
+      yAxis: {
+        type: 'value',
+        splitLine: { lineStyle: { color: '#cbd5e133' } },
+      },
+      series: [
+        {
+          name: '请求量（示例）',
+          type: 'line',
+          smooth: true,
+          data:
+            period === '7'
+              ? [3800, 5100, 4400, 6800, 5600, 8200, 7300]
+              : [6800, 9100, 7400, 10800, 9600, 12200, 9300],
+          itemStyle: { color: kind === 'tabler' ? '#206bc4' : '#0d6efd' },
+          areaStyle: { opacity: 0.08 },
+        },
+      ],
+    });
+    observer = new ResizeObserver(() => chart.resize());
+    observer.observe(el);
   }
 }
-function navigate(next) { if (next === '/workspace') operations.refresh(); longContent = false; dialogResult = ''; path = next; query = ''; filter = 'all'; history.pushState(null, '', href(path)); render(); document.querySelector('.demo-main-scroll').scrollTo({ top: 0 }); if (innerWidth < 992) { if (kind === 'tabler') { const menu = document.getElementById('sidebar-menu'); const collapse = Collapse.getOrCreateInstance(menu, { toggle: false }); if (menu.classList.contains('collapsing') && menu.style.height !== '0px') menu.addEventListener('shown.bs.collapse', () => collapse.hide(), { once: true }); else collapse.hide(); } else PushMenu.getOrCreateInstance(document.querySelector('.app-sidebar')).collapse(); } }
-document.addEventListener('click', async event => {
-  const link = event.target.closest('[data-go]'); if (link) { event.preventDefault(); navigate(link.dataset.go); return; }
+function navigate(next) {
+  if (next === '/workspace') operations.refresh();
+  longContent = false;
+  dialogResult = '';
+  path = next;
+  query = '';
+  filter = 'all';
+  history.pushState(null, '', href(path));
+  render();
+  document.querySelector('.demo-main-scroll').scrollTo({ top: 0 });
+  if (innerWidth < 992) {
+    if (kind === 'tabler') {
+      const menu = document.getElementById('sidebar-menu');
+      const collapse = Collapse.getOrCreateInstance(menu, { toggle: false });
+      if (menu.classList.contains('collapsing') && menu.style.height !== '0px')
+        menu.addEventListener('shown.bs.collapse', () => collapse.hide(), {
+          once: true,
+        });
+      else collapse.hide();
+    } else
+      PushMenu.getOrCreateInstance(
+        document.querySelector('.app-sidebar'),
+      ).collapse();
+  }
+}
+document.addEventListener('click', async (event) => {
+  const link = event.target.closest('[data-go]');
+  if (link) {
+    event.preventDefault();
+    navigate(link.dataset.go);
+    return;
+  }
   const action = event.target.closest('[data-action]')?.dataset.action;
-  if (action === 'theme') { dark = !dark; document.documentElement.dataset.bsTheme = dark ? 'dark' : 'light'; try { localStorage.setItem(`workerkit-${kind}-dark`, String(dark)); } catch {} return; }
-  if (action === 'long-content') { longContent = !longContent; render(); }
-  if (action === 'example-dialog' || action === 'confirm-dialog') { const confirm = action === 'confirm-dialog'; document.getElementById('component-dialog-title').textContent = confirm ? '确认演示操作' : '示例弹窗'; const finish = document.getElementById('component-dialog-finish'); finish.textContent = confirm ? '确认操作' : '完成操作'; finish.dataset.confirm = String(confirm); componentModal.show(event.target.closest('button')); }
-  if (action === 'finish-dialog') { dialogResult = event.target.dataset.confirm === 'true' ? '已确认演示操作' : '已完成演示操作'; componentModal.hide(); document.getElementById('component-result').textContent = dialogResult; }
-  if (action === 'new') taskModal.show(); if (action === 'upload') document.getElementById('file-picker').click(); if (action === 'export') exportLogs(filteredLogs());
-  const run = event.target.closest('[data-run]'); if (run) { await runTask(state.tasks.find(task => String(task.id) === run.dataset.run)); notify('模拟执行完成'); }
-  const category = event.target.closest('[data-category]'); if (category) { filter = category.dataset.category; render(); }
-  const preview = event.target.closest('[data-preview]'); if (preview) {
-    selected = state.resources.find(resource => resource.id === preview.dataset.preview); document.getElementById('preview-title').textContent = selected.name;
-    document.getElementById('preview-content').innerHTML = selected.type === 'image' ? `<img class="w-100" src="${escape(selected.url)}" alt="${escape(selected.name)}">` : selected.type === 'video' ? `<video class="w-100" src="${escape(selected.url)}" controls preload="metadata"></video>` : selected.type === 'audio' ? `<audio class="w-100" src="${escape(selected.url)}" controls></audio>` : `<div class="alert alert-info">文档元数据示例 · ${escape(selected.size)}</div>`; previewModal.show();
+  if (action === 'theme') {
+    dark = !dark;
+    document.documentElement.dataset.bsTheme = dark ? 'dark' : 'light';
+    try {
+      localStorage.setItem(`workerkit-${kind}-dark`, String(dark));
+    } catch {}
+    return;
+  }
+  if (action === 'long-content') {
+    longContent = !longContent;
+    render();
+  }
+  if (action === 'example-dialog' || action === 'confirm-dialog') {
+    const confirm = action === 'confirm-dialog';
+    document.getElementById('component-dialog-title').textContent = confirm
+      ? '确认演示操作'
+      : '示例弹窗';
+    const finish = document.getElementById('component-dialog-finish');
+    finish.textContent = confirm ? '确认操作' : '完成操作';
+    finish.dataset.confirm = String(confirm);
+    componentModal.show(event.target.closest('button'));
+  }
+  if (action === 'finish-dialog') {
+    dialogResult =
+      event.target.dataset.confirm === 'true'
+        ? '已确认演示操作'
+        : '已完成演示操作';
+    componentModal.hide();
+    document.getElementById('component-result').textContent = dialogResult;
+  }
+  if (action === 'new') taskModal.show();
+  if (action === 'upload') document.getElementById('file-picker').click();
+  if (action === 'export') exportLogs(filteredLogs());
+  const run = event.target.closest('[data-run]');
+  if (run) {
+    await runTask(
+      state.tasks.find((task) => String(task.id) === run.dataset.run),
+    );
+    notify('模拟执行完成');
+  }
+  const category = event.target.closest('[data-category]');
+  if (category) {
+    filter = category.dataset.category;
+    render();
+  }
+  const preview = event.target.closest('[data-preview]');
+  if (preview) {
+    selected = state.resources.find(
+      (resource) => resource.id === preview.dataset.preview,
+    );
+    document.getElementById('preview-title').textContent = selected.name;
+    document.getElementById('preview-content').innerHTML =
+      selected.type === 'image'
+        ? `<img class="w-100" src="${escape(selected.url)}" alt="${escape(selected.name)}">`
+        : selected.type === 'video'
+          ? `<video class="w-100" src="${escape(selected.url)}" controls preload="metadata"></video>`
+          : selected.type === 'audio'
+            ? `<audio class="w-100" src="${escape(selected.url)}" controls></audio>`
+            : `<div class="alert alert-info">文档元数据示例 · ${escape(selected.size)}</div>`;
+    previewModal.show();
   }
 });
-document.addEventListener('input', event => { if (event.target.id === 'search') { query = event.target.value; render(); } });
-document.addEventListener('change', event => {
-  if (event.target.id === 'filter') { filter = event.target.value; render(); }
-  if (event.target.id === 'period') { period = event.target.value; render(); }
-  if (event.target.dataset.toggleTask) { state.tasks.find(task => String(task.id) === event.target.dataset.toggleTask).enabled = event.target.checked; changed(); }
-  if (event.target.id === 'file-picker') { try { addFiles([...event.target.files]); notify('已加入本地文件，没有上传到服务器'); } catch (error) { notify(error.message, true); } event.target.value = ''; }
+document.addEventListener('input', (event) => {
+  if (event.target.id === 'search') {
+    query = event.target.value;
+    render();
+  }
 });
-document.addEventListener('submit', event => {
-  if (event.target.id === 'task-form') { event.preventDefault(); const values = Object.fromEntries(new FormData(event.target)); if (values.name.trim().length < 2) { document.getElementById('task-error').textContent = '请输入至少 2 个字的任务名称'; return; } createTask({ ...values, name: values.name.trim() }); taskModal.hide(); event.target.reset(); notify('演示任务已创建'); }
-  if (event.target.id === 'settings-form') { event.preventDefault(); const values = Object.fromEntries(new FormData(event.target)); if (!values.name.trim()) { notify('请输入工作空间名称', true); return; } values.retention = Number(values.retention); values.failureNotice = values.failureNotice === 'on'; values.dailyDigest = values.dailyDigest === 'on'; try { localStorage.setItem(`workerkit-${kind}-settings`, JSON.stringify(values)); notify('演示设置已保存到当前浏览器'); } catch { notify('浏览器存储不可用', true); } }
+document.addEventListener('change', (event) => {
+  if (event.target.id === 'filter') {
+    filter = event.target.value;
+    render();
+  }
+  if (event.target.id === 'period') {
+    period = event.target.value;
+    render();
+  }
+  if (event.target.dataset.toggleTask) {
+    state.tasks.find(
+      (task) => String(task.id) === event.target.dataset.toggleTask,
+    ).enabled = event.target.checked;
+    changed();
+  }
+  if (event.target.id === 'file-picker') {
+    try {
+      addFiles([...event.target.files]);
+      notify('已加入本地文件，没有上传到服务器');
+    } catch (error) {
+      notify(error.message, true);
+    }
+    event.target.value = '';
+  }
 });
-document.getElementById('preview-modal').addEventListener('hidden.bs.modal', () => { document.getElementById('preview-content').innerHTML = ''; });
-window.addEventListener('popstate', () => { longContent = false; dialogResult = ''; path = getPath(); query = ''; filter = 'all'; render(); });
-operations.subscribe(() => { if (path === '/workspace') render(); });
-document.addEventListener('click', event => { const b = event.target.closest('[data-workspace-action]'); if (!b) return; if (b.dataset.workspaceAction === 'refresh') operations.refresh(); else operations.change(b.dataset.workspaceAction, b.dataset.plan); });
-document.addEventListener('submit', event => { if (event.target.id !== 'workspace-create') return; event.preventDefault(); const data = new FormData(event.target); operations.create(data.get('task'), data.get('minutes')); });
-subscribe(render); render(); if (path === '/workspace') operations.refresh();
+document.addEventListener('submit', (event) => {
+  if (event.target.id === 'task-form') {
+    event.preventDefault();
+    const values = Object.fromEntries(new FormData(event.target));
+    if (values.name.trim().length < 2) {
+      document.getElementById('task-error').textContent =
+        '请输入至少 2 个字的任务名称';
+      return;
+    }
+    createTask({ ...values, name: values.name.trim() });
+    taskModal.hide();
+    event.target.reset();
+    notify('演示任务已创建');
+  }
+  if (event.target.id === 'settings-form') {
+    event.preventDefault();
+    const values = Object.fromEntries(new FormData(event.target));
+    if (!values.name.trim()) {
+      notify('请输入工作空间名称', true);
+      return;
+    }
+    values.retention = Number(values.retention);
+    values.failureNotice = values.failureNotice === 'on';
+    values.dailyDigest = values.dailyDigest === 'on';
+    try {
+      localStorage.setItem(
+        `workerkit-${kind}-settings`,
+        JSON.stringify(values),
+      );
+      notify('演示设置已保存到当前浏览器');
+    } catch {
+      notify('浏览器存储不可用', true);
+    }
+  }
+});
+document
+  .getElementById('preview-modal')
+  .addEventListener('hidden.bs.modal', () => {
+    document.getElementById('preview-content').innerHTML = '';
+  });
+window.addEventListener('popstate', () => {
+  longContent = false;
+  dialogResult = '';
+  path = getPath();
+  query = '';
+  filter = 'all';
+  render();
+});
+installManagement(operations, render);
+operations.subscribe(() => {
+  if (path === '/workspace') render();
+});
+document.addEventListener('click', (event) => {
+  const b = event.target.closest('[data-workspace-action]');
+  if (!b) return;
+  if (b.dataset.workspaceAction === 'refresh') operations.refresh();
+  else operations.change(b.dataset.workspaceAction, b.dataset.plan);
+});
+document.addEventListener('submit', (event) => {
+  if (event.target.id !== 'workspace-create') return;
+  event.preventDefault();
+  const data = new FormData(event.target);
+  operations.create(data.get('task'), data.get('minutes'));
+});
+subscribe(render);
+render();
+if (path === '/workspace') operations.refresh();

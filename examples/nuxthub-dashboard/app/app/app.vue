@@ -1,28 +1,129 @@
 <script setup lang="ts">
-import { createApiClient, createSessionScope, isRequestCancelled } from '@pengzhendong/worker-kit/client';
-const root=useRuntimeConfig().app.baseURL;
-const capabilities = {
- db: { title: '保存业务数据', description: '例如笔记、订单、任务记录，保存在 D1 数据库。' },
- kv: { title: '保存应用配置', description: '例如站点名称、功能开关，保存在 KV。' },
- blob: { title: '保存文件', description: '例如图片、附件，本例用文本文件演示 R2。' },
- cache: { title: '缓存计算结果', description: '例如统计结果，减少重复计算和查询。' },
-};
-const username=ref(''),password=ref(''),session=ref<{username:string}|null>(null),checking=ref(true),busy=ref(false),error=ref('');
-const snapshot=ref<any>(null),title=ref(''),label=ref(''),text=ref(''),drawer=ref(false);
-const toast=useToast(),scope=createSessionScope();
-const api=createApiClient({baseUrl:root+'api',scope}),auth=createApiClient({baseUrl:root+'api'});
-const unsubscribe=scope.subscribe(event=>{if(event.reason==='expired'||event.reason==='signed-out'){session.value=null;snapshot.value=null;password.value='';busy.value=false;toast.clear();}});
-onScopeDispose(()=>{unsubscribe();scope.reset('signed-out');});
-function input(options:any={}) {const {body,...rest}=options;return body===undefined?rest:{...rest,headers:{'Content-Type':'application/json',...rest.headers},body:JSON.stringify(body)};}
-const call=<T>(path:string,options:any={})=>api<T>('/'+path,input(options));
-async function refresh(){const version=scope.version;busy.value=true;error.value='';try{snapshot.value=await call('probe');label.value=snapshot.value.label;}catch(e:any){if(!isRequestCancelled(e))error.value=e.message||'读取失败，请重试';}finally{if(version===scope.version)busy.value=false;}}
-async function inspect(){try{session.value=await auth<{username:string}>('/admin/auth/session');if(session.value)await refresh();}catch(e:any){if(e.status!==401)error.value=e.message||'无法读取会话';}finally{checking.value=false;}}
-async function login(){busy.value=true;error.value='';try{const user=await auth<{username:string}>('/admin/auth/login',input({method:'POST',body:{username:username.value,password:password.value}}));password.value='';scope.reset('signed-in');session.value=user;await refresh();}catch(e:any){if(!isRequestCancelled(e))error.value=e.message||'登录失败';}finally{busy.value=false;}}
-async function change(path:string,method:string,body:unknown){const version=scope.version;busy.value=true;error.value='';try{await call(path,{method,body});title.value='';text.value='';toast.add({title:'操作完成',color:'success'});await refresh();}catch(e:any){if(!isRequestCancelled(e))error.value=e.message||'操作失败';}finally{if(version===scope.version)busy.value=false;}}
-async function logout(){try{await call('admin/auth/logout',{method:'POST'});scope.reset('signed-out');}catch(e:any){if(!isRequestCancelled(e))error.value='退出失败，请重试';}}
-onMounted(inspect);
-const columns=[{accessorKey:'title',header:'标题'},{accessorKey:'createdAt',header:'创建时间'},{id:'actions',header:'操作'}];
+import NuxtWorkspace from '../../../ui-demo/NuxtWorkspace.vue';
+const { root, session, checking, busy, error, form, scope, login, logout } =
+  useHubSession();
+const route = useRoute(),
+  drawer = ref(false);
+const storage = computed(() => route.query.tab === 'storage');
+watch(
+  () => route.fullPath,
+  () => {
+    drawer.value = false;
+  },
+);
 </script>
-<template><UApp><div v-if="checking" class="min-h-dvh grid place-items-center" role="status">正在确认登录状态…</div><main v-else-if="!session" class="min-h-dvh grid place-items-center p-5"><UCard class="w-full max-w-sm"><h1 class="text-xl font-semibold mb-2">NuxtHub 全栈示例</h1><p class="text-muted text-sm mb-6">体验业务数据、应用配置和文件的保存。页面由 WorkerKit 使用 Nuxt UI 编写，数据访问使用 NuxtHub。</p><UAlert v-if="error" color="error" :description="error" class="mb-5" /><UForm :state="{username,password}" class="space-y-4" @submit="login"><UFormField label="用户名"><UInput v-model="username" autocomplete="username" required class="w-full" /></UFormField><UFormField label="密码"><UInput v-model="password" type="password" autocomplete="current-password" required class="w-full" /></UFormField><UButton type="submit" block :loading="busy">登录</UButton></UForm><UButton to="/" external variant="link" class="mt-4">返回 WorkerKit</UButton></UCard></main>
-<UDashboardGroup v-else><UDashboardSidebar v-model:open="drawer" :ui="{header:'h-16',body:'px-3'}"><template #header><span class="font-semibold">WorkerKit · NuxtHub</span></template><UNavigationMenu orientation="vertical" :items="[{label:'全栈工作台',icon:'i-lucide-panels-top-left',to:'/'}]" /><template #footer><UButton to="/" external variant="outline" block>返回方案选择</UButton></template></UDashboardSidebar><UDashboardPanel><template #header><UDashboardNavbar title="NuxtHub"><template #right><span class="text-sm">{{session.username}}</span><UColorModeButton/><UButton color="neutral" variant="outline" @click="logout">退出登录</UButton></template></UDashboardNavbar></template><template #body><div class="page"><div class="flex flex-wrap justify-between gap-4 mb-6"><div><h1 class="text-2xl font-semibold">NuxtHub 全栈工作台</h1><p class="text-muted mt-2">用 Nuxt 开发应用时，NuxtHub 帮你读写数据库、配置和文件。下面是 WorkerKit 编写的体验页；界面来自 Nuxt UI。</p></div><UButton class="self-start" :loading="busy" @click="refresh">刷新</UButton></div><UAlert v-if="error" color="error" :description="error" class="mb-5" />
-<UAlert title="怎么体验？" description="添加一条笔记，保存一个工作台标签，再保存一份文本文件；刷新页面检查数据是否保留，试完可以删除。这里的操作会写入演示站的真实存储。" class="mb-6"/><template v-if="snapshot"><div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6"><UCard v-for="(driver,key) in snapshot.drivers" :key="key"><strong>{{capabilities[key as keyof typeof capabilities].title}}</strong><p class="text-sm text-muted mt-2">{{capabilities[key as keyof typeof capabilities].description}}</p><p class="text-xs text-muted mt-3">{{driver}}</p></UCard></div><UCard class="mb-6"><template #header><h2>笔记记录 · 数据库</h2><p class="text-sm text-muted mt-2">添加一条笔记，刷新后检查是否还在；试完可以删除。</p></template><form class="flex gap-3 mb-5" @submit.prevent="change('notes','POST',{title})"><UInput v-model="title" aria-label="记录标题" placeholder="输入记录标题" required :maxlength="80" class="flex-1"/><UButton type="submit" :disabled="busy">添加记录</UButton></form><UTable :data="snapshot.notes" :columns="columns"><template #actions-cell="{row}"><UButton color="error" variant="ghost" :disabled="busy" @click="change('notes','DELETE',{id:row.original.id})">删除</UButton></template></UTable></UCard><div class="grid lg:grid-cols-2 gap-6 mb-6"><UCard><template #header><h2>应用配置 · KV</h2><p class="text-sm text-muted mt-2">试着保存一个名称，刷新后检查输入框。跨节点同步可能稍有延迟。</p></template><form class="space-y-4" @submit.prevent="change('label','PUT',{label})"><UFormField label="工作台标签"><UInput v-model="label" :maxlength="80" class="w-full"/></UFormField><UButton type="submit" :disabled="busy">保存标签</UButton></form></UCard><UCard><template #header><h2>缓存 · Nitro / KV</h2></template><p class="text-muted mb-3">示例结果缓存 60 秒；不同边缘节点首次加载时可能暂时不同。</p><code>{{snapshot.cache.generatedAt}}</code></UCard></div><UCard><template #header><h2>文件存储 · R2</h2><p class="text-sm text-muted mt-2">输入一段文字，保存成一份真实文本文件；下方会显示文件名和大小。</p></template><form class="flex gap-3 mb-5" @submit.prevent="change('files','POST',{text})"><UInput v-model="text" aria-label="文件文本" placeholder="输入示例文本" :maxlength="4096" required class="flex-1"/><UButton type="submit" :disabled="busy">保存文件</UButton></form><div v-for="file in snapshot.files" :key="file.pathname" class="flex gap-3 items-center justify-between border-b border-default py-3"><code class="text-xs break-all">{{file.pathname}} · {{file.size}} B</code><UButton color="error" variant="ghost" :disabled="busy" @click="change('files','DELETE',{pathname:file.pathname})">删除文件</UButton></div><p v-if="!snapshot.files.length" class="text-muted">暂无示例文件。</p></UCard></template></div></template></UDashboardPanel></UDashboardGroup></UApp></template>
+<template>
+  <UApp>
+    <div
+      v-if="checking"
+      class="min-h-dvh grid place-items-center"
+      role="status"
+    >
+      正在确认登录状态…
+    </div>
+    <main v-else-if="!session" class="min-h-dvh grid place-items-center p-5">
+      <UCard class="w-full max-w-sm">
+        <h1 class="text-xl font-semibold mb-2">NuxtHub 全栈示例</h1>
+        <p class="text-muted text-sm mb-6">
+          统一管理工作台与 NuxtHub 存储体验。界面使用 Nuxt
+          UI，身份与管理功能复用 WorkerKit。
+        </p>
+        <UAlert v-if="error" color="error" :description="error" class="mb-5" />
+        <UForm :state="form" class="space-y-4" @submit="login">
+          <UFormField label="用户名"
+            ><UInput
+              v-model="form.username"
+              autocomplete="username"
+              required
+              class="w-full"
+          /></UFormField>
+          <UFormField label="密码"
+            ><UInput
+              v-model="form.password"
+              type="password"
+              autocomplete="current-password"
+              required
+              class="w-full"
+          /></UFormField>
+          <UButton type="submit" block :loading="busy">登录</UButton>
+        </UForm>
+        <UButton to="/" external variant="link" class="mt-4"
+          >返回 WorkerKit</UButton
+        >
+      </UCard>
+    </main>
+    <UDashboardGroup v-else>
+      <UDashboardSidebar
+        v-model:open="drawer"
+        :ui="{ header: 'h-16', body: 'px-3' }"
+      >
+        <template #header
+          ><span class="font-semibold">WorkerKit · NuxtHub</span></template
+        >
+        <UNavigationMenu
+          orientation="vertical"
+          :items="[
+            {
+              label: '全栈工作台',
+              icon: 'i-lucide-panels-top-left',
+              to: '/',
+              active: !storage,
+            },
+            {
+              label: '存储示例',
+              icon: 'i-lucide-database',
+              to: '/?tab=storage',
+              active: storage,
+            },
+          ]"
+        />
+        <template #footer
+          ><UButton to="/" external variant="outline" block
+            >返回方案选择</UButton
+          ></template
+        >
+      </UDashboardSidebar>
+      <UDashboardPanel>
+        <template #header
+          ><UDashboardNavbar title="NuxtHub"
+            ><template #right
+              ><span class="text-sm">{{ session.username }}</span
+              ><UColorModeButton /><UButton
+                color="neutral"
+                variant="outline"
+                @click="logout"
+                >退出登录</UButton
+              ></template
+            ></UDashboardNavbar
+          ></template
+        >
+        <template #body
+          ><div class="page">
+            <h1 class="text-2xl font-semibold mb-3">NuxtHub 全栈工作台</h1>
+            <p class="text-muted mb-6">
+              {{
+                storage
+                  ? '实际体验 NuxtHub 对数据库、配置、文件与缓存的访问。'
+                  : '与其他工作台对齐：运行状态、配置、密钥、审计、任务与 API 文档。'
+              }}
+            </p>
+            <UAlert
+              v-if="error"
+              color="error"
+              :description="error"
+              class="mb-5"
+            />
+            <StorageWorkbench v-if="storage" :scope="scope" />
+            <NuxtWorkspace
+              v-else
+              :api-root="root + 'api/admin'"
+              :login-url="root"
+              :show-heading="false"
+              :show-cms="false"
+              :scope="scope"
+            /></div
+        ></template>
+      </UDashboardPanel>
+    </UDashboardGroup>
+  </UApp>
+</template>

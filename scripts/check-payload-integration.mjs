@@ -1,111 +1,359 @@
+import { browserOptions } from './browser.mjs';
 import { chromium, expect } from '@playwright/test';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { randomBytes } from 'node:crypto';
 const base = process.env.PAYLOAD_PREVIEW_URL || 'http://kit.localhost:5184';
-const env = Object.fromEntries((await readFile(new URL('../examples/payload-dashboard/app/.env', import.meta.url), 'utf8')).split('\n').filter(line => line.includes('=')).map(line => { const i = line.indexOf('='); return [line.slice(0, i), line.slice(i + 1)]; }));
+const env = Object.fromEntries(
+  (
+    await readFile(
+      new URL('../examples/payload-dashboard/app/.env', import.meta.url),
+      'utf8',
+    )
+  )
+    .split('\n')
+    .filter((line) => line.includes('='))
+    .map((line) => {
+      const i = line.indexOf('=');
+      return [line.slice(0, i), line.slice(i + 1)];
+    }),
+);
 const output = new URL('../test-results/payload/', import.meta.url).pathname;
 await mkdir(output, { recursive: true });
-const browser = await chromium.launch({ channel: 'chrome', headless: true });
-const admin = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+const browser = await chromium.launch(browserOptions);
+const admin = await browser.newContext({
+  viewport: { width: 1440, height: 1000 },
+});
 const viewer = await browser.newContext();
 const anonymous = await browser.newContext();
 const password = randomBytes(24).toString('base64url');
 let noteId, viewerId;
 const headers = { Origin: base };
 try {
-  for (const endpoint of ['session', 'overview', 'notes']) expect((await anonymous.request.get(`${base}/api/workerkit/${endpoint}`)).status()).toBe(401);
-  expect((await anonymous.request.post(`${base}/api/workerkit/operations/check`, { headers })).status()).toBe(401);
+  for (const endpoint of ['session', 'overview', 'notes'])
+    expect(
+      (
+        await anonymous.request.get(`${base}/api/workerkit/${endpoint}`)
+      ).status(),
+    ).toBe(401);
+  expect(
+    (
+      await anonymous.request.post(`${base}/api/workerkit/operations/check`, {
+        headers,
+      })
+    ).status(),
+  ).toBe(401);
   const anonPage = await anonymous.newPage();
   await anonPage.goto(`${base}/admin/workerkit`);
   await expect(anonPage.locator('#field-username')).toBeVisible();
-  expect((await anonymous.request.post(`${base}/api/users/login`, { data: { username: env.PAYLOAD_DEMO_USERNAME || 'admin', password: 'incorrect-demo-value' } })).status()).toBe(401);
-  expect((await anonymous.request.get(`${base}/api/workerkit/session`)).status()).toBe(401);
-  expect((await admin.request.post(`${base}/api/users/login`, { data: { username: env.PAYLOAD_DEMO_USERNAME || 'admin', password: env.PAYLOAD_DEMO_PASSWORD } })).status()).toBe(200);
+  expect(
+    (
+      await anonymous.request.post(`${base}/api/users/login`, {
+        data: {
+          username: env.PAYLOAD_DEMO_USERNAME || 'admin',
+          password: 'incorrect-demo-value',
+        },
+      })
+    ).status(),
+  ).toBe(401);
+  expect(
+    (await anonymous.request.get(`${base}/api/workerkit/session`)).status(),
+  ).toBe(401);
+  expect(
+    (
+      await admin.request.post(`${base}/api/users/login`, {
+        data: {
+          username: env.PAYLOAD_DEMO_USERNAME || 'admin',
+          password: env.PAYLOAD_DEMO_PASSWORD,
+        },
+      })
+    ).status(),
+  ).toBe(200);
   const session = await admin.request.get(`${base}/api/workerkit/session`);
   expect(session.status()).toBe(200);
   expect(session.headers()['x-request-id']).toBeTruthy();
   const identity = await session.json();
   expect(identity.user.role).toBe('admin');
-  expect(Object.keys(identity.user).sort()).toEqual(['email', 'id', 'role', 'username']);
+  expect(Object.keys(identity.user).sort()).toEqual([
+    'email',
+    'id',
+    'role',
+    'username',
+  ]);
   expect(identity.permissions).toContain('runtime:run');
-  const create = await admin.request.post(`${base}/api/workerkit/notes`, { headers, data: { title: '统一后台接口验证', body: '同一登录、同一条记录', status: 'draft' } });
+  const create = await admin.request.post(`${base}/api/workerkit/notes`, {
+    headers,
+    data: {
+      title: '统一后台接口验证',
+      body: '同一登录、同一条记录',
+      status: 'draft',
+    },
+  });
   expect(create.status()).toBe(201);
   noteId = (await create.json()).item.id;
-  expect((await (await admin.request.get(`${base}/api/notes/${noteId}`)).json()).title).toBe('统一后台接口验证');
+  expect(
+    (await (await admin.request.get(`${base}/api/notes/${noteId}`)).json())
+      .title,
+  ).toBe('统一后台接口验证');
   for (const origin of [undefined, 'https://invalid.example']) {
-    const response = await admin.request.patch(`${base}/api/workerkit/notes/${noteId}`, { headers: origin ? { Origin: origin } : {}, data: { status: 'published' } });
+    const response = await admin.request.patch(
+      `${base}/api/workerkit/notes/${noteId}`,
+      {
+        headers: origin ? { Origin: origin } : {},
+        data: { status: 'published' },
+      },
+    );
     expect(response.status()).toBe(403);
   }
-  expect((await admin.request.patch(`${base}/api/workerkit/notes/${noteId}`, { headers: { Origin: 'https://invalid.example', 'X-Forwarded-Host': 'invalid.example', 'X-Forwarded-Proto': 'https' }, data: { status: 'published' } })).status()).toBe(403);
-  const invalid = await admin.request.post(`${base}/api/workerkit/notes`, { headers, data: { title: '' } });
+  expect(
+    (
+      await admin.request.patch(`${base}/api/workerkit/notes/${noteId}`, {
+        headers: {
+          Origin: 'https://invalid.example',
+          'X-Forwarded-Host': 'invalid.example',
+          'X-Forwarded-Proto': 'https',
+        },
+        data: { status: 'published' },
+      })
+    ).status(),
+  ).toBe(403);
+  const invalid = await admin.request.post(`${base}/api/workerkit/notes`, {
+    headers,
+    data: { title: '' },
+  });
   expect(invalid.status()).toBe(422);
   expect((await invalid.json()).error.fields[0].path).toEqual(['title']);
-  expect((await admin.request.patch(`${base}/api/workerkit/notes/999999999`, { headers, data: { status: 'draft' } })).status()).toBe(404);
+  expect(
+    (
+      await admin.request.patch(`${base}/api/workerkit/notes/999999999`, {
+        headers,
+        data: { status: 'draft' },
+      })
+    ).status(),
+  ).toBe(404);
   const page = await admin.newPage();
-  const errors = [], otherServers = [];
-  page.on('pageerror', error => errors.push(error.message));
-  page.on('request', request => { const u = new URL(request.url()); if (u.hostname === '127.0.0.1' && u.port !== new URL(base).port) otherServers.push(u.origin); });
+  const errors = [],
+    otherServers = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('request', (request) => {
+    const u = new URL(request.url());
+    if (u.hostname === '127.0.0.1' && u.port !== new URL(base).port)
+      otherServers.push(u.origin);
+  });
   await page.goto(`${base}/admin`);
-  await expect(page.getByRole('heading', { name: 'WorkerKit 运行台' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'WorkerKit 运行台' }),
+  ).toBeVisible();
   await expect(page.getByText('依赖正常', { exact: true })).toBeVisible();
   const row = page.locator('.wk-note').filter({ hasText: '统一后台接口验证' });
   await row.getByRole('button', { name: '发布', exact: true }).click();
-  await expect(row.getByRole('button', { name: '撤回', exact: true })).toBeVisible();
-  expect((await (await admin.request.get(`${base}/api/notes/${noteId}`)).json()).status).toBe('published');
+  await expect(
+    row.getByRole('button', { name: '撤回', exact: true }),
+  ).toBeVisible();
+  expect(
+    (await (await admin.request.get(`${base}/api/notes/${noteId}`)).json())
+      .status,
+  ).toBe('published');
   await page.getByRole('button', { name: '运行检查', exact: true }).click();
   await expect(page.locator('.wk-run').first()).toContainText('手动检查');
   await expect(page.locator('.wk-run').first()).toContainText('成功');
-  expect((await admin.request.get(`${base}/__scheduled?cron=${encodeURIComponent('0 * * * *')}`)).ok()).toBe(true);
-  await expect.poll(async () => (await (await admin.request.get(`${base}/api/workerkit/overview`)).json()).runs.some(run => run.trigger === 'scheduled')).toBe(true);
+  expect(
+    (
+      await admin.request.get(
+        `${base}/__scheduled?cron=${encodeURIComponent('0 * * * *')}`,
+      )
+    ).ok(),
+  ).toBe(true);
+  await expect
+    .poll(async () =>
+      (
+        await (await admin.request.get(`${base}/api/workerkit/overview`)).json()
+      ).runs.some((run) => run.trigger === 'scheduled'),
+    )
+    .toBe(true);
   await page.getByRole('button', { name: '刷新状态' }).click();
-  await expect(page.locator('.wk-run').filter({ hasText: '定时事件' }).first()).toBeVisible();
+  await expect(
+    page.locator('.wk-run').filter({ hasText: '定时事件' }).first(),
+  ).toBeVisible();
   expect(await page.locator('.app-header').count()).toBe(1);
-  if (await page.locator('.nav-toggler[aria-label="Open Menu"]:visible').count()) await page.locator('.nav-toggler[aria-label="Open Menu"]:visible').first().click();
-  await expect(page.getByRole('link', { name: '演示记录', exact: true }).first()).toBeInViewport();
+  if (
+    await page.locator('.nav-toggler[aria-label="Open Menu"]:visible').count()
+  )
+    await page
+      .locator('.nav-toggler[aria-label="Open Menu"]:visible')
+      .first()
+      .click();
+  await expect(
+    page.getByRole('link', { name: '演示记录', exact: true }).first(),
+  ).toBeInViewport();
   await page.screenshot({ path: output + 'workerkit-desktop.png' });
   await page.goto(`${base}/admin/collections/notes/${noteId}`);
   await expect(page.locator('#field-title')).toHaveValue('统一后台接口验证');
   // A native Payload update is immediately visible through the Hono endpoint.
-  expect((await admin.request.patch(`${base}/api/notes/${noteId}`, { data: { title: '原生与业务接口共用记录' } })).status()).toBe(200);
-  expect((await (await admin.request.get(`${base}/api/workerkit/notes`)).json()).items.some(item => item.id === noteId && item.title === '原生与业务接口共用记录')).toBe(true);
-  const createdViewer = await admin.request.post(`${base}/api/users`, { data: { email: `viewer-${Date.now()}@workerkit.test`, password, role: 'viewer' } });
+  expect(
+    (
+      await admin.request.patch(`${base}/api/notes/${noteId}`, {
+        data: { title: '原生与业务接口共用记录' },
+      })
+    ).status(),
+  ).toBe(200);
+  expect(
+    (
+      await (await admin.request.get(`${base}/api/workerkit/notes`)).json()
+    ).items.some(
+      (item) => item.id === noteId && item.title === '原生与业务接口共用记录',
+    ),
+  ).toBe(true);
+  const createdViewer = await admin.request.post(`${base}/api/users`, {
+    data: {
+      email: `viewer-${Date.now()}@workerkit.test`,
+      password,
+      role: 'viewer',
+    },
+  });
   expect(createdViewer.status()).toBe(201);
   const viewerDoc = (await createdViewer.json()).doc;
   viewerId = viewerDoc.id;
-  expect((await viewer.request.post(`${base}/api/users/login`, { data: { email: viewerDoc.email, password } })).status()).toBe(200);
-  expect((await viewer.request.get(`${base}/api/workerkit/overview`)).status()).toBe(200);
-  expect((await viewer.request.get(`${base}/api/workerkit/workspace`)).status()).toBe(200);
-  expect((await viewer.request.post(`${base}/api/workerkit/managed-tasks`, { headers, data: { task: 'check-bindings', inputs: {}, schedule: { kind: 'interval', minutes: 60 } } })).status()).toBe(403);
-  expect((await viewer.request.post(`${base}/api/workerkit/operations/check`, { headers })).status()).toBe(403);
-  expect((await viewer.request.post(`${base}/api/workerkit/notes`, { headers, data: { title: 'denied' } })).status()).toBe(403);
-  expect((await viewer.request.patch(`${base}/api/workerkit/notes/${noteId}`, { headers, data: { status: 'draft' } })).status()).toBe(403);
-  expect((await viewer.request.post(`${base}/api/notes`, { data: { title: 'denied', status: 'draft' } })).status()).toBe(403);
-  await viewer.request.patch(`${base}/api/users/${viewerId}`, { data: { role: 'admin' } });
-  expect((await (await viewer.request.get(`${base}/api/workerkit/session`)).json()).user.role).toBe('viewer');
+  expect(
+    (
+      await viewer.request.post(`${base}/api/users/login`, {
+        data: { email: viewerDoc.email, password },
+      })
+    ).status(),
+  ).toBe(200);
+  expect(
+    (await viewer.request.get(`${base}/api/workerkit/overview`)).status(),
+  ).toBe(200);
+  expect(
+    (await viewer.request.get(`${base}/api/workerkit/workspace`)).status(),
+  ).toBe(200);
+  expect(
+    (
+      await viewer.request.post(`${base}/api/workerkit/managed-tasks`, {
+        headers,
+        data: {
+          task: 'check-bindings',
+          inputs: {},
+          schedule: { kind: 'interval', minutes: 60 },
+        },
+      })
+    ).status(),
+  ).toBe(403);
+  expect(
+    (
+      await viewer.request.post(`${base}/api/workerkit/operations/check`, {
+        headers,
+      })
+    ).status(),
+  ).toBe(403);
+  expect(
+    (
+      await viewer.request.post(`${base}/api/workerkit/notes`, {
+        headers,
+        data: { title: 'denied' },
+      })
+    ).status(),
+  ).toBe(403);
+  expect(
+    (
+      await viewer.request.patch(`${base}/api/workerkit/notes/${noteId}`, {
+        headers,
+        data: { status: 'draft' },
+      })
+    ).status(),
+  ).toBe(403);
+  expect(
+    (
+      await viewer.request.post(`${base}/api/notes`, {
+        data: { title: 'denied', status: 'draft' },
+      })
+    ).status(),
+  ).toBe(403);
+  await viewer.request.patch(`${base}/api/users/${viewerId}`, {
+    data: { role: 'admin' },
+  });
+  expect(
+    (await (await viewer.request.get(`${base}/api/workerkit/session`)).json())
+      .user.role,
+  ).toBe('viewer');
   const viewerPage = await viewer.newPage();
   await viewerPage.goto(`${base}/admin/workerkit`);
   await expect(viewerPage.getByText('依赖正常', { exact: true })).toBeVisible();
-  await expect(viewerPage.getByRole('button', { name: '运行检查', exact: true })).toHaveCount(0);
-  await expect(viewerPage.getByRole('link', { name: '新增记录', exact: true })).toHaveCount(0);
+  await expect(
+    viewerPage.getByRole('button', { name: '运行检查', exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    viewerPage.getByRole('link', { name: '新增记录', exact: true }),
+  ).toHaveCount(0);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${base}/admin/workerkit`);
   await expect(page.getByText('依赖正常', { exact: true })).toBeVisible();
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.screenshot({ path: output + 'workerkit-phone.png', fullPage: true });
-  if (await page.locator('.nav-toggler[aria-label="Open Menu"]:visible').count()) await page.locator('.nav-toggler[aria-label="Open Menu"]:visible').first().click();
-  await expect(page.getByRole('link', { name: '演示记录', exact: true }).first()).toBeInViewport();
-  await page.getByRole('link', { name: '演示记录', exact: true }).first().click();
-  await expect(page).toHaveURL(url => url.pathname === '/admin/collections/notes');
-  expect(errors).toEqual([]); expect(otherServers).toEqual([]);
-  expect((await viewer.request.post(`${base}/api/users/logout`)).status()).toBe(200);
-  expect((await viewer.request.get(`${base}/api/workerkit/session`)).status()).toBe(401);
-  await writeFile(output + 'integration-result.json', JSON.stringify({ runtime: 'workerd', singleWorker: true, sharedPayloadSession: true, adminAndViewer: true, noRoleEscalation: true, sameOrigin: true, sharedD1Records: true, realManualAndScheduledEvents: true, mobile: true, browserErrors: errors.length }, null, 2));
-  console.log('Single Worker: shared login, role enforcement, origin checks, native/Hono CRUD, manual/scheduled events and mobile UI passed.');
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: output + 'workerkit-phone.png',
+    fullPage: true,
+  });
+  if (
+    await page.locator('.nav-toggler[aria-label="Open Menu"]:visible').count()
+  )
+    await page
+      .locator('.nav-toggler[aria-label="Open Menu"]:visible')
+      .first()
+      .click();
+  await expect(
+    page.getByRole('link', { name: '演示记录', exact: true }).first(),
+  ).toBeInViewport();
+  await page
+    .getByRole('link', { name: '演示记录', exact: true })
+    .first()
+    .click();
+  await expect(page).toHaveURL(
+    (url) => url.pathname === '/admin/collections/notes',
+  );
+  expect(errors).toEqual([]);
+  expect(otherServers).toEqual([]);
+  expect((await viewer.request.post(`${base}/api/users/logout`)).status()).toBe(
+    200,
+  );
+  expect(
+    (await viewer.request.get(`${base}/api/workerkit/session`)).status(),
+  ).toBe(401);
+  await writeFile(
+    output + 'integration-result.json',
+    JSON.stringify(
+      {
+        runtime: 'workerd',
+        singleWorker: true,
+        sharedPayloadSession: true,
+        adminAndViewer: true,
+        noRoleEscalation: true,
+        sameOrigin: true,
+        sharedD1Records: true,
+        realManualAndScheduledEvents: true,
+        mobile: true,
+        browserErrors: errors.length,
+      },
+      null,
+      2,
+    ),
+  );
+  console.log(
+    'Single Worker: shared login, role enforcement, origin checks, native/Hono CRUD, manual/scheduled events and mobile UI passed.',
+  );
 } catch (error) {
-  console.error(String(error.message).replaceAll(password, '[redacted]').replaceAll(env.PAYLOAD_DEMO_PASSWORD, '[redacted]'));
+  console.error(
+    String(error.message)
+      .replaceAll(password, '[redacted]')
+      .replaceAll(env.PAYLOAD_DEMO_PASSWORD, '[redacted]'),
+  );
   process.exitCode = 1;
 } finally {
-  if (noteId) await admin.request.delete(`${base}/api/notes/${noteId}`).catch(() => {});
-  if (viewerId) await admin.request.delete(`${base}/api/users/${viewerId}`).catch(() => {});
+  if (noteId)
+    await admin.request.delete(`${base}/api/notes/${noteId}`).catch(() => {});
+  if (viewerId)
+    await admin.request.delete(`${base}/api/users/${viewerId}`).catch(() => {});
   await browser.close();
 }
