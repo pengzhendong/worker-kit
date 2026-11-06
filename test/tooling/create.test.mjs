@@ -54,3 +54,12 @@ test('refuses invalid selections and existing destinations, and keeps source syn
   assert.equal(await readFile(business, 'utf8'), custom);
   assert.equal(await readFile(vendor, 'utf8'), original);
 });
+test('creates a CMS-free native starter, preserving explicit frontend support and source ownership', async t => {
+ const root=await mkdtemp(path.join(tmpdir(),'workerkit-native-'));t.after(()=>rm(root,{recursive:true,force:true}));t.mock.method(console,'log',()=>{});
+ const app=path.join(root,'app');await createProject([app,'--frontend','nuxt','--backend','native']);
+ const pkg=await read(app,'package.json');assert.equal(pkg.dependencies.payload,undefined);assert.equal(pkg.dependencies['@sonicjs-cms/core'],undefined);
+ const config=await read(app,'wrangler.jsonc');assert.equal(config.kv_namespaces.length,1);assert.equal(config.d1_databases,undefined);assert.equal(config.r2_buckets,undefined);
+ assert.equal((await read(app,'workerkit.json')).backend,'native');assert.equal(await has(path.join(app,'web/src/pages/keys.vue')),true);
+ execFileSync(process.execPath,['--check',path.join(app,'scripts/project.mjs')],{stdio:'pipe'});
+ await assert.rejects(createProject([path.join(root,'other'),'--frontend','vben','--backend','native']),/currently supports/);
+});

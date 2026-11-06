@@ -3,6 +3,7 @@ import { frontendViews, frontendTitles, preloadLabels } from './catalog.js';
 const views = { ...frontendTitles };
 const integrated = document.body.dataset.workerkitMode === 'integrated';
 if (integrated) {
+  document.querySelectorAll('[data-integrated-only]').forEach(link => { link.hidden = false; });
   views.payload = 'Payload 原生后台 · 共享登录与真实 D1/R2';
   document.querySelector('[data-view="payload"]').hidden = false;
   if (document.body.dataset.sonicOrigin) {

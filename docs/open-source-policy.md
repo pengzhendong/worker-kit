@@ -105,3 +105,14 @@ Static Assets 的 Range 缺口使用原生 Cache API 补齐，仅适用于构建
 Payload 的身份来自原生 auth；SonicJS 在公开 afterAuth 扩展点取得原生会话，再读取当前用户有效状态与 RBAC。SonicJS 的内置 API catch-all 先于 config.routes，因此使用公开认证后中间件组合，未修改依赖包。SonicJS 写操作保留原生 CSRF 校验，客户端发送原生 Cookie 对应的 Header。
 
 创建器生成普通前端工程与单 Worker 后端，避免通用插件注册、业务 DSL 或运行时切换数据库引擎。源代码与 npm 版本固定、升级保护、兼容退役和未迁移能力见 [application-starter.md](application-starter.md)。
+
+
+### 轻量管理与 NuxtHub（2026-11-06）
+
+轻量模板直接使用 Nuxt UI 4.12.0 Dashboard、表格、表单、弹窗和通知。Hono 组合现有 KV 会话、SettingsRoutes、ApiKeys 和运行检查；只补消费应用所需的 HTTP 装配、命名空间、KV KeyStore 和最近审计存储。使用 KV 元数据分别存放使用时间，避免更新 lastUsedAt 时覆盖撤销状态。审计尽力写入，不宣称跨 KV 事务或强一致注销。
+
+NuxtHub 0.10.12 npm 发布包为 Apache-2.0；Nuxt、Nuxt UI、Drizzle、SDK 均按应用自身 lockfile 固定，只安装在可选 NuxtHub 示例，未 fork 上游源码。真实使用 SQL / KV / Blob / Cache API；官方旧托管 Admin 不进入本例。各路线在同一个 Worker 中按明确路径组合，不新增代理 Worker；NuxtHub 和轻量模板不冒用 CMS 会话。
+
+Cloudflare Node v2 的 `console.createTask` 暴露为抛错 stub，当前 Hookable 将它误判为可用调试功能。NuxtHub 的 Nitro `unenv.inject` 只在该构建中使用最小 console adapter，保留原生日志并隐藏这个非必要的 profiling 方法；不修改 Worker 全局或其他后端。升级 Hookable/Nitro 后应重新验证并评估移除。Nitro Cloudflare adapter 会在 H3 前缓存请求体，因此组合入口复用现有 `readBytesLimited` 限制写请求，不能只靠业务 handler 读取后才检查大小。
+
+Dashboard Vue 仅作为官方模板与布局参考；业务页面由消费应用拥有，不新增嵌套 submodule。SDK 用 Git 审核提交，npm 依赖用 lockfile，源码模板用固定 commit 和 SHA，边界在技术地图中明确。

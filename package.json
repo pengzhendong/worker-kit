@@ -1,6 +1,6 @@
 {
   "name": "@pengzhendong/worker-kit",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "Shared Cloudflare Workers foundations, consumed as a Git submodule.",
@@ -13,7 +13,8 @@
     "examples/prime-dashboard",
     "examples/docs",
     "examples/react-admin",
-    "examples/bootstrap-admin"
+    "examples/bootstrap-admin",
+    "examples/native-dashboard"
   ],
   "exports": {
     "./client": "./src/client/index.ts",
@@ -41,7 +42,9 @@
     "./web/media/styles.css": "./src/web/media.css",
     "./web/video-player": "./src/web/video-player.tsx",
     "./web/video-player/styles.css": "./src/web/video-player.css",
-    "./web/virtual-grid": "./src/web/virtual-grid.tsx"
+    "./web/virtual-grid": "./src/web/virtual-grid.tsx",
+    "./native": "./src/server/native-admin.ts",
+    "./vue": "./src/vue/index.ts"
   },
   "scripts": {
     "demo": "node scripts/preview-suite.mjs",
@@ -83,7 +86,11 @@
     "test:frontend-login": "node scripts/check-frontend-login.mjs",
     "test:preview-switching": "node scripts/check-preview-switching.mjs",
     "test:workspace-layout": "node scripts/check-workspace-layout.mjs",
-    "test:preview-preloading": "node scripts/check-preview-preloading.mjs"
+    "test:preview-preloading": "node scripts/check-preview-preloading.mjs",
+    "build:native": "npm run build --workspace @worker-kit/native-dashboard",
+    "dev:native": "npm run build:native && npm run dev --workspace @worker-kit/native-dashboard",
+    "build:hub": "npm --prefix examples/nuxthub-dashboard/app --workspaces=false run build",
+    "test:native-hub": "node scripts/check-native-hub.mjs"
   },
   "peerDependencies": {
     "@ant-design/icons": "^6.3.4",
@@ -102,7 +109,8 @@
     "wrangler": "^4.152.0",
     "@videojs/react": "^10.2.0",
     "wavesurfer.js": "^8.0.3",
-    "@tanstack/react-virtual": "^3.14.24"
+    "@tanstack/react-virtual": "^3.14.24",
+    "vue": "^3.5.0"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -154,6 +162,9 @@
       "optional": true
     },
     "@tanstack/react-virtual": {
+      "optional": true
+    },
+    "vue": {
       "optional": true
     }
   },

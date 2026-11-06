@@ -1,0 +1,33 @@
+{
+  "name": "@worker-kit/nuxthub-preview",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev --host 127.0.0.1 --port 5185",
+    "types": "nuxt prepare",
+    "check": "nuxt typecheck",
+    "preview": "wrangler dev --local --ip 127.0.0.1 --port 5185"
+  },
+  "dependencies": {
+    "@nuxt/ui": "4.12.0",
+    "@nuxthub/core": "0.10.12",
+    "@pengzhendong/worker-kit": "file:../../..",
+    "drizzle-kit": "0.31.10",
+    "drizzle-orm": "0.45.2",
+    "hono": "4.13.13",
+    "nuxt": "4.6.4",
+    "vue": "3.5.45",
+    "vue-router": "4.6.4"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261106.1",
+    "@iconify-json/lucide": "1.2.151",
+    "typescript": "6.0.3",
+    "vue-tsc": "3.3.14",
+    "wrangler": "4.152.0"
+  },
+  "engines": {
+    "node": ">=24.22.1"
+  }
+}

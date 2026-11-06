@@ -46,7 +46,7 @@ async function snapshot(source, target, frontend) {
   const pkg = await json(path.join(source, 'package.json'));
   const { name, version, type, engines, exports, peerDependencies, peerDependenciesMeta } = pkg;
   const entries = Object.fromEntries(Object.entries(exports).filter(([key]) => !key.startsWith('./web') && key !== './tooling/vite'));
-  const peers = Object.fromEntries(Object.entries(peerDependencies).filter(([key]) => ['hono', 'hono-openapi', 'openapi-types', 'wrangler', 'semver'].includes(key)));
+  const peers = Object.fromEntries(Object.entries(peerDependencies).filter(([key]) => ['hono', 'hono-openapi', 'openapi-types', 'wrangler', 'semver', 'vue'].includes(key)));
   const meta = Object.fromEntries(Object.entries(peerDependenciesMeta).filter(([key]) => Object.hasOwn(peers, key)));
   await put(path.join(target, 'package.json'), { name, version, type, private: true, engines, exports: entries, peerDependencies: peers, peerDependenciesMeta: meta });
   if (frontend === 'vben') {
@@ -78,14 +78,21 @@ export async function syncKit(args) {
 }
 
 export async function createProject(args) {
-  if (args.includes('--help') || args.includes('-h')) { console.log('workerkit create DIRECTORY --frontend nuxt|prime|vben|pro|refine|tabler|adminlte|docs --backend payload|sonic'); return; }
+  if (args.includes('--help') || args.includes('-h')) { console.log('workerkit create DIRECTORY --frontend nuxt|prime|vben|pro|refine|tabler|adminlte|docs --backend payload|sonic|native'); return; }
   const options = argumentsFor(args);
-  if (!options.directory || !Object.hasOwn(choices, options.frontend) || !['payload', 'sonic'].includes(options.backend)) throw Error('Usage: workerkit create DIRECTORY --frontend nuxt|prime|vben|pro|refine|tabler|adminlte|docs --backend payload|sonic');
+  if (!options.directory || !Object.hasOwn(choices, options.frontend) || !['payload', 'sonic', 'native'].includes(options.backend)) throw Error('Usage: workerkit create DIRECTORY --frontend nuxt|prime|vben|pro|refine|tabler|adminlte|docs --backend payload|sonic|native');
   const project = path.resolve(options.directory);
   if (!path.relative(kit, project).startsWith('..') && !path.isAbsolute(path.relative(kit, project))) throw Error('Create the application outside the WorkerKit source checkout.');
   if (await exists(project)) throw Error('Destination already exists; choose a new directory.');
   const frontend = options.frontend, backend = options.backend;
+  if (backend === 'native' && frontend !== 'nuxt') throw Error('The lightweight native starter currently supports --frontend nuxt; other frontends remain available with Payload or SonicJS.');
   await mkdir(project, { recursive: true });
+  if (backend === 'native') {
+    const { prepareNativeProject } = await import('./native-template.mjs');
+    await prepareNativeProject({ kit, project, put, snapshot });
+    console.log(`Created ${project}\nNuxt UI + native Worker/KV. Next: npm install, npm run setup, npm run dev`);
+    return;
+  }
   await snapshot(kit, path.join(project, 'vendor/worker-kit'), frontend);
   const ignored = new Set(['node_modules', 'dist', '.git', '.wrangler', '.next', '.open-next', '.vitepress/cache', '.vitepress/dist', 'test-results', 'playwright-report', 'public/media']);
   await cp(path.join(kit, 'examples', choices[frontend]), path.join(project, 'web'), { recursive: true, filter: source => {

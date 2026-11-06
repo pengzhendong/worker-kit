@@ -38,7 +38,13 @@
       "!/refine/assets/*",
       "!/tabler/assets/*",
       "!/adminlte/assets/*",
-      "!/docs/assets/*"
+      "!/docs/assets/*",
+      "/native",
+      "/native/*",
+      "/hub",
+      "/hub/*",
+      "!/native/assets/*",
+      "!/hub/_nuxt/*"
     ]
   },
   "d1_databases": [
@@ -53,6 +59,12 @@
       "database_id": "00000000-0000-0000-0000-000000000002",
       "database_name": "workerkit-sonic-local",
       "migrations_dir": "node_modules/@sonicjs-cms/core/migrations"
+    },
+    {
+      "binding": "DB",
+      "database_id": "00000000-0000-0000-0000-000000000006",
+      "database_name": "workerkit-hub-local",
+      "migrations_dir": "../../nuxthub-dashboard/app/server/db/migrations/sqlite"
     }
   ],
   "r2_buckets": [
@@ -63,6 +75,10 @@
     {
       "binding": "SONIC_MEDIA",
       "bucket_name": "workerkit-sonic-local"
+    },
+    {
+      "binding": "BLOB",
+      "bucket_name": "workerkit-hub-local"
     }
   ],
   "observability": {
@@ -92,9 +108,31 @@
     {
       "binding": "SONIC_CACHE",
       "id": "00000000000000000000000000000002"
+    },
+    {
+      "binding": "NATIVE_STORE",
+      "id": "00000000000000000000000000000003"
+    },
+    {
+      "binding": "KV",
+      "id": "00000000000000000000000000000004"
+    },
+    {
+      "binding": "CACHE",
+      "id": "00000000000000000000000000000005"
     }
   ],
   "placement": {
     "mode": "smart"
-  }
+  },
+  "ratelimits": [
+    {
+      "name": "NATIVE_LOGIN_RATE_LIMITER",
+      "namespace_id": "2026110606",
+      "simple": {
+        "limit": 5,
+        "period": 60
+      }
+    }
+  ]
 }

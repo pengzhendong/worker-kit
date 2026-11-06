@@ -1,0 +1,11 @@
+import { type MaybeRefOrGetter, toValue } from 'vue';
+import { createApiClient, createSessionScope } from '@pengzhendong/worker-kit/client';
+import { useApiResource } from '@pengzhendong/worker-kit/vue';
+export { ApiClientError, isRequestCancelled } from '@pengzhendong/worker-kit/client';
+export const base = document.body.dataset.apiRoot || '/native';
+export const path = (suffix: string) => `${base}/api${suffix}`;
+export const scope = createSessionScope(), api = createApiClient({ scope }), auth = createApiClient();
+export type Session = { username: string };
+export const useResource = <T>(suffix: MaybeRefOrGetter<string>) => useApiResource<T>(api, () => path(toValue(suffix)));
+export const formatTime = (value: string | null) => value ? new Date(value).toLocaleString('zh-CN', { hour12: false }) : '未记录';
+export const formatBytes = (value: number | null) => value === null ? '—' : value < 1024 ? `${value} B` : `${(value / 1024).toFixed(1)} KB`;

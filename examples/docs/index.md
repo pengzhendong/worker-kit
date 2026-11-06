@@ -5,12 +5,12 @@ hero:
   image:
     src: /favicon.svg
     alt: WorkerKit
-  text: 应用界面与开发指南
-  tagline: 一套工程，按需选择应用界面与文档主题。
+  text: 从技术选型到业务接入
+  tagline: 选择轻量 Worker、CMS 或 Nuxt 全栈，使用原生组件并保留业务所有权。
   actions:
     - theme: brand
-      text: 阅读指南
-      link: /guide
+      text: 技术地图与选型
+      link: /architecture
     - theme: alt
       text: 比较八套界面
       link: ../?view=nuxt

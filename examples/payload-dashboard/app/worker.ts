@@ -3,6 +3,8 @@
 import next from './.open-next/worker.js'
 import { runOperation } from './src/workerkit/operations'
 import { serveFrontend } from './src/workerkit/frontends'
+import { serveNative } from '../../native-dashboard/worker'
+import { serveHub } from './src/workerkit/hub'
 import { serveSonic } from './src/workerkit/sonic'
 import { localizeSonicAssets } from './src/workerkit/sonic-assets'
 export { WorkerKitTasks } from './src/workerkit/tasks'
@@ -10,6 +12,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url)
     if (url.origin === new URL(env.SONIC_ORIGIN).origin) {
+      if (/^\/(native|hub)(\/|$)/.test(url.pathname)) return Response.redirect(new URL(url.pathname + url.search, env.WORKERKIT_ORIGIN).href, 302)
       if (url.pathname === '/' && url.searchParams.has('view')) {
         const target = new URL('/' + url.search, env.WORKERKIT_ORIGIN)
         target.searchParams.set('backend', 'sonic')
@@ -23,6 +26,10 @@ export default {
       const canonical = new URL(url.pathname + url.search, env.WORKERKIT_ORIGIN)
       return Response.redirect(canonical.href, 308)
     }
+    if (url.pathname === '/hub') return Response.redirect(new URL('/hub/', url).href, 308)
+    if (url.pathname.startsWith('/hub/')) return serveHub(request, env, ctx)
+    const native = await serveNative(request, env, ctx)
+    if (native) return native
     const frontend = await serveFrontend(request, env)
     return frontend ?? next.fetch(request, env, ctx)
   },

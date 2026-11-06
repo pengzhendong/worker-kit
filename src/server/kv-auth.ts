@@ -1,5 +1,6 @@
 /** Revocable native KV sessions, adapted from PT Runner's existing session protocol. */
 export function createKvAdminAuth(options: { cookieName: string; keyPrefix: string; authScope: string; sessionSeconds?: number }) {
+  const loopback = (hostname: string) => ['localhost', '127.0.0.1', '[::1]'].includes(hostname) || hostname.endsWith('.localhost');
   const ttl = options.sessionSeconds ?? 7 * 24 * 60 * 60;
   if (!/^[a-zA-Z0-9_-]{1,64}$/.test(options.cookieName) || !options.keyPrefix || !options.authScope || !Number.isInteger(ttl) || ttl < 1 || ttl > 30 * 24 * 60 * 60) throw new Error('Invalid KV session configuration');
   interface Store { get(key: string, type: 'json'): Promise<unknown>; put(key: string, value: string, options: { expirationTtl: number }): Promise<unknown>; delete(key: string): Promise<unknown> }
@@ -14,7 +15,7 @@ export function createKvAdminAuth(options: { cookieName: string; keyPrefix: stri
   }
   function cookie(request: Request, value: string, maxAge: number) {
     const url = new URL(request.url);
-    if (url.protocol !== 'https:' && !['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)) throw new Error('Administrator sessions require HTTPS');
+    if (url.protocol !== 'https:' && !loopback(url.hostname)) throw new Error('Administrator sessions require HTTPS');
     return `${options.cookieName}=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${url.protocol === 'https:' ? '; Secure' : ''}`;
   }
   async function verifyCredentials(username: string, password: string, expectedUsername: string, expectedPassword: string) {
@@ -32,7 +33,7 @@ export function createKvAdminAuth(options: { cookieName: string; keyPrefix: stri
   async function isAuthenticated(request: Request, store: Store, username: string, password: string) {
     if (!username || !password) return false;
     const url = new URL(request.url);
-    if (url.protocol !== 'https:' && !['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)) return false;
+    if (url.protocol !== 'https:' && !loopback(url.hostname)) return false;
     const value = token(request); if (!value || value.length > 128) return false;
     let session: unknown;
     try { session = await store.get(await sessionKey(value), 'json'); } catch { return false; }

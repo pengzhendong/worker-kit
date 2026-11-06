@@ -2,7 +2,7 @@ import { ApiClientError, createApiClient } from '../../src/client/index.ts';
 
 const previewParentOrigin = typeof window !== 'undefined' && window.parent !== window && document.referrer ? new URL(document.referrer).origin : null;
 const isPublicPreviewPage = () => !document.querySelector('[data-workspace]') && (/^\/(nuxt|prime|vben|pro|refine|tabler|adminlte)\/(?:tasks|resources|logs|settings|components\/(?:table|form|dialogs|preview|layout|theme))?\/?$/.test(location.pathname)
-  || /^\/docs\/(?:index|guide|components|features|upgrades|alternatives)?(?:\.html)?\/?$/.test(location.pathname));
+  || /^\/docs\/(?:index|guide|components|features|upgrades|alternatives|architecture|migration)?(?:\.html)?\/?$/.test(location.pathname));
 const fromPreviewParent = event => previewParentOrigin && event.source === window.parent && event.origin === previewParentOrigin && event.data?.type === 'workerkit:preview-refresh' && typeof event.data.id === 'string';
 // Public component demos have no server identity/data. Keep their forms, dialogs
 // and route mounted too; leaving Workspace must not force a framework reboot.

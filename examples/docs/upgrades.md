@@ -22,3 +22,12 @@ npm run test:ui-suite
 WorkerKit 自身可继续由消费项目作为 submodule 引用。组件库使用包管理器；预览模板用固定源码快照，避免所有消费者递归拉取后台 monorepo。需要长期修改上游核心、维护独立 fork 时，再考虑 submodule。
 
 固定版本让构建可重现，无法保证所有上游大版本升级都零改动。遇到模板接口不兼容应停止并修复适配，不能跳过 peer 检查或自动接受截图。
+
+
+## 新路线的验证
+
+轻量模板通过 `npm run create -- ../my-worker --frontend nuxt --backend native` 建立独立项目，再安装、setup、check 和真实浏览器检查。设置 schema 与业务字段留在应用，`kit:sync` 不覆盖业务页面和部署配置。
+
+NuxtHub 的依赖和 lockfile 在 `examples/nuxthub-dashboard/app`；使用 `npm run build:hub` 和该目录的 `npm run check`，组合后运行 `npm run test:native-hub` 验证真实存储、同源写请求、独立会话与移动界面。D1 迁移是单独步骤，不因构建成功就自动应用到线上。
+
+展示站需要最后执行统一构建、部署 dry-run 和线上入口检查。免费套餐 CPU、首次加载和缓存后切换是不同指标，不能互相替代；按真实 Observability 数据评估。

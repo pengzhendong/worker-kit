@@ -16,6 +16,11 @@ for (const name of ['nuxt', 'prime', 'vben', 'pro', 'refine', 'tabler', 'adminlt
   await rm(path.join(target, name), { recursive: true, force: true });
   await cp(path.join(source, name), path.join(target, name), { recursive: true });
 }
+for (const [name, directory] of [['native', path.join(root, 'examples/native-dashboard/dist/native')], ['hub', path.join(root, 'examples/nuxthub-dashboard/app/.output/public/hub')]]) {
+  await readFile(path.join(directory, name === 'native' ? 'index.html' : '_headers'));
+  await rm(path.join(target, name), { recursive: true, force: true });
+  await cp(directory, path.join(target, name), { recursive: true });
+}
 const shell = await renderPreviewShell({ integrated: true });
 await writeFile(path.join(target, 'index.html'), shell);
 await assembleSonicAssets(target);

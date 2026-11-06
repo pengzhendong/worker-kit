@@ -2,7 +2,19 @@
 
 通过 **Git submodule** 引入的 Cloudflare Workers 共享基础库。业务项目保留自己的路由、页面、数据迁移和部署配置，公共能力从源码入口导入。
 
-当前版本：`0.2.0`。可以选择一套前端和一个后端，创建自己的单 Worker 应用。八套前端的「业务工作台」已接通真实任务计划、运行记录和依赖检查，复用原 TaskManager；原组件体验页仍使用明确标注的 fixture。Payload、SonicJS 的原生用户、内容和媒体能力继续由上游维护。旧 React/Ant Design 6 与单管理员入口保留兼容，不进入新项目默认路径。
+当前版本：`0.3.0`。可以选择一套前端和一个后端，创建自己的单 Worker 应用。八套前端的「业务工作台」已接通真实任务计划、运行记录和依赖检查，复用原 TaskManager；原组件体验页仍使用明确标注的 fixture。Payload、SonicJS 的原生用户、内容和媒体能力继续由上游维护。旧 React/Ant Design 6 与单管理员入口保留兼容，不进入新项目默认路径。
+
+## 先选运行路线
+
+| 路线 | 接入内容 | 展示入口 |
+| --- | --- | --- |
+| 轻量 Worker | Nuxt UI + 原生 Worker/Hono + KV；登录、运行检查、配置、受限密钥、审计和 API 文档 | https://kit.pzd17.top/native/ |
+| CMS | 八套界面 + Payload 或 SonicJS；原生内容/媒体/身份与任务工作台 | https://kit.pzd17.top/ |
+| Nuxt 全栈 | Nuxt + Nuxt UI + NuxtHub；真实 D1/KV/Blob/Cache SDK | https://kit.pzd17.top/hub/ |
+
+[技术地图](examples/docs/architecture.md)区分 Nuxt UI、官方 Dashboard Vue 模板、NuxtHub 和 CMS；[消费接入](examples/docs/migration.md)说明如何保留已有业务协议与数据。NuxtHub 是独立 Nuxt 应用路线，不放进通用 CMS 下拉选项。正式项目只安装所选方案。
+
+创建轻量应用：`npm run create -- ../my-worker --frontend nuxt --backend native`，然后执行 `npm install`、`npm run setup`、`npm run dev`。该创建器当前验证 Nuxt UI；不强制安装 CMS、Next.js、D1 或 R2。下面是 CMS 路线。
 
 ## 创建业务项目
 
@@ -22,6 +34,8 @@ npm run dev
 
 | 入口 | 能力 |
 | --- | --- |
+| `@pengzhendong/worker-kit/vue` | 可选 Vue 资源 composable，复用请求取消与会话原语 |
+| `@pengzhendong/worker-kit/native` | 可选原生 KV 管理接口：会话、声明式设置、受限密钥与安全审计 |
 | `@pengzhendong/worker-kit/client` | 无 React/Vue 依赖的浏览器 API 客户端、错误和会话原语，供不同界面共用 |
 | `@pengzhendong/worker-kit/operations` | 在原生 CMS 认证之后组合运行诊断与任务 HTTP 接口；不另建用户、密码或登录会话 |
 | `@pengzhendong/worker-kit/contracts` | 无运行时依赖的管理端契约：页码/游标列表、字段错误、批量逐项结果 |
@@ -102,7 +116,7 @@ git submodule add https://github.com/pengzhendong/worker-kit.git framework
   "type": "module",
   "workspaces": ["framework"],
   "dependencies": {
-    "@pengzhendong/worker-kit": "0.2.0",
+    "@pengzhendong/worker-kit": "0.3.0",
     "hono": "4.13.13"
   }
 }

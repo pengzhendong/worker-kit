@@ -27,7 +27,7 @@ npm run dev
 | `adminlte` | AdminLTE / Bootstrap 布局与控件 | 真实接口 |
 | `docs` | VitePress 默认主题中的 Vue 页面 | 真实接口；用于文档与轻量交互 |
 
-后端参数为 `payload` 或 `sonic`。生成时只写入选中后端的依赖与 D1/R2 配置。SonicJS 还使用自己的 KV。没有要求每个业务项目安装两套 CMS，也没有把 CMS 变成共享库的强制依赖。
+CMS 后端参数为 `payload` 或 `sonic`。生成时只写入选中后端的依赖与 D1/R2 配置。SonicJS 还使用自己的 KV。没有要求每个业务项目安装两套 CMS，也没有把 CMS 变成共享库的强制依赖。
 
 这是创建时的技术选型。后端不同意味着身份、集合和数据模型不同，改一个 JSON 字段不能替代数据迁移。
 
@@ -98,3 +98,12 @@ API Key、完整 KV 配置管理和历史操作审计还没有全部接入新工
 生产配置在 `examples/payload-dashboard/app/.wrangler/production.json`，签名密钥通过 Wrangler Secrets 设置；这些本机文件不进入 Git。部署命令为在该 app 目录执行 `npm exec --workspaces=false -- wrangler deploy --config .wrangler/production.json`。
 
 本次线上验证通过原生登录、16 种工作台组合、文档预览入口、无 localhost 导航、Vben 工作台正文边距，以及两套后端的任务创建、执行和记录持久化。任务日志默认显示最近 5 条，历史记录继续保留。
+
+
+## 轻量路线与 Nuxt 全栈（0.3.0）
+
+`--frontend nuxt --backend native` 创建 CMS-free 项目，根目录有 `worker.ts`、`wrangler.jsonc`、`web/` 与 vendor 快照。一个父项目 lockfile，保留业务和部署所有权，只需 KV 与登录限流；配置、密钥和审计使用命名空间，不开放任意 KV 浏览。已有凭据不被 setup 重置。其他前端目前仍使用上面的 CMS 创建器，轻量路线不声称覆盖全部八套界面。
+
+NuxtHub 示例在 `examples/nuxthub-dashboard/app`，作为完整 Nuxt + Nitro 构建，由统一 Worker 的 `/hub/` 分流；不是 CMS 后端的一键替换项。发布前通过独立依赖安装、构建、Nuxt 类型检查、workerd 存储和身份检查。公共 `/native` 和 `/vue` SDK 由消费应用显式导入，未把 Vue、CMS 或 NuxtHub 加入所有服务端入口。
+
+统一站顶部“开发方案”进入技术地图、轻量模板或 NuxtHub。线上文档区分真实业务工作台与 fixture 组件体验，并补充接入和升级指南。

@@ -209,3 +209,13 @@ a:focus-visible {
     padding: 4px 6px 6px;
   }
 }
+
+.route-menu { position:relative; font-size:12px; }
+.route-menu summary { cursor:pointer; padding:6px 8px; white-space:nowrap; }
+.route-links { position:absolute; right:0; top:100%; z-index:10; min-width:160px; padding:6px; display:flex; flex-direction:column; gap:2px; background:white; border:1px solid #dfe5ee; border-radius:8px; box-shadow:0 8px 24px #24334b18; }
+.route-links a { padding:9px 10px; white-space:nowrap; }
+.route-links a:hover { background:#edf1f7; border-radius:4px; }
+header { position:relative; z-index:3; }
+@media (max-width: 640px) {
+  #desktop, #mobile { display:none; }
+}
