@@ -2,7 +2,19 @@
 
 通过 **Git submodule** 引入的 Cloudflare Workers 共享基础库。业务项目保留自己的路由、页面、数据迁移和部署配置，公共能力从源码入口导入。
 
-当前版本：`0.2.0`，接口仍在通过真实项目接入验证。包含可操作的管理控制台：D1 配置清单、R2 文件管理、KV 应用设置、D1 操作日志。多用户和任务执行尚未接入。
+当前版本：`0.2.0`。可以选择一套前端和一个后端，创建自己的单 Worker 应用。八套前端的「业务工作台」已接通真实任务计划、运行记录和依赖检查，复用原 TaskManager；原组件体验页仍使用明确标注的 fixture。Payload、SonicJS 的原生用户、内容和媒体能力继续由上游维护。旧 React/Ant Design 6 与单管理员入口保留兼容，不进入新项目默认路径。
+
+## 创建业务项目
+
+```sh
+npm run create -- ../my-worker --frontend nuxt --backend payload
+cd ../my-worker
+npm install
+npm run setup
+npm run dev
+```
+
+创建命令只使用 Node 内置模块，不需要先安装整套预览依赖。打开 http://localhost:8787/ 。前端可选 `nuxt / prime / vben / pro / refine / tabler / adminlte / docs`，后端可选 `payload / sonic`。生成的项目只安装选中的后端，前端源码、业务任务、集合配置和迁移属于新项目；源码、安装、升级和兼容边界见[开发底座](docs/application-starter.md)。VitePress 提供文档中的轻量工作台，适合的业务复杂度与完整管理模板不同。
 
 功能边界与后续取舍见[功能回顾](docs/feature-review.md)和[开源复用检查](docs/architecture-review.md)。
 
@@ -10,6 +22,8 @@
 
 | 入口 | 能力 |
 | --- | --- |
+| `@pengzhendong/worker-kit/client` | 无 React/Vue 依赖的浏览器 API 客户端、错误和会话原语，供不同界面共用 |
+| `@pengzhendong/worker-kit/operations` | 在原生 CMS 认证之后组合运行诊断与任务 HTTP 接口；不另建用户、密码或登录会话 |
 | `@pengzhendong/worker-kit/contracts` | 无运行时依赖的管理端契约：页码/游标列表、字段错误、批量逐项结果 |
 | `@pengzhendong/worker-kit/modules` | 无框架依赖的模块声明、菜单排序、静态页面路径、操作权限标识与访问判断 |
 | `@pengzhendong/worker-kit/server` | Hono 应用、统一 JSON 错误、请求 ID、结构化日志、安全响应头、可选单管理员认证、KV 设置路由、R2 文件路由、有时限的健康检查组合器、可替换存储的 opaque API Key 服务 |
@@ -25,6 +39,28 @@
 这些入口相互分离，服务端不会导入 React 或 Ant Design。业务直接使用普通 Hono 路由和 React 组件，没有自定义路由语法或插件注册系统。
 
 ## 本地运行示例
+
+推荐使用单 Worker 统一后台（此示例要求 Node.js 24.22.1+）：
+
+```sh
+npm ci
+npm run dev:payload
+```
+
+打开 http://kit.localhost:5184/ ，顶部选择前端，右侧选择 Payload 或 SonicJS，默认进入业务工作台；CMS 标签可打开原生管理界面。两套后端的身份和数据独立，任务及日志在同一后端的各套前端之间共享。所有资产、CMS、业务 API 与任务 Durable Object 均在同一个 Worker 内。使用方式和免费套餐验证范围见 [Payload 整合示例](examples/payload-dashboard/README.md)。
+
+只比较前端界面时仍可使用 `npm run demo`，打开 http://localhost:5190 。首次会下载校验过的上游源码并构建；后续 `npm run demo:preview` 直接使用产物。这个可选静态预览不是统一 Worker 的依赖。`npm run upstreams:check` 只检查上游更新，升级流程见 [界面方案示范](docs/ui-demos.md)。
+
+也可以单独启动 Vue 后台与文档示例：
+
+| 方案 | 命令 | 本地地址 |
+| --- | --- | --- |
+| Nuxt UI | `npm run dev:nuxt` | http://localhost:5180 |
+| PrimeVue / Sakai | `npm run dev:prime` | http://localhost:5181 |
+| Vben Admin | `npm run dev:vben` | http://localhost:5182 |
+| VitePress | `npm run dev:docs` | http://localhost:5183 |
+
+首次先运行 `npm ci`。Vben 另需 pnpm 11，会下载固定上游源码和示例依赖。所有示例都不连接生产服务，详情见[界面方案示范](docs/ui-demos.md)。
 
 要求 Node.js 22.12+。仓库内的 dashboard 是一个普通业务应用，用于检验共享库的接入方式。
 

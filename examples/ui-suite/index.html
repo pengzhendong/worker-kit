@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>WorkerKit · 界面预览</title>
+    <link rel="icon" type="image/svg+xml" href="/nuxt/favicon.svg" />
+    <link rel="stylesheet" href="./preview.css" />
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <img
+          class="logo"
+          src="/nuxt/favicon.svg"
+          alt=""
+          width="28"
+          height="28"
+        /><strong>WorkerKit</strong>
+      </div>
+      <nav role="tablist" aria-label="界面方案">
+        <button role="tab" data-view="nuxt">Nuxt UI</button
+        ><button role="tab" data-view="prime">PrimeVue / Sakai</button
+        ><button role="tab" data-view="vben">Vben Admin</button
+        ><button role="tab" data-view="pro">Ant Design Pro</button
+        ><button role="tab" data-view="refine">Refine</button
+        ><button role="tab" data-view="tabler">Tabler</button
+        ><button role="tab" data-view="adminlte">AdminLTE</button
+        ><button role="tab" data-view="docs">VitePress</button
+        ><button role="tab" data-view="payload" hidden>Payload</button
+        ><button role="tab" data-view="sonic" hidden>SonicJS</button>
+      </nav>
+      <div class="actions">
+        <select id="backend" aria-label="选择后端" hidden>
+          <option value="payload">Payload</option>
+          <option value="sonic">SonicJS</option></select
+        ><button id="desktop" aria-pressed="true">桌面</button
+        ><button id="mobile" aria-pressed="false">手机</button
+        ><a id="open" target="_blank" rel="noopener">独立打开 ↗</a>
+      </div>
+    </header>
+    <div class="stage" aria-busy="true">
+      <span
+        id="loading"
+        role="status"
+        style="
+          position: absolute;
+          align-self: center;
+          padding: 10px 16px;
+          background: #fff;
+          border: 1px solid #d8dfeb;
+          border-radius: 8px;
+          z-index: 1;
+        "
+        >正在加载界面…</span
+      >
+    </div>
+    <script type="module" src="./preview.js"></script>
+  </body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "@worker-kit/bootstrap-admin-comparison",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite --host 127.0.0.1 --port 5185 --strictPort"
+  },
+  "dependencies": {
+    "@tabler/core": "1.7.3",
+    "admin-lte": "4.10.0",
+    "bootstrap": "5.3.8",
+    "echarts": "6.1.0",
+    "primeicons": "7.0.0"
+  },
+  "devDependencies": {
+    "vite": "8.3.5"
+  }
+}

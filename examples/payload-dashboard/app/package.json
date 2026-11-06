@@ -1,0 +1,69 @@
+{
+  "name": "@worker-kit/payload-preview",
+  "version": "1.0.0",
+  "description": "A blank template to get started with Payload",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --webpack --hostname 127.0.0.1 --port 5184",
+    "build": "next build --webpack",
+    "build:worker": "opennextjs-cloudflare build",
+    "preview:worker": "wrangler dev --ip 127.0.0.1 --port 5184 --local --test-scheduled",
+    "types": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "payload": "payload",
+    "migrate:create": "payload migrate:create",
+    "migrate:local": "payload migrate",
+    "dry-run": "wrangler deploy --dry-run --outdir .workerkit-bundle",
+    "demo:credentials": "tsx preview-credentials.ts"
+  },
+  "dependencies": {
+    "@cloudflare/workers-types": "5.20261106.1",
+    "@opennextjs/cloudflare": "1.20.16",
+    "@payloadcms/db-d1-sqlite": "3.93.0",
+    "@payloadcms/next": "3.93.0",
+    "@payloadcms/richtext-lexical": "3.93.0",
+    "@payloadcms/storage-r2": "3.93.0",
+    "@payloadcms/ui": "3.93.0",
+    "@pengzhendong/worker-kit": "file:../../..",
+    "@sonicjs-cms/core": "3.0.0",
+    "agents": "0.32.0",
+    "cron-schedule": "6.0.0",
+    "cross-env": "10.1.0",
+    "dotenv": "16.4.7",
+    "drizzle-orm": "0.45.2",
+    "graphql": "16.12.0",
+    "hono": "4.13.13",
+    "next": "16.4.5",
+    "payload": "3.93.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "zod": "4.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "24.12.3",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "wrangler": "4.152.0"
+  },
+  "engines": {
+    "node": ">=24.22.1",
+    "pnpm": "^9 || ^10 || ^11"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "sharp",
+      "esbuild",
+      "unrs-resolver"
+    ]
+  },
+  "cloudflare": {
+    "bindings": {
+      "PAYLOAD_SECRET": {
+        "description": "Generate a random string using `openssl rand -hex 32`"
+      }
+    }
+  },
+  "private": true
+}

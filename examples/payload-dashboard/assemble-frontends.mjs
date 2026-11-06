@@ -1,0 +1,30 @@
+import { cp, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import { assembleSonicAssets } from './assemble-sonic-assets.mjs';
+import { renderPreviewShell } from '../../scripts/render-preview-shell.mjs';
+const root = fileURLToPath(new URL('../../', import.meta.url));
+const source = path.join(root, 'dist/ui-suite');
+const target = fileURLToPath(new URL('./app/.open-next/assets/', import.meta.url));
+await mkdir(target, { recursive: true });
+for (const name of ['nuxt', 'prime', 'vben', 'pro', 'refine', 'tabler', 'adminlte', 'docs']) {
+  // Fail if a UI build is missing. Never silently publish a partial application.
+  await readFile(path.join(source, name, 'index.html'));
+  for (const file of await readdir(path.join(source, name), { recursive: true })) {
+    if (/\.(mp4|webm|wav|mp3|ogg|m4a)$/i.test(file) && (await stat(path.join(source, name, file))).size > 2 * 1024 * 1024) throw new Error('Demo static media must fit 2 MiB; use the native R2 backend for larger files.');
+  }
+  await rm(path.join(target, name), { recursive: true, force: true });
+  await cp(path.join(source, name), path.join(target, name), { recursive: true });
+}
+const shell = await renderPreviewShell({ integrated: true });
+await writeFile(path.join(target, 'index.html'), shell);
+await assembleSonicAssets(target);
+// Only build-generated, content-hashed bundles get immutable browser caching.
+// HTML, API responses and CMS documents retain their own freshness/auth rules.
+const headersFile = path.join(target, '_headers');
+let headers = await readFile(headersFile, 'utf8').catch(error => { if (error.code === 'ENOENT') return ''; throw error; });
+headers = headers.replace(/\n?# BEGIN WorkerKit assets[\s\S]*?# END WorkerKit assets\n?/g, '');
+const rules = ['nuxt', 'prime', 'vben', 'pro', 'refine', 'tabler', 'adminlte', 'docs'].map(name => `/${name}/assets/*\n  Cache-Control: public, max-age=31536000, immutable`);
+rules.push('/sonic-static/*\n  Cache-Control: public, max-age=31536000, immutable');
+await writeFile(headersFile, headers.trimEnd() + '\n\n# BEGIN WorkerKit assets\n' + rules.join('\n\n') + '\n# END WorkerKit assets\n');
+console.log('Assembled eight frontends, Payload and the selector in one Worker assets directory.');

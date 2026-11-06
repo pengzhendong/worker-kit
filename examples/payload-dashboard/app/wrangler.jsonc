@@ -1,0 +1,100 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "workerkit-payload-preview",
+  "main": "worker.ts",
+  "compatibility_date": "2026-10-19",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
+  ],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+    "html_handling": "none",
+    "not_found_handling": "none",
+    "run_worker_first": [
+      "/",
+      "/index.html",
+      "/nuxt",
+      "/nuxt/*",
+      "/prime",
+      "/prime/*",
+      "/vben",
+      "/vben/*",
+      "/pro",
+      "/pro/*",
+      "/refine",
+      "/refine/*",
+      "/tabler",
+      "/tabler/*",
+      "/adminlte",
+      "/adminlte/*",
+      "/docs",
+      "/docs/*",
+      "!/nuxt/assets/*",
+      "!/prime/assets/*",
+      "!/vben/assets/*",
+      "!/pro/assets/*",
+      "!/refine/assets/*",
+      "!/tabler/assets/*",
+      "!/adminlte/assets/*",
+      "!/docs/assets/*"
+    ]
+  },
+  "d1_databases": [
+    {
+      "binding": "D1",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_name": "workerkit-payload-local",
+      "migrations_dir": "src/migrations"
+    },
+    {
+      "binding": "SONIC_DB",
+      "database_id": "00000000-0000-0000-0000-000000000002",
+      "database_name": "workerkit-sonic-local",
+      "migrations_dir": "node_modules/@sonicjs-cms/core/migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2",
+      "bucket_name": "workerkit-payload-local"
+    },
+    {
+      "binding": "SONIC_MEDIA",
+      "bucket_name": "workerkit-sonic-local"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "TASKS",
+        "class_name": "WorkerKitTasks"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "workerkit-tasks-v1",
+      "new_sqlite_classes": [
+        "WorkerKitTasks"
+      ]
+    }
+  ],
+  "vars": {
+    "WORKERKIT_ORIGIN": "http://kit.localhost:5184",
+    "SONIC_ORIGIN": "http://sonic.kit.localhost:5184"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "SONIC_CACHE",
+      "id": "00000000000000000000000000000002"
+    }
+  ],
+  "placement": {
+    "mode": "smart"
+  }
+}

@@ -8,9 +8,16 @@
     "node": ">=22.12.0"
   },
   "workspaces": [
-    "examples/dashboard"
+    "examples/dashboard",
+    "examples/nuxt-dashboard",
+    "examples/prime-dashboard",
+    "examples/docs",
+    "examples/react-admin",
+    "examples/bootstrap-admin"
   ],
   "exports": {
+    "./client": "./src/client/index.ts",
+    "./operations": "./src/server/operations.ts",
     "./modules": "./src/modules/index.ts",
     "./contracts": "./src/contracts/index.ts",
     "./server": "./src/server/index.ts",
@@ -37,6 +44,21 @@
     "./web/virtual-grid": "./src/web/virtual-grid.tsx"
   },
   "scripts": {
+    "demo": "node scripts/preview-suite.mjs",
+    "demo:build": "node scripts/build-suite.mjs",
+    "demo:preview": "node scripts/preview-suite.mjs --no-build",
+    "dev:docs": "npm run dev --workspace @worker-kit/docs",
+    "upstreams:check": "node scripts/ui-upstreams.mjs check",
+    "upstreams:sync": "node scripts/ui-upstreams.mjs sync",
+    "dev:nuxt": "npm run dev --workspace @worker-kit/nuxt-dashboard",
+    "build:nuxt": "npm run build --workspace @worker-kit/nuxt-dashboard",
+    "dev:prime": "npm run dev --workspace @worker-kit/prime-dashboard",
+    "build:prime": "npm run build --workspace @worker-kit/prime-dashboard",
+    "dev:vben": "node examples/vben-dashboard/setup.mjs --dev",
+    "build:vben": "node examples/vben-dashboard/setup.mjs --build",
+    "test:ui-demos": "node scripts/check-ui-demos.mjs",
+    "test:ui-suite": "node scripts/check-ui-suite.mjs",
+    "check:ui-suite": "npm run demo:build && node scripts/check-ui-suite.mjs --start",
     "dev": "npm run dev --workspace @worker-kit/dashboard",
     "build": "npm run build --workspace @worker-kit/dashboard",
     "types": "npm run types --workspace @worker-kit/dashboard",
@@ -49,7 +71,19 @@
     "test:ui:run": "playwright test",
     "doctor": "node src/tooling/doctor.mjs --project examples/dashboard",
     "test:tooling": "node --test test/tooling/*.test.mjs",
-    "upgrade:check": "npm run check && npm run test:ui"
+    "upgrade:check": "npm run check && npm run test:ui && npm run check:ui-suite",
+    "dev:payload": "node examples/payload-dashboard/setup.mjs --preview",
+    "build:payload": "node examples/payload-dashboard/setup.mjs --build",
+    "test:payload": "node scripts/check-payload-demo.mjs && node scripts/check-payload-integration.mjs",
+    "test:unified-worker": "node scripts/check-unified-worker.mjs",
+    "test:sonic": "node scripts/check-sonic-demo.mjs",
+    "demo:credentials": "npm --prefix examples/payload-dashboard/app --workspaces=false run demo:credentials",
+    "create": "node src/tooling/cli.mjs create",
+    "test:composition": "node scripts/check-composition.mjs",
+    "test:frontend-login": "node scripts/check-frontend-login.mjs",
+    "test:preview-switching": "node scripts/check-preview-switching.mjs",
+    "test:workspace-layout": "node scripts/check-workspace-layout.mjs",
+    "test:preview-preloading": "node scripts/check-preview-preloading.mjs"
   },
   "peerDependencies": {
     "@ant-design/icons": "^6.3.4",
@@ -148,7 +182,7 @@
     "@tanstack/react-virtual": "3.14.24"
   },
   "bin": {
-    "workerkit": "./src/tooling/doctor.mjs"
+    "workerkit": "./src/tooling/cli.mjs"
   },
   "overrides": {
     "miniflare": {

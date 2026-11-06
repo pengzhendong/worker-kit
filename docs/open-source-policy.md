@@ -65,3 +65,43 @@ agents 仅由启用调度的消费项目安装。
 GitHub 定时任务发现直接使用 [GitHub Actions API](https://docs.github.com/en/rest/actions/workflows#list-repository-workflows) 和 [仓库内容 API](https://docs.github.com/en/rest/repos/contents#get-repository-content)。WorkerKit 负责分页、筛选 `on.schedule` 及读取最近的定时运行。YAML 解析沿用 Worker Console 已安装的 `yaml`，由消费项目传入，无需增加依赖。
 
 Worker Console 的小脚本试点使用 [QuickJS Emscripten](https://github.com/justjake/quickjs-emscripten) 0.32.0（MIT），复用上游的 WebAssembly 运行时。Console 单独安装依赖并限制脚本可用的 HTTP 能力。WorkerKit 只提供表单、试跑接口、调度和结果展示。
+
+## Vue 后台方案示范
+
+Nuxt UI、PrimeVue/Sakai 与 Vben 的隔离试点、固定版本、许可证和启动方式见 [ui-demos.md](ui-demos.md)。只使用通用 fixture，禁止引用真实消费项目名称或业务数据。三套尚未作为公共默认，也不改变既有 React 或服务端入口。
+
+### React 与 Bootstrap 预览
+
+组件体验导航按表格、表单、弹窗、预览、布局和主题分别配置图标。React 使用现有 Ant Design Icons，PrimeVue 使用 PrimeIcons；Bootstrap 示例复用仓库已采用的 PrimeIcons 7.0.0 字体与样式，依赖只进入该示例。Nuxt UI 与 Vben 保留现有 Lucide 配置，各方案使用原生图标的颜色与尺寸约定。
+
+Ant Design Pro 使用正式版 ProComponents 2.8.10 的 ProLayout / ProTable / ModalForm；Refine 使用 Core 5.0.12 和 antd 适配器 6.0.3。两者独立示例使用 Ant Design 5.29.3，不把旧后台 Ant Design 6 降级，也不使用忽略 peer 的安装选项。示例是 Vite 组合，不声明包含完整 Ant Design Pro/Umi 工程。
+
+Tabler 1.7.3、AdminLTE 4.10.0 直接使用 MIT npm 发布包和 Bootstrap 5.3.8 原生交互。页面内容与通用 fixture 由消费示例维护，布局与组件样式由上游负责；没有把通用播放、表格或上传引擎移入公共库。
+
+操作提示复用各自前端的原生组件：Nuxt UI Toast、PrimeVue Toast、Ant Design/Ant Design Vue message，以及 Bootstrap Toast。Tabler/AdminLTE 已移除原来的 alert 元素加自写关闭计时器，使用 [Bootstrap Toast](https://getbootstrap.com/docs/5.3/components/toasts/) 的自动关闭、悬停/焦点暂停和关闭按钮；示例只负责传入文案并在原生 hidden 事件后释放实例。旧 React 示例本来就在用 Ant Design notification，没有另一套共享通知引擎。业务事件与认证失效监听不属于提示组件，继续保留。VitePress 文档页使用行内状态，不假定其自带通知中心。
+
+### Payload Workers 整合示例（2026-11-06）
+
+完整后台试用官方 Payload `with-cloudflare-d1` 模板（来源与固定 commit 见 `examples/payload-dashboard/upstream.json`），MIT。Payload、Next 和 OpenNext 仅安装在独立示例，使用自己的严格 peer 检查与 lockfile，不进入公共运行时或根 workspace。当前版本使用官方 CollectionConfig、认证、D1 adapter、R2 plugin 与原生管理组件；在官方模板之上增加 WorkerKit 原生 API 的组合、运行台、角色权限与 scheduled 入口；没有重写通用后台引擎。一个 Worker、同一套 Payload 会话，集成业务代码仍放在示例内。该试点验证了本地 workerd 功能和包体积，未验证免费账户的线上 CPU 配额。具体边界见示例 README。
+
+统一部署使用原生 Workers Static Assets 和显式路径分流，把八套 UI 构建产物合并到同一个 OpenNext 资产目录；不引入微前端注册引擎或另一套代理服务。前端的任务/日志样例仍保留，真实业务通过 Payload/WorkerKit API，避免将部署合并误称为所有业务页面已迁移。
+
+Static Assets 的 Range 缺口使用原生 Cache API 补齐，仅适用于构建时限制在 2 MiB 内的公开音视频，复用 WorkerKit 的限量流读取；不自建 Range 解析器，不缓存 Payload 私有文件。
+
+### SonicJS 对比接入（2026-11-06）
+
+使用已发布的 `@sonicjs-cms/core@3.0.0`（MIT）及原生 Hono app、CollectionConfig、Better Auth、RBAC 和 D1 迁移，只进入可选的完整示例。未修改依赖包源码，未新增 submodule。SonicJS 没有完整的管理端子路径挂载配置，因此一个 Worker 按两个同站点主机名分流，保留根路由、原生表单、Cookie 和内部链接；避免使用 HTML/JS 正则改写或全局切换 Cookie。仅增加明确的绑定组合、同源写请求检查与受限的 iframe 响应策略。两套 CMS 用各自的 D1/R2/认证，登录和数据不互相冒用。首次本地管理员通过已发布的 Better Auth 密码哈希与 SonicJS RBAC SDK 创建；已有用户不重置。升级时运行两套 CMS 的原生 workerd 功能和切换回归。
+
+跨框架预览继续使用浏览器原生 iframe 隔离样式，最多保留八套已访问的前端实例。父子窗口只通过校验来源的 `postMessage` 请求工作台重新读取原生认证接口；不传递用户数据或令牌，不保存 API 响应。选择器承担这一小段展示与刷新协调，不添加新的缓存库或框架包装层。业务组件与页面标题仍使用各上游的原生布局。预加载沿用这些 iframe，用浏览器原生 requestIdleCallback（不可用时用定时器）逐个准备前端；正在浏览的界面和点击操作优先。后台实例通过命名标记暂停业务读取，真正激活时由既有刷新协议恢复，不预先访问两套 CMS。
+
+预览站静态资源加速使用 Cloudflare 原生 Static Assets、`_headers` 和 `run_worker_first` 排除规则（[官方说明](https://developers.cloudflare.com/workers/static-assets/binding/)），不引入运行时代理缓存。SonicJS 固定公共依赖随构建发布，保留 Tailwind/Alpine/Chart.js 的 MIT、HTMX 的 0BSD 与 Inter 的 OFL 许可证，并校验 SHA-256。按已发布 SDK 的实际能力，未发现 CDN URL 配置项，因此只用原生 HTMLRewriter 做资源属性和字体 URL 的有限替换，不修改安装包或原生业务代码。SDK 个别确认弹窗仍引用 Tailwind Plus Elements；它使用独立商业许可证，不在本地镜像清单内，不能将 SonicJS 自身的 MIT 误解为所有引用脚本都适用 MIT。
+
+演示凭据按用户要求使用 `admin / password`。Payload 使用原生用户名认证；SonicJS 只在 localhost 或显式启用 `WORKERKIT_DEMO=1` 的指定演示身份上增加用户名到邮箱的别名适配，登录表单用 HTMLRewriter 调整，密码与会话继续由原生认证处理。未修改 npm 包，未增加免登录或密码跳过。账号重置是显式本地 CLI，通过原生密码哈希与 Payload Local API 完成；错误密码仍需拒绝。
+
+### 可选前后端的业务底座
+
+八套前端的业务工作台复用同一组任务与诊断 HTTP 接口，分别使用上游原生组件渲染。共享浏览器 API/会话实现从 `src/web` 移到 `src/client`，旧路径只兼容转发。任务执行继续使用现有 TaskManager；可选示例安装 agents 0.32.0 的 Scheduler/Lifecycle 与 cron-schedule 6.0.0，原生 SQLite DO 存储计划与运行记录，不再自写一套定时器。业务定义留在示例或生成项目的 `src/business/tasks.ts`。
+
+Payload 的身份来自原生 auth；SonicJS 在公开 afterAuth 扩展点取得原生会话，再读取当前用户有效状态与 RBAC。SonicJS 的内置 API catch-all 先于 config.routes，因此使用公开认证后中间件组合，未修改依赖包。SonicJS 写操作保留原生 CSRF 校验，客户端发送原生 Cookie 对应的 Header。
+
+创建器生成普通前端工程与单 Worker 后端，避免通用插件注册、业务 DSL 或运行时切换数据库引擎。源代码与 npm 版本固定、升级保护、兼容退役和未迁移能力见 [application-starter.md](application-starter.md)。

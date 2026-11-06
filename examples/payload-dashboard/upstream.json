@@ -1,0 +1,7 @@
+{
+  "repository": "https://github.com/payloadcms/payload",
+  "commit": "fac81961b76c0d0e15545ec8aeda3e099aca8f03",
+  "template": "templates/with-cloudflare-d1",
+  "archive_sha256": "bce4c6ad8242ec129ff02e43e4dad87835d4bce03aeebfc83dd8c24e0eb887a6",
+  "license": "MIT"
+}

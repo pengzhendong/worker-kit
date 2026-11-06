@@ -1,0 +1,6 @@
+{
+  "name": "@worker-kit/vben-dashboard-launcher",
+  "private": true,
+  "type": "module",
+  "scripts": { "setup": "node setup.mjs", "dev": "node setup.mjs --dev", "build": "node setup.mjs --build" }
+}

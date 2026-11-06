@@ -57,7 +57,7 @@ function Console({ session, onLogout }: { session: Session; onLogout: () => Prom
   };
   const renderers: Record<string, (() => ReactNode) | undefined> = { ...pages, ...(ToolsPage ? { tools: () => <ToolsPage onNavigate={navigate} /> } : {}) };
   const forbidden = module && !canOpen(module.id);
-  return <AdminShell title={settings.siteName} username={session.user} activeKey={module?.id ?? path} onNavigate={navigate}
+  return <AdminShell brandIcon={<img src="/favicon.svg" width={32} height={32} alt="" />} title={settings.siteName} username={session.user} activeKey={module?.id ?? path} onNavigate={navigate}
     items={navigation('sidebar')} userMenuItems={navigation('user')} onLogout={onLogout}>
     {!module ? <Result status="404" title="页面不存在" subTitle="该页面不存在或模块尚未启用。" />
       : forbidden ? <Result status="403" title="无权访问此页面" subTitle="当前账户没有此模块的访问权限。" />

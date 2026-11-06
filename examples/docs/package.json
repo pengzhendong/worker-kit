@@ -1,0 +1,10 @@
+{
+  "name": "@worker-kit/docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev . --host 127.0.0.1 --port 5183 --strictPort",
+    "build": "vitepress build ."
+  },
+  "devDependencies": { "vitepress": "1.6.4", "vue": "3.5.45" }
+}

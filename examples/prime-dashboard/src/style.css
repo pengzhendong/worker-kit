@@ -1,0 +1,25 @@
+@import "tailwindcss";
+@import "primeicons/primeicons.css";
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif !important; font-size:14px; line-height:1.6 !important; overflow:hidden; }
+.layout-wrapper { height:100dvh; overflow:hidden; }
+.layout-main-container { height:100dvh; min-height:0 !important; padding-bottom:0 !important; }
+.layout-main { min-height:0; overflow:auto; padding:0 4px 24px; }
+.layout-footer { min-height:54px; flex-shrink:0; }
+.card { background:var(--surface-card); border:1px solid var(--surface-border); border-radius:var(--content-border-radius); padding:24px; margin-bottom:0 !important; }
+.layout-main h2 { font-size:16px; font-weight:600; margin:0 0 6px; }
+.text-muted-color { color:var(--text-color-secondary); }
+.demo-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom:24px; padding-top:8px; }
+.demo-heading h1 { font-size:28px; font-weight:650; margin:0 0 8px; letter-spacing:-.5px; }
+.demo-heading p { color:var(--text-color-secondary); margin:0; }
+.demo-resource-preview { height:150px; width:100%; background:var(--surface-ground); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.demo-resource-preview img { width:100%;height:100%;object-fit:cover; }
+.demo-resource-preview i { font-size:40px; color:var(--primary-color); }
+.p-datatable-table { min-width:800px; }
+.app-dark { color-scheme:dark; }
+:root { color-scheme:light; }
+.p-selectbutton { flex-wrap:wrap; }
+.demo-setting-row { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:20px 0; }
+.demo-setting-row + .demo-setting-row { border-top:1px solid var(--surface-border); }
+@media(max-width:767px) { .layout-main-container { padding-left:16px !important;padding-right:16px !important; } .card { padding:18px; } .demo-heading h1 { font-size:24px; } }
+
+@media(max-width:639px){.layout-topbar .demo-framework-badge{display:none}.layout-topbar .layout-topbar-actions{gap:8px}.layout-topbar .layout-topbar-logo{font-size:18px}}

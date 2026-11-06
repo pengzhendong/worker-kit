@@ -1,0 +1,17 @@
+{
+  "vben": {
+    "repository": "vbenjs/vue-vben-admin",
+    "commit": "26706d65c9401a7818cf83369081c26b68990ef7",
+    "sha256": "b43de7fbe31040634e0991ee1318a9c81397c7de6b0998d17713c66bd48edeca"
+  },
+  "sakai": {
+    "repository": "primefaces/sakai-vue",
+    "commit": "ec6b6ef53ad4fa7f2861277f50f2d9e236c40372",
+    "sha256": "6f4120d7c92424029a1a50d622cbdff821609c403fbbc5e6874ca0cb2ace8ad3"
+  },
+  "sakai-assets": {
+    "repository": "primefaces/sakai-assets",
+    "commit": "eaa70ece4cfa9aeb8f60b36dce5a422b6bae8003",
+    "sha256": "0316812f8199e359d7d874f7d31c85ecb6db38938b003ccd07f55da9a8ca98a6"
+  }
+}

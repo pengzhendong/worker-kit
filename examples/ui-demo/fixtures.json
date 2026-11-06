@@ -1,0 +1,216 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "name": "定时数据同步",
+      "description": "同步示例数据并更新缓存",
+      "app": "demo-api",
+      "schedule": "每天 15:00",
+      "status": "success",
+      "lastRun": "15:45:08",
+      "duration": "7.2 s",
+      "enabled": true
+    },
+    {
+      "id": 2,
+      "name": "内容索引更新",
+      "description": "重建内容检索索引",
+      "app": "demo-content",
+      "schedule": "每 6 小时",
+      "status": "success",
+      "lastRun": "12:00:03",
+      "duration": "12.8 s",
+      "enabled": true
+    },
+    {
+      "id": 3,
+      "name": "服务健康检查",
+      "description": "检查示例服务的响应状态",
+      "app": "demo-jobs",
+      "schedule": "每 30 分钟",
+      "status": "warning",
+      "lastRun": "16:00:02",
+      "duration": "4.1 s",
+      "enabled": true
+    },
+    {
+      "id": 4,
+      "name": "每日汇总报告",
+      "description": "生成当天的示例运行报告",
+      "app": "demo-reports",
+      "schedule": "每天 08:30",
+      "status": "success",
+      "lastRun": "08:30:05",
+      "duration": "23.6 s",
+      "enabled": true
+    },
+    {
+      "id": 5,
+      "name": "资源元数据更新",
+      "description": "同步分类、封面与资源信息",
+      "app": "demo-assets",
+      "schedule": "每天 03:00",
+      "status": "success",
+      "lastRun": "03:00:01",
+      "duration": "18.3 s",
+      "enabled": true
+    },
+    {
+      "id": 6,
+      "name": "文件版本清理",
+      "description": "清理超出保留期的历史版本",
+      "app": "demo-storage",
+      "schedule": "每周日 02:00",
+      "status": "paused",
+      "lastRun": "11/01 02:00",
+      "duration": "2.4 s",
+      "enabled": false
+    }
+  ],
+  "services": [
+    {
+      "name": "Demo API",
+      "slug": "demo-api",
+      "description": "示例 API 与缓存",
+      "icon": "i-lucide-chart-no-axes-combined",
+      "color": "blue",
+      "requests": "12,840",
+      "latency": "142 ms",
+      "status": "正常"
+    },
+    {
+      "name": "Demo Jobs",
+      "slug": "demo-jobs",
+      "description": "示例后台任务",
+      "icon": "i-lucide-waypoints",
+      "color": "amber",
+      "requests": "8,216",
+      "latency": "186 ms",
+      "status": "需关注"
+    },
+    {
+      "name": "Demo Storage",
+      "slug": "demo-storage",
+      "description": "示例对象存储",
+      "icon": "i-lucide-folder-open",
+      "color": "violet",
+      "requests": "4,082",
+      "latency": "95 ms",
+      "status": "正常"
+    },
+    {
+      "name": "Demo Content",
+      "slug": "demo-content",
+      "description": "示例内容服务",
+      "icon": "i-lucide-tv-minimal",
+      "color": "emerald",
+      "requests": "6,564",
+      "latency": "118 ms",
+      "status": "正常"
+    }
+  ],
+  "resources": [
+    {
+      "id": "1",
+      "name": "海岸线 · 片头背景",
+      "type": "image",
+      "size": "2.4 MB",
+      "date": "今天 14:32",
+      "tag": "示例素材",
+      "url": "media/coast.svg"
+    },
+    {
+      "id": "2",
+      "name": "山野 · 横屏封面",
+      "type": "image",
+      "size": "1.8 MB",
+      "date": "今天 11:08",
+      "tag": "媒体示例",
+      "url": "media/landscape.svg"
+    },
+    {
+      "id": "3",
+      "name": "周末片段.mp4",
+      "type": "video",
+      "size": "24.6 MB",
+      "date": "昨天 19:26",
+      "tag": "媒体示例",
+      "url": "media/clip.mp4"
+    },
+    {
+      "id": "4",
+      "name": "提示音.wav",
+      "type": "audio",
+      "size": "186 KB",
+      "date": "昨天 16:40",
+      "tag": "示例素材",
+      "url": "media/tone.wav"
+    },
+    {
+      "id": "5",
+      "name": "数据快照说明.md",
+      "type": "document",
+      "size": "3.2 KB",
+      "date": "11/03 15:48",
+      "tag": "Demo API"
+    },
+    {
+      "id": "6",
+      "name": "索引更新记录.json",
+      "type": "document",
+      "size": "128 KB",
+      "date": "11/03 12:00",
+      "tag": "Demo Content"
+    }
+  ],
+  "logs": [
+    {
+      "id": 1,
+      "time": "16:00:06",
+      "level": "warn",
+      "app": "demo-jobs",
+      "message": "健康检查结束，24 个端点中有 2 个响应超时",
+      "duration": "4.1 s"
+    },
+    {
+      "id": 2,
+      "time": "15:45:08",
+      "level": "info",
+      "app": "demo-api",
+      "message": "示例数据已写入缓存，同步任务完成",
+      "duration": "7.2 s"
+    },
+    {
+      "id": 3,
+      "time": "15:32:14",
+      "level": "info",
+      "app": "demo-storage",
+      "message": "文件索引更新完成，新增 3 个对象",
+      "duration": "0.8 s"
+    },
+    {
+      "id": 4,
+      "time": "14:12:09",
+      "level": "error",
+      "app": "demo-jobs",
+      "message": "示例上游请求超时，本次保留最近一次成功结果",
+      "duration": "10.0 s"
+    },
+    {
+      "id": 5,
+      "time": "12:00:16",
+      "level": "info",
+      "app": "demo-content",
+      "message": "内容同步完成，更新 186 条示例记录",
+      "duration": "12.8 s"
+    },
+    {
+      "id": 6,
+      "time": "08:30:29",
+      "level": "info",
+      "app": "demo-reports",
+      "message": "每日任务结束，示例报告已生成",
+      "duration": "23.6 s"
+    }
+  ]
+}
