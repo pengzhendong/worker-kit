@@ -112,4 +112,6 @@ NuxtHub 示例在 `examples/nuxthub-dashboard/app`，也可通过 `--frontend nu
 
 `npm run test:integration` 在空闲 5184 端口启动真实本地统一 Worker，依次验证组合、切换、预加载、布局、NuxtHub 存储和四条路线的管理能力。`npm run test:generated` 从临时目录验证新项目、重复 setup、SDK 升级与回滚；CI 自动运行。
 
+CI 使用全新的本地数据库，构建后显式执行 `npm run demo:credentials`，通过 Payload Local API 和 SonicJS 原生哈希建立演示身份。首次本地运行综合验收也需先完成原生首次注册，或显式执行这条命令；它会重置本地指定演示管理员的密码与会话，不用于生产部署，普通 build 不自动重置已有账号。
+
 快照回滚使用 `npm run kit:rollback -- --backup worker-kit.previous-TIMESTAMP`，当前 SDK 和备份的所有文件都会先验摘要，有本地变更则拒绝覆盖。恢复后重新安装依赖并执行 check。submodule 消费项目通过 Git 恢复审核提交；数据库迁移不由这两个流程自动撤销。

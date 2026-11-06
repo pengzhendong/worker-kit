@@ -93,6 +93,8 @@ jobs:
         run: npm run build:payload
       - name: Check lightweight and NuxtHub types
         run: npm run check:native-hub
+      - name: Provision native demo identities in the fresh local databases
+        run: npm run demo:credentials
       - name: Check real authentication, feature parity, storage and preview reuse
         run: npm run test:integration
       - name: Check fresh native and NuxtHub starters, upgrades and rollback
