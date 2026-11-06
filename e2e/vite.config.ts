@@ -7,10 +7,19 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   root: fileURLToPath(new URL('../examples/dashboard', import.meta.url)),
   plugins: [react()],
-  // Serve compiled demo assets. Concurrent pages can otherwise receive
-  // Vite's 504 Outdated Optimize Dep while lazy routes discover dependencies.
-  // Keep the demo-only media/tools routes which this suite explicitly tests.
-  define: { 'import.meta.env.DEV': 'true' },
-  build: { outDir: fileURLToPath(new URL('../.wrangler/visual-app', import.meta.url)), emptyOutDir: true },
-  preview: { host: '127.0.0.1', port: 4174, strictPort: true },
+  // Some tests replace actual dev modules to exercise optional shell props.
+  // Prebundle all UI dependencies before concurrent pages visit lazy routes;
+  // discovering one later can invalidate React chunks with a 504 response.
+  optimizeDeps: {
+    entries: ['index.html', 'web/**/*.{ts,tsx}', '../../src/web/**/*.{ts,tsx}'],
+    include: [
+      'react', 'react-dom/client', 'react/jsx-runtime', 'react/jsx-dev-runtime',
+      'antd', 'antd/locale/zh_CN', '@ant-design/icons', '@ant-design/pro-components',
+      'react-error-boundary', '@scalar/api-reference-react', '@tanstack/react-virtual',
+      '@videojs/react', '@videojs/react/audio', '@videojs/react/video', '@videojs/react/i18n',
+      'wavesurfer.js',
+    ],
+    holdUntilCrawlEnd: true,
+  },
+  server: { host: '127.0.0.1', port: 4174, strictPort: true },
 });

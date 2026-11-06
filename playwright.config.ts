@@ -34,7 +34,7 @@ export default defineConfig<ConsoleOptions>({
     { name: 'mobile-light', testIgnore: '**/states.spec.ts', use: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, dark: false } },
   ],
   webServer: {
-    command: 'npx vite build --config e2e/vite.config.ts && npx vite preview --config e2e/vite.config.ts',
+    command: 'npx vite --config e2e/vite.config.ts',
     url: 'http://127.0.0.1:4174',
     reuseExistingServer: false,
     timeout: 60_000,
