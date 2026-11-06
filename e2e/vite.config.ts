@@ -7,5 +7,10 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   root: fileURLToPath(new URL('../examples/dashboard', import.meta.url)),
   plugins: [react()],
-  server: { host: '127.0.0.1', port: 4174, strictPort: true },
+  // Serve compiled demo assets. Concurrent pages can otherwise receive
+  // Vite's 504 Outdated Optimize Dep while lazy routes discover dependencies.
+  // Keep the demo-only media/tools routes which this suite explicitly tests.
+  define: { 'import.meta.env.DEV': 'true' },
+  build: { outDir: fileURLToPath(new URL('../.wrangler/visual-app', import.meta.url)), emptyOutDir: true },
+  preview: { host: '127.0.0.1', port: 4174, strictPort: true },
 });

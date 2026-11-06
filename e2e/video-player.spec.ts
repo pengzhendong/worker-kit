@@ -4,8 +4,13 @@ async function openPlayer(page: import('@playwright/test').Page) {
   await openDashboard(page, 'media');
   await page.getByText('观看场景播放器', { exact: true }).click();
   const example = page.getByTestId('viewing-player-example');
-  await example.scrollIntoViewIfNeeded();
-  return example.locator('[data-workerkit-video-player]');
+  // Collapse's JS motion can still resize the scroll container after the
+  // child becomes visible. Scroll only once the native expansion has ended.
+  await expect(page.locator('.ant-motion-collapse')).toHaveCount(0);
+  await page.evaluate(() => document.fonts.ready);
+  const player = example.locator('[data-workerkit-video-player]');
+  await player.evaluate(element => element.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  return player;
 }
 test('viewing player uses upstream menus, preserves media across sources and keeps overlays in fullscreen', async ({ page }) => {
   const player = await openPlayer(page);
