@@ -1,5 +1,5 @@
 @import 'tailwindcss';
 @import '@nuxt/ui';
 html,body,#__nuxt { height:100%;margin:0; }
-.page { width:100%;max-width:1300px;margin:auto;padding:28px; }
+.page { width:100%;max-width:1300px;margin:0 auto;padding:28px; }
 @media(max-width:640px){.page{padding:16px}}
