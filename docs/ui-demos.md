@@ -45,11 +45,7 @@ Vben 只在生成的工作目录调整安装清单及 Tailwind 扫描范围，�
 
 ## 验证
 
-三套构建通过。启动三个预览后，`npm run test:ui-demos` 使用本机 Chrome 验证任务搜索与跨页执行日志、视频播放与关闭、设置刷新持久化、明暗切换、390px 手机无横向溢出及导航。三套均通过，未出现未捕获的页面异常；截图在 gitignored 的 `test-results/ui-demos/`，不作为跨系统截图基准。
-
-根目录 `npm run check` 通过（88 项基础测试、8 项工具测试、类型、构建和部署 dry-run）。旧后台固定 Linux UI 检查已运行，在开始本次工作前已有修改的 `examples/dashboard/web/ComponentsPage.tsx` 对应组件页出现行为和截图失败；没有修改该文件或接受新截图基准，不能将旧后台全量 UI 检查标为通过。
-
-统一站点运行时执行 `npm run test:ui-suite`，验证 iframe 内八套页面、子路径与刷新、任务日志、视频 Range 加载和缺失资源返回 404。它验证真实构建产物；`test:ui-demos` 则检查独立开发预览。截图保留在 `test-results/ui-suite/`。其他候选及 star 对比见预览文档中的“其他开源候选”。
+统一站点运行时执行 `npm run test:ui-suite`，验证八套页面、导航与刷新、任务日志、视频播放、设置持久化和缺失资源返回 404；截图保留在 `test-results/ui-suite/`。早期只检查三个开发端口的脚本已删除，统一由这套检查和 `test:composition` 覆盖。共享库与兼容入口另由 `npm run check` 和固定 Linux UI 回归验证。
 
 ## 新增的四套界面
 

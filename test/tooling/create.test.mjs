@@ -23,6 +23,13 @@ test('creates all sixteen native frontend/backend combinations without copying l
     assert.equal(config.durable_objects.bindings.length, 1);
     assert.equal((await read(target, 'workerkit.json')).frontend, frontend);
     assert.equal((await read(target, 'vendor/worker-kit/source.json')).digest.length, 64);
+    assert.equal(await has(path.join(target, 'vendor/worker-kit/src/web')), false);
+    assert.equal(await has(path.join(target, 'vendor/worker-kit/src/tooling/vite.ts')), false);
+    assert.equal(await has(path.join(target, 'vendor/worker-kit/src/client/index.ts')), true);
+    for (const file of ['fixtures.json', 'store.js', 'data.ts', 'component-pages.json']) assert.equal(await has(path.join(target, 'shared', file)), false);
+    assert.equal(await has(path.join(target, 'web/public/media')), false);
+    assert.equal(await has(path.join(target, 'web/public/favicon.svg')), true);
+    if (frontend !== 'vben') assert.equal(Boolean((await read(target, 'web/package.json')).dependencies?.echarts), false);
     for (const file of ['.env', '.dev.vars', '.wrangler', '.open-next', 'node_modules', 'package-lock.json']) assert.equal(await has(path.join(target, 'server', file)), false);
     execFileSync(process.execPath, ['--check', path.join(target, 'scripts/project.mjs')], { stdio: 'pipe' });
     if (backend === 'payload') { assert.equal(pkg.scripts.build, 'next build --webpack'); assert.equal(pkg.scripts['build:worker'], 'opennextjs-cloudflare build'); }

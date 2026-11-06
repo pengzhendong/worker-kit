@@ -15,8 +15,7 @@ test('virtual grid bounds rendered cards, adapts columns, and keeps shell fixed 
           style:{height:'100%',background:'var(--wk-color-surface)',padding:16,border:'1px solid var(--wk-color-border)',borderRadius:10}
         },'卡片 '+item.id)}))}`});
   });
-  await openDashboard(page, 'components');
-  await page.getByRole('tab', {name:'媒体预览', exact:true}).click();
+  await openDashboard(page, 'media');
   const grid = page.getByRole('list', {name:'大量卡片'});
   const content = page.locator('[data-workerkit-region=content]');
   await expect(grid).toHaveAttribute('aria-busy', 'true');

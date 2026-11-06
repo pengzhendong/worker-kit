@@ -18,9 +18,6 @@
 .connection-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--wk-color-success); margin-top: 7px; }
 .demo-stack { display: flex; width: 100%; }
 .demo-stack > .ant-space-item { width: 100%; min-width: 0; }
-.demo-toolbar { justify-content: flex-start; gap: 8px; }
-.demo-confirm-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-top: 24px; }
-.demo-state-preview { min-height: 200px; margin-top: 24px; }
 .tool-command { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 24px; padding: 16px 0; border-bottom: 1px solid var(--wk-color-primary-border); }
 .tool-command:last-child { border-bottom: 0; }
 .tool-command > :first-child { flex: 1 1 320px; min-width: 0; }

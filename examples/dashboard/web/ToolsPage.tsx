@@ -42,7 +42,7 @@ const projectPages = [
   { key: 'settings', description: '编辑 KV 中声明过的应用设置，并保留字段校验和操作记录。' },
   { key: 'files', description: '管理当前应用的私有 R2 文件，支持上传、认证下载和删除。' },
   { key: 'audit', description: '查看谁修改了资源、文件或应用设置；用于追溯业务变更。' },
-  { key: 'components', description: '体验列表、弹窗、表单和状态反馈，使用临时数据，不写入业务存储。' },
+  { key: 'media', description: '验证共享媒体组件的按需播放、波形、定位与错误恢复；仅用于本地开发。' },
 ];
 const optionalTools = [
   { title: 'Durable Objects', description: '浏览对象的 SQLite 表，查询和编辑对象内部数据。', requirement: 'SQLite 类型的 Durable Object 绑定' },

@@ -3,7 +3,7 @@ import { appendFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
 export function needsVisual(files) {
-  return files.some(file => /^(src\/(web|contracts|modules)\/|src\/tooling\/vite\.ts$|examples\/dashboard\/|e2e\/|playwright\.config\.ts$|package(-lock)?\.json$|scripts\/ci-changes\.mjs$|\.github\/workflows\/check\.yml$)/.test(file));
+  return files.some(file => /^(src\/(web|client|contracts|modules)\/|src\/tooling\/vite\.ts$|examples\/dashboard\/|e2e\/|playwright\.config\.ts$|package(-lock)?\.json$|scripts\/ci-changes\.mjs$|\.github\/workflows\/check\.yml$)/.test(file));
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   let visual = true; // Missing history and manual runs conservatively execute the whole suite.

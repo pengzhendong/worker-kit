@@ -34,11 +34,15 @@ async function filesIn(root) {
   await visit(root); return files.sort();
 }
 
-// A source snapshot supports this unreleased working tree without pretending its changes
-// already exist in a remote commit. Only this directory is touched by an explicit sync.
+// Record the exact shared-source subset and its hashes, including local changes.
+// Only this directory is touched by an explicit sync.
 async function snapshot(source, target, frontend) {
   await mkdir(target, { recursive: true });
-  await cp(path.join(source, 'src'), path.join(target, 'src'), { recursive: true });
+  const sharedSource = path.join(source, 'src');
+  await cp(sharedSource, path.join(target, 'src'), { recursive: true, filter: file => {
+    const relative = path.relative(sharedSource, file).replaceAll(path.sep, '/');
+    return relative !== 'web' && !relative.startsWith('web/') && relative !== 'tooling/vite.ts';
+  } });
   const pkg = await json(path.join(source, 'package.json'));
   const { name, version, type, engines, exports, peerDependencies, peerDependenciesMeta } = pkg;
   const entries = Object.fromEntries(Object.entries(exports).filter(([key]) => !key.startsWith('./web') && key !== './tooling/vite'));
@@ -83,16 +87,21 @@ export async function createProject(args) {
   const frontend = options.frontend, backend = options.backend;
   await mkdir(project, { recursive: true });
   await snapshot(kit, path.join(project, 'vendor/worker-kit'), frontend);
-  const ignored = new Set(['node_modules', 'dist', '.git', '.wrangler', '.next', '.open-next', '.vitepress/cache', '.vitepress/dist', 'test-results', 'playwright-report']);
+  const ignored = new Set(['node_modules', 'dist', '.git', '.wrangler', '.next', '.open-next', '.vitepress/cache', '.vitepress/dist', 'test-results', 'playwright-report', 'public/media']);
   await cp(path.join(kit, 'examples', choices[frontend]), path.join(project, 'web'), { recursive: true, filter: source => {
     const rel = path.relative(path.join(kit, 'examples', choices[frontend]), source).replaceAll(path.sep, '/');
     const name = path.basename(source);
     if (name === '.dev.vars' || name.startsWith('.dev.vars.') || name === '.env' || (name.startsWith('.env.') && name !== '.env.example')) return false;
     return ![...ignored].some(x => rel === x || rel.startsWith(x + '/')) && !rel.includes('.tsbuildinfo');
   } });
-  await cp(path.join(kit, 'examples/nuxt-dashboard/public'), path.join(project, 'web/public'), { recursive: true });
+  const publicSource = path.join(kit, 'examples/nuxt-dashboard/public');
+  await cp(publicSource, path.join(project, 'web/public'), { recursive: true, filter: file => {
+    const relative = path.relative(publicSource, file).replaceAll(path.sep, '/');
+    return relative !== 'media' && !relative.startsWith('media/');
+  } });
   if (frontend === 'vben') await cp(path.join(kit, 'examples/vben-dashboard/LICENSE.vben'), path.join(project, 'web/LICENSE.vben'));
-  await cp(path.join(kit, 'examples/ui-demo'), path.join(project, 'shared'), { recursive: true, filter: source => !source.includes('/branding') });
+  await mkdir(path.join(project, 'shared'), { recursive: true });
+  for (const file of ['operations.js', 'operations.d.ts']) await cp(path.join(kit, 'examples/ui-demo', file), path.join(project, 'shared', file));
   for (const file of await filesIn(path.join(project, 'web'))) {
     if (!/\.(vue|tsx?|jsx?|m[tc]s)$/.test(file)) continue;
     const full = path.join(project, 'web', file);

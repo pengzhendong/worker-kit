@@ -61,7 +61,7 @@ my-worker/
 
 ## 升级方式
 
-现有消费项目继续使用 Git submodule。本地创建器当前采用逐文件 SHA-256 的**共享源码快照**：这些集成仍在未发布工作区中，不能让新项目绑定到一个并不包含集成代码的远程 commit。`vendor/worker-kit/source.json` 记录来源 commit、dirty 状态、实际文件摘要，避免误报版本。
+现有消费项目继续使用 Git submodule。本地创建器当前采用逐文件 SHA-256 的**共享源码快照**：只包含所需的共享基础源码，不复制旧 React UI 或 Vite 适配入口；业务前端使用选定框架。`vendor/worker-kit/source.json` 记录来源 commit、dirty 状态、实际文件摘要。
 
 ```sh
 npm run kit:sync -- --source /path/to/reviewed/worker-kit
@@ -71,9 +71,11 @@ npm run check
 
 同步先核对 vendor 全部文件摘要，有本地修改就拒绝覆盖；完整准备新副本后替换，并保留旧副本。它不改 `web/`、`server/`、业务迁移、lockfile 或 Secret。前端、后端 npm 依赖分别由 lockfile 固定；修改 npm 版本与原生模板时，审核上游变更并执行真实页面回归。Vben 的源码仍按 commit 与压缩包 SHA 固定；Payload、SonicJS 依赖正式 npm 包，不 fork CMS 引擎。
 
-快照同步只升级共享基础代码，不声称自动迁移已经定制过的前端与 CMS 模板。集成发布并固定后，可以按现有仓库约定把 vendor 改为固定 commit 的 submodule，业务源码位置和普通导入方式保持一致。
+快照同步只升级共享基础代码，不声称自动迁移已经定制过的前端与 CMS 模板。需要沿用 submodule 时，可以按现有仓库约定把 vendor 改为审核过的固定 commit，业务源码位置和普通导入方式保持一致。
 
 ## 旧实现退役
+
+现有 Worker 的引用清点、认证与数据保留、逐项目重新接入及兼容入口退役顺序见[消费项目迁移](consumer-migration.md)。创建器不复制旧 React UI、演示 fixture 或公开测试媒体；只保留真实工作台客户端。演示用图表与路由适配依赖按生成页面的实际使用情况移除；Vben 的固定上游锁与依赖声明保持配套。
 
 新项目不再使用旧 Ant Design 6 AdminShell、旧单管理员登录和 fixture 业务页面。旧项目仍有引用，所以本轮保留兼容导出；后续逐个迁移并通过认证、任务、存储和页面检查后，删除旧页面、兼容转发及不再引用的依赖。不要为了换外观丢掉任务执行、访问密钥的权限边界或私有文件访问规则。
 

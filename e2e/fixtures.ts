@@ -98,8 +98,19 @@ export { expect };
 
 export async function openDashboard(page: Page, section = 'overview') {
   await page.goto(`/#${section}`);
+  await expectDashboard(page, section);
+}
+
+export async function navigateDashboard(page: Page, section: string) {
+  // Exercise the real hash router without reloading the document: unmount cleanup
+  // must stop players and cancel work even when the browser stays on this page.
+  await page.evaluate(section => { window.location.hash = `/${section}`; }, section);
+  await expectDashboard(page, section);
+}
+
+async function expectDashboard(page: Page, section: string) {
   await expect(page.locator('[data-workerkit-shell]')).toBeVisible();
-  await expect(page.getByRole('heading', { name: { overview: '工作台', resources: '资源管理', files: '文件管理', components: '组件与交互', tools: '开发工具', api: 'API 中心', runtime: '运行状态' }[section] ?? section, exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: { overview: '工作台', resources: '资源管理', files: '文件管理', media: '媒体预览', tools: '开发工具', api: 'API 中心', runtime: '运行状态' }[section] ?? section, exact: true })).toBeVisible();
   await expect(page.locator('.ant-spin-spinning')).toHaveCount(0);
   await page.evaluate(() => document.fonts.ready);
 }

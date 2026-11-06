@@ -10,7 +10,11 @@ test('upstream table controls change density, hide columns and refresh the scope
   await page.getByRole('button', { name: '列设置', exact: true }).press('Enter');
   const settings = page.locator('.ant-popover').filter({ hasText: '列展示' });
   await expect(settings).toBeVisible();
-  await settings.getByRole('checkbox', { name: '类型', exact: true }).uncheck();
+  const typeColumn = settings.getByRole('checkbox', { name: '类型', exact: true });
+  await expect(typeColumn).toBeChecked();
+  await typeColumn.click();
+  // Updating columns may rebuild/close the native popover. Assert the table's
+  // visible result rather than the lifecycle of that transient checkbox node.
   await expect(page.getByRole('columnheader', { name: '类型', exact: true })).toHaveCount(0);
   await page.keyboard.press('Escape');
   await page.getByRole('heading', { name: '资源管理', exact: true }).click();

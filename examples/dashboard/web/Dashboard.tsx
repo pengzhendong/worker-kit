@@ -16,12 +16,15 @@ const SettingsPage = lazy(() => import('./SettingsPage').then((module) => ({ def
 const AuditPage = lazy(() => import('./AuditPage').then((module) => ({ default: module.AuditPage })));
 const ApiCenterPage = lazy(() => import('./ApiCenterPage').then((module) => ({ default: module.ApiCenterPage })));
 const RuntimeStatusPage = lazy(() => import('@pengzhendong/worker-kit/web/runtime-status').then(({ RuntimeStatus }) => ({ default: () => <RuntimeStatus client={api} /> })));
-const ComponentsPage = lazy(() => import('./ComponentsPage').then((module) => ({ default: module.ComponentsPage })));
+const MediaPage = import.meta.env.DEV ? lazy(() => import('./MediaPage').then((module) => ({ default: module.MediaPage }))) : null;
 const ToolsPage = import.meta.env.DEV ? lazy(() => import('./ToolsPage').then((module) => ({ default: module.ToolsPage }))) : null;
 type Session = { user: string; expiresAt: number };
 const modules = defineModules([
   ...dashboardModules,
-  ...(import.meta.env.DEV ? [{ id: 'tools', label: '开发工具', path: '/tools', icon: 'tools', navigation: { placement: 'sidebar', order: 60 }, actions: {}, developmentOnly: true } as const] : []),
+  ...(import.meta.env.DEV ? [
+    { id: 'media', label: '媒体预览', path: '/media', icon: 'files', navigation: { placement: 'sidebar', order: 50 }, actions: {}, developmentOnly: true } as const,
+    { id: 'tools', label: '开发工具', path: '/tools', icon: 'tools', navigation: { placement: 'sidebar', order: 60 }, actions: {}, developmentOnly: true } as const,
+  ] : []),
 ]);
 function getPage() {
   const path = window.location.hash.slice(1);
@@ -49,13 +52,16 @@ function Console({ session, onLogout }: { session: Session; onLogout: () => Prom
     audit: () => <AuditPage />,
     runtime: () => <RuntimeStatusPage />,
     api: () => <ApiCenterPage />,
-    components: () => <ComponentsPage />,
     account: () => <><PageHeader title="当前账户" description="查看当前管理员身份与会话信息。" /><Card title="账户信息" style={{ maxWidth: 820 }}><Descriptions column={1} items={[
       { key: 'name', label: '用户名', children: session.user }, { key: 'role', label: '访问权限', children: <Tag color="blue">管理员</Tag> },
       { key: 'expiry', label: '会话到期时间', children: formatTime(new Date(session.expiresAt * 1000).toISOString()) },
     ]} /><Button style={{ marginTop: 24 }} onClick={() => void onLogout()}>退出当前登录</Button></Card></>,
   };
-  const renderers: Record<string, (() => ReactNode) | undefined> = { ...pages, ...(ToolsPage ? { tools: () => <ToolsPage onNavigate={navigate} /> } : {}) };
+  const renderers: Record<string, (() => ReactNode) | undefined> = {
+    ...pages,
+    ...(MediaPage ? { media: () => <MediaPage /> } : {}),
+    ...(ToolsPage ? { tools: () => <ToolsPage onNavigate={navigate} /> } : {}),
+  };
   const forbidden = module && !canOpen(module.id);
   return <AdminShell brandIcon={<img src="/favicon.svg" width={32} height={32} alt="" />} title={settings.siteName} username={session.user} activeKey={module?.id ?? path} onNavigate={navigate}
     items={navigation('sidebar')} userMenuItems={navigation('user')} onLogout={onLogout}>

@@ -28,7 +28,6 @@ export function Icon({ name }: { name: string }) {
     audit: 'M6 3h12v18H6z M9 7h6 M9 11h6 M9 15h4',
     runtime: 'M3 12h4l3-8 4 16 3-8h4',
     account: 'M16 7a4 4 0 1 1-8 0a4 4 0 0 1 8 0 M4 21v-2a8 8 0 0 1 16 0v2',
-    components: 'M3 3h6v6H3z M14 3h7v6h-7z M3 14h6v7H3z M14 14h7v7h-7z',
     tools: 'M14 6a4 4 0 0 0-5 5L3 17l4 4 6-6a4 4 0 0 0 5-5l-3 3-4-4z',
     database: 'M20 6c0 2-3.6 3-8 3S4 8 4 6s3.6-3 8-3 8 1 8 3z M4 6v12c0 2 3.6 3 8 3s8-1 8-3V6 M4 12c0 2 3.6 3 8 3s8-1 8-3',
     key: 'M14 4a6 6 0 1 1-3 11L4 22H2v-4l7-7a6 6 0 0 1 5-7z M17 8h.01',

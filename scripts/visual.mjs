@@ -9,11 +9,11 @@ const result = spawnSync('docker', [
   '-e', 'CI=1', '-e', 'WORKERKIT_VISUAL_ENV=playwright-linux-amd64',
   '--mount', `type=bind,source=${root},target=/work`,
   '--mount', 'type=volume,target=/work/node_modules',
-  // npm ci visits every workspace. Isolate each install from the host previews,
-  // including Vue/VitePress's temporary resolver links and native dependencies.
+  // Keep every workspace isolated from host previews; this suite installs only
+  // the React compatibility consumer. Native candidate apps have separate checks.
   ...workspaces.flatMap(workspace => ['--mount', `type=volume,target=/work/${workspace}/node_modules`]),
   '-w', '/work', 'mcr.microsoft.com/playwright:v1.64.1-noble@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea',
-  'bash', '-lc', 'npm ci && npm run test:ui:run -- "$@"', '--', ...process.argv.slice(2),
+  'bash', '-lc', 'npm ci --workspace @worker-kit/dashboard --include-workspace-root && npm run test:ui:run -- "$@"', '--', ...process.argv.slice(2),
 ], { stdio: 'inherit' });
 if (result.error) console.error('UI screenshots require Docker. Start Docker and rerun npm run test:ui.', result.error.message);
 process.exit(result.status ?? 1);

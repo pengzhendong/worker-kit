@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, readdir, writeFile, access } from 'node:fs/promises';
+import { cp, mkdir, readFile, readdir, writeFile, access, rm } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -21,15 +21,22 @@ if (!await exists(path.join(upstream, '.workerkit-verified.json'))) {
   await cp(pristine, upstream, { recursive: true });
 }
 const app = path.join(upstream, 'apps/workerkit-demo');
+const appSource = process.env.WORKERKIT_VBEN_APP || path.join(here, 'app');
+if (path.resolve(appSource) === path.resolve(app)) throw new Error('Vben app source must be outside its generated build directory.');
 await mkdir(app, { recursive: true });
-await cp(process.env.WORKERKIT_VBEN_APP || path.join(here, 'app'), app, { recursive: true });
+// Replace generated source/assets, retaining installed dependencies. Deleted demo
+// pages must not survive when this build directory is reused by a starter.
+for (const directory of ['src', 'public']) await rm(path.join(app, directory), { recursive: true, force: true });
+await cp(appSource, app, { recursive: true });
 await cp(path.join(process.env.WORKERKIT_SHARED || path.join(root, 'examples/ui-demo'), 'operations.js'), path.join(app, 'src/operations.js'));
 await writeFile(path.join(app, 'src/operations.js'), (await readFile(path.join(app, 'src/operations.js'), 'utf8')).replace(/from '[^']*src\/client\/index\.ts'/, `from '${path.join(root, 'src/client/index.ts')}'`));
 await cp(path.join(process.env.WORKERKIT_SHARED || path.join(root, 'examples/ui-demo'), 'operations.d.ts'), path.join(app, 'src/operations.d.ts'));
 await writeFile(path.join(app, 'src/operations.d.ts'), (await readFile(path.join(app, 'src/operations.d.ts'), 'utf8')).replace(/from '[^']*src\/contracts\/([^']+)'/g, (_, file) => `from '${path.join(root, 'src/contracts', file)}'`));
-await cp(path.join(process.env.WORKERKIT_SHARED || path.join(root, 'examples/ui-demo'), 'data.ts'), path.join(app, 'src/data.ts'));
-await cp(path.join(process.env.WORKERKIT_SHARED || path.join(root, 'examples/ui-demo'), 'component-pages.json'), path.join(app, 'src/component-pages.json'));
-await cp(path.join(process.env.WORKERKIT_SHARED || path.join(root, 'examples/ui-demo'), 'fixtures.json'), path.join(app, 'src/fixtures.json'));
+// The comparison app has fixtures; generated business apps intentionally do not.
+for (const file of ['data.ts', 'component-pages.json', 'fixtures.json']) {
+  const source = path.join(process.env.WORKERKIT_SHARED || path.join(root, 'examples/ui-demo'), file);
+  if (await exists(source)) await cp(source, path.join(app, 'src', file));
+}
 await cp(process.env.WORKERKIT_PUBLIC || path.join(root, 'examples/nuxt-dashboard/public'), path.join(app, 'public'), { recursive: true });
 
 // Keep upstream packages intact. Install only the workspace closure used by this demo.

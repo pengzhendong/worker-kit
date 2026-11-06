@@ -1,4 +1,4 @@
-import { test, expect, openDashboard } from './fixtures';
+import { test, expect, openDashboard, navigateDashboard } from './fixtures';
 
 for (const layout of ['list', 'grid'] as const) test(`automatic ${layout} pagination fits real available height, reacts to resizing and ignores content scroll`, async ({ page }) => {
   // Render an isolated consumer through Vite's actual resolved imports, without production test switches.
@@ -29,8 +29,7 @@ for (const layout of ['list', 'grid'] as const) test(`automatic ${layout} pagina
       }
     ` });
   });
-  await openDashboard(page, 'components');
-  await page.getByRole('tab', { name: '媒体预览', exact: true }).click();
+  await openDashboard(page, 'media');
   const demo = page.getByTestId('auto-page-demo');
   const capacity = async () => Number(await demo.getByTestId('capacity').textContent());
   await expect.poll(capacity).toBeGreaterThan(1);
@@ -72,6 +71,6 @@ for (const layout of ['list', 'grid'] as const) test(`automatic ${layout} pagina
     await assertFit();
   }
   await page.setViewportSize(viewport);
-  await page.getByRole('tab', { name: '状态与反馈', exact: true }).click();
+  await navigateDashboard(page, 'resources');
   await expect(demo).toHaveCount(0);
 });

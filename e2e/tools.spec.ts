@@ -26,7 +26,7 @@ test('tools describe native capabilities, commands and optional bindings', async
   for (const command of ['npm run check', 'npm run test:ui', 'npx playwright show-report', 'npm run types', 'npm run build', 'npm run deploy:dry-run']) {
     await expect(page.getByText(command, { exact: true })).toBeVisible();
   }
-  await expect(page.getByRole('button', { name: '打开组件与交互', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: '打开媒体预览', exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize()!.width);
   await screenshot(page, 'tools-project.png');
   await page.getByRole('tab', { name: '模块与权限', exact: true }).click();
@@ -46,7 +46,7 @@ test('tools describe native capabilities, commands and optional bindings', async
 test('project tools navigate into working application pages', async ({ page }) => {
   await openDashboard(page, 'tools');
   await page.getByRole('tab', { name: '项目工具', exact: true }).click();
-  await page.getByRole('button', { name: '打开组件与交互', exact: true }).click();
-  await expect(page.getByRole('heading', { name: '组件与交互', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: '打开媒体预览', exact: true }).click();
+  await expect(page.getByRole('heading', { name: '媒体预览', exact: true })).toBeVisible();
   await expect.poll(() => page.locator('[data-workerkit-region="content"]').evaluate((node) => node.scrollTop)).toBe(0);
 });

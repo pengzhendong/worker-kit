@@ -1,8 +1,7 @@
-import { test, expect, openDashboard, screenshot } from './fixtures';
+import { test, expect, openDashboard, navigateDashboard, screenshot } from './fixtures';
 
 async function openMedia(page: import('@playwright/test').Page) {
-  await openDashboard(page, 'components');
-  await page.getByRole('tab', { name: '媒体预览', exact: true }).click();
+  await openDashboard(page, 'media');
   await expect(page.getByTestId('media-player-examples').locator('[data-workerkit-media]')).toHaveCount(5);
   await expect(page.getByRole('button', { name: '加载波形', exact: true }).first()).toBeEnabled();
 }
@@ -26,7 +25,7 @@ test('media loads on demand, decodes a real waveform, seeks and pauses other pla
   await expect.poll(() => video.locator('video').evaluate(e => (e as HTMLMediaElement).paused)).toBe(false);
   await expect.poll(() => video.locator('video').evaluate(e => (e as HTMLMediaElement).currentTime)).toBeGreaterThan(0);
   await expect.poll(() => audio.locator('audio').evaluate(e => (e as HTMLMediaElement).paused)).toBe(true);
-  await page.getByRole('tab', { name: '状态与反馈', exact: true }).click();
+  await navigateDashboard(page, 'resources');
   await expect(page.locator('audio,video')).toHaveCount(0);
 });
 
@@ -49,7 +48,7 @@ test('media handles unavailable files and large audio without decoding', async (
 test('media keeps the approved appearance', async ({ page }) => {
   await openMedia(page);
   await expect(page.getByRole('img', { name: '山间日落', exact: true })).toBeVisible();
-  await screenshot(page, 'components-media.png');
+  await screenshot(page, 'media-preview.png');
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize()!.width);
 });
 
@@ -100,7 +99,7 @@ test('compact audio fits narrow cards, shows known duration without fetching, an
   await compact.getByRole('slider', { name: '定位', exact: true }).press('End');
   await expect.poll(() => compact.locator('audio').evaluate(e => (e as HTMLMediaElement).currentTime)).toBeGreaterThan(7);
   await assertFit();
-  await screenshot(page, 'components-media-compact.png');
+  await screenshot(page, 'media-compact.png');
 });
 
 test('compact browser spacing and mixed media rows keep aligned thumbnails, metadata and controls', async ({ page }) => {
@@ -170,8 +169,7 @@ test('mixed previews share controls, defer media requests, pause each other and 
   await expect.poll(() => video.locator('video').evaluate(e => (e as HTMLMediaElement).currentTime)).toBeGreaterThan(0);
   const before = (await video.boundingBox())!.height;
   await page.route('**/media/clip.mp4', route => route.fulfill({ status: 404, body: 'Missing' }));
-  await page.getByRole('tab', { name: '状态与反馈', exact: true }).click();
-  await page.getByRole('tab', { name: '媒体预览', exact: true }).click();
+  await page.getByRole('button', { name: '重置媒体', exact: true }).click();
   await demo.locator('[data-workerkit-media-row=video]').getByRole('button', { name: '播放', exact: true }).click();
   await expect(video.getByRole('alert')).toBeVisible();
   expect((await video.boundingBox())!.height).toBeCloseTo(before, 0);

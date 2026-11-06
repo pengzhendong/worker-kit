@@ -62,7 +62,7 @@ npm run dev:payload
 
 首次先运行 `npm ci`。Vben 另需 pnpm 11，会下载固定上游源码和示例依赖。所有示例都不连接生产服务，详情见[界面方案示范](docs/ui-demos.md)。
 
-要求 Node.js 22.12+。仓库内的 dashboard 是一个普通业务应用，用于检验共享库的接入方式。
+旧 React 接入示例要求 Node.js 22.12+，仅用于现有公共接口的兼容验证。根目录 `npm run dev` 打开新的统一预览；兼容示例使用 `npm run dev:compat`。现有项目重新接入的顺序见[消费项目迁移](docs/consumer-migration.md)。
 
 ```sh
 npm ci
@@ -72,7 +72,7 @@ cp examples/dashboard/.dev.vars.example examples/dashboard/.dev.vars
 编辑 `.dev.vars`，设置自己的本地密码和随机会话密钥，然后运行：
 
 ```sh
-npm run dev
+npm run dev:compat
 ```
 
 启动会自动应用本地 D1 迁移，写入四条可编辑的示例配置；不会读取或修改已有 Worker 项目。开发服务器只监听 `127.0.0.1`。按照终端中的本地地址打开页面，输入配置的管理员凭据。没有跳过认证的开发开关。
@@ -172,7 +172,7 @@ Hono 负责 Cookie 签名和凭据比较。会话默认 12 小时；更改用户
 
 扩充能力遵循[开源优先约定](docs/open-source-policy.md)：先使用现有依赖的原生组件，再验证其他开源方案，只为明确缺口写最小适配。dashboard 资源管理页局部试用 ProComponents 的 ProTable / ModalForm；其 Ant Design 6 兼容版本仍为预发布版，固定版本且不进入共享入口或强制消费依赖。
 
-图片缩放、音视频播放和按需波形通过可选的 [`web/media` 入口](docs/media.md) 接入，基于 Ant Design Image、Video.js 10 与 WaveSurfer。演示位置为“组件与交互 → 媒体预览”，不影响普通前后端入口的依赖。
+图片缩放、音视频播放和按需波形通过可选的 [`web/media` 入口](docs/media.md) 接入，基于 Ant Design Image、Video.js 10 与 WaveSurfer。兼容示例的开发入口为“媒体预览”，不影响普通前后端入口的依赖。
 
 应用根部放置 `WorkerKitProvider`，按需组合 `LoginPage` 和 `AdminShell`。菜单、当前页面、导航行为和退出操作全部由业务传入。共享库不绑定 React Router，也不要求所有应用采用同一导航实现。
 
@@ -218,7 +218,7 @@ Honeybee 原项目已接入固定版本 submodule、公共布局与主题、底�
 - API 中心：29 个操作的搜索、方法与分组筛选、Scalar 文档与同源调试、访问令牌生成和撤销。
 - 运行状态：图标化的依赖连接检查、检查记录、应用及 Worker 版本；可选的 Cloudflare 请求量、错误率、CPU 与内存 P50/P99。未接入时不伪造数据，见[接入与数据来源](docs/runtime-status.md)。
 - 当前账户：当前身份、会话期限和退出。
-- 组件与交互：页面组合、搜索筛选与批量启停、本地文件选择、弹窗校验与失败重试、删除确认与还原、加载/空/错误状态、消息与通知。所有操作仅使用页面内的临时数据，支持重置，不写入业务 API 或存储。
+- 媒体预览：仅在兼容示例的开发环境中验证共享媒体组件；普通组件体验统一在八套原生前端中查看。
 - 开发工具：仅本地开发展示，按“本地调试、项目工具、模块与权限、运行与恢复、按需扩展”介绍已有工具、实际声明与授权、只读依赖诊断、错误恢复演示及检查命令。
 
 公开 `/health` 只做存活检查；受保护的依赖诊断按需读取 D1/KV/R2。运行指标和日志使用 Cloudflare 原生 Observability。D1 操作日志可通过 `AUDIT_RETENTION_DAYS` 显式启用保留策略和手动分批清理，默认 `"0"` 关闭；没有自动删除或自建采集服务。详见[运行检查与保留策略](docs/lifecycle-and-operations.md)。
@@ -227,7 +227,7 @@ Honeybee 原项目已接入固定版本 submodule、公共布局与主题、底�
 
 示例的资源数据和审计表结构属于示例业务，迁移在 `examples/dashboard/migrations/` 中。资源写入与对应日志使用 D1 batch；R2/KV 与 D1 无法形成跨存储事务，因此跨存储审计采用尽力写入，失败记入服务端日志。R2 文件计数和用量概览最多枚举前 1000 个文件，超过时明确标记。
 
-部署带数据库的应用前先确认对应资源已创建并绑定，并显式执行远程迁移；`npm run dev` 只迁移本地数据：
+部署带数据库的应用前先确认对应资源已创建并绑定，并显式执行远程迁移；`npm run dev:compat` 只迁移兼容示例的本地数据：
 
 ```sh
 npm run db:local --workspace @worker-kit/dashboard

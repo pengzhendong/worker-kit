@@ -1,8 +1,7 @@
-import { test, expect, openDashboard } from './fixtures';
+import { test, expect, openDashboard, navigateDashboard } from './fixtures';
 
 async function openPlayer(page: import('@playwright/test').Page) {
-  await openDashboard(page, 'components');
-  await page.getByRole('tab', { name: '媒体预览', exact: true }).click();
+  await openDashboard(page, 'media');
   await page.getByText('观看场景播放器', { exact: true }).click();
   const example = page.getByTestId('viewing-player-example');
   await example.scrollIntoViewIfNeeded();
@@ -67,7 +66,7 @@ test('viewing player web fullscreen, hold rate, cancellation and unmount restore
   await page.keyboard.press('Escape'); await expect(player).toHaveAttribute('data-web-fullscreen', 'false');
   expect(await page.evaluate(() => document.body.style.overflow)).not.toBe('hidden');
   await video.evaluate(e => { (window as any).oldViewingVideo = e; });
-  await page.getByRole('tab', { name: '状态与反馈', exact: true }).click();
+  await navigateDashboard(page, 'resources');
   expect(await page.evaluate(() => ({paused:(window as any).oldViewingVideo.paused, src:(window as any).oldViewingVideo.getAttribute('src')}))).toEqual({paused:true,src:null});
 });
 
@@ -105,5 +104,7 @@ test('viewing player touch hold and swipe coexist in fullscreen', async ({ page 
 test('viewing player appearance', async ({ page }) => {
   const player = await openPlayer(page);
   await expect(player.locator('video')).toHaveAttribute('poster', '/media/landscape.svg');
+  await expect.poll(() => player.locator('video').evaluate(video => (video as HTMLVideoElement).readyState)).toBeGreaterThan(0);
+  await page.evaluate(() => document.fonts.ready);
   await expect(player).toHaveScreenshot('viewing-player.png', { animations:'disabled' });
 });

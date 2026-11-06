@@ -6,17 +6,18 @@ export async function prepareFrontend({ kit, project, frontend, put, json }) {
   const edit = async (file, fn) => put(path.join(web, file), fn(await readFile(path.join(web, file), 'utf8')));
   const pkg = await json(path.join(web, 'package.json'));
   if (frontend === 'nuxt') {
-    await edit('src/main.ts', text => text.replace(/routes: \[[\s\S]*?\n  \],/, "routes: [{ path: '/', redirect: '/workspace' }, { path: '/workspace', component: () => import('./pages/Workspace.vue'), meta: { title: '业务工作台' } }],"));
+    await edit('src/main.ts', text => text.replace(/^import componentPages from .*;\n/m, '').replace(/routes: \[[\s\S]*?\n  \],/, "routes: [{ path: '/', redirect: '/workspace' }, { path: '/workspace', component: () => import('./pages/Workspace.vue'), meta: { title: '业务工作台' } }],"));
     await edit('src/App.vue', text => text.replace(/import componentPages from .*;/, 'const componentPages: { title: string; path: string; icon: string }[] = [];').replace(/const navigation: NavigationMenuItem\[\] = \[[\s\S]*?\n\];/, "const navigation: NavigationMenuItem[] = [{ label: '业务工作台', icon: 'i-lucide-activity', to: '/workspace' }];").replace('演示数据 · 未连接生产服务', '已连接业务后端').replace('所有操作仅影响本地演示。', '任务与运行记录保存在当前后端。'));
     for (const name of ['Overview', 'Tasks', 'Logs', 'Resources', 'Settings', 'Components']) await rm(path.join(web, 'src/pages', name + '.vue'));
     await edit('src/App.vue', text => text.replaceAll("to: '/settings'", "to: '/workspace'").replaceAll('应用设置', '业务工作台').replaceAll('Demo User', '工作空间').replaceAll('本地预览工作空间', '开发工作空间'));
   } else if (frontend === 'prime') {
-    await edit('src/main.js', text => text.replace("import Demo from './Demo.vue';", '').replace(/const paths = .*;/, "const paths = ['/'];").replace('component: Demo', 'component: Workspace'));
+    await edit('src/main.js', text => text.replace("import Demo from './Demo.vue';", '').replace(/^import componentPages from .*;\n/m, '').replace("import Chart from 'primevue/chart';", '').replace('FileUpload, Chart', 'FileUpload').replace(/const paths = .*;/, "const paths = ['/'];").replace('component: Demo', 'component: Workspace'));
+    delete pkg.dependencies['chart.js'];
     await put(path.join(web, 'src/layout/AppMenu.vue'), `<script setup>\nimport AppMenuItem from './AppMenuItem.vue';\nconst model = [{ label: '工作空间', items: [{ label: '业务工作台', icon: 'pi pi-bolt', to: '/workspace' }] }];\n</script>\n<template><ul class="layout-menu"><AppMenuItem v-for="(item,i) in model" :key="i" :item="item" :index="i" /></ul></template>\n`);
     await rm(path.join(web, 'src/Demo.vue')); await rm(path.join(web, 'src/ComponentExperience.vue'));
   } else if (frontend === 'vben') {
-    await edit('src/bootstrap.ts', text => text.replace(/const pages = \[[\s\S]*?\n  \];/, "const pages = [{ path: '/workspace', name: 'Workspace', title: '业务工作台', icon: 'lucide:activity' }];").replace("component: p.path === '/workspace' ? () => import('./Workspace.vue') : () => import('./Demo.vue')", "component: () => import('./Workspace.vue')").replace("{ path: '/:pathMatch(.*)*', redirect: '/' }", "{ path: '/:pathMatch(.*)*', redirect: '/workspace' }"));
-    await rm(path.join(web, 'src/Demo.vue')); await rm(path.join(web, 'src/ComponentExperience.vue'));
+    await edit('src/bootstrap.ts', text => text.replace(/^import componentPages from .*;\n/m, '').replace(/const pages = \[[\s\S]*?\n  \];/, "const pages = [{ path: '/workspace', name: 'Workspace', title: '业务工作台', icon: 'lucide:activity' }];").replace("component: p.path === '/workspace' ? () => import('./Workspace.vue') : () => import('./Demo.vue')", "component: () => import('./Workspace.vue')").replace("{ path: '/:pathMatch(.*)*', redirect: '/' }", "{ path: '/:pathMatch(.*)*', redirect: '/workspace' }"));
+    await rm(path.join(web, 'src/Demo.vue')); await rm(path.join(web, 'src/ComponentExperience.vue')); await rm(path.join(web, 'src/Trend.vue'));
   } else if (['pro', 'refine'].includes(frontend)) {
     const pro = frontend === 'pro';
     await put(path.join(web, 'src/main.jsx'), `import React from 'react';\nimport { createRoot } from 'react-dom/client';\nimport { ConfigProvider, App } from 'antd';\nimport zhCN from 'antd/locale/zh_CN';\nimport Workspace from './Workspace';\nimport './style.css';\n${pro ? "import { ProLayout, PageContainer } from '@ant-design/pro-components';" : "import { Refine } from '@refinedev/core';\nimport { ThemedLayout } from '@refinedev/antd';"}\ncreateRoot(document.getElementById('root')).render(<ConfigProvider locale={zhCN}><App>${pro ? '<ProLayout title="WorkerKit" logo="/app/favicon.svg" route={{ routes: [{ path: "/app/workspace", name: "业务工作台" }] }}><PageContainer title={<h1 className="pro-page-heading">业务工作台</h1>} content="查看当前后端的任务、运行记录与依赖状态。"><Workspace /></PageContainer></ProLayout>' : '<Refine resources={[{ name: "workspace", list: "/app/workspace", meta: { label: "业务工作台" } }]} options={{ disableTelemetry: true }}><ThemedLayout Title={() => <strong>WorkerKit</strong>}><div className="refine-content"><h1>业务工作台</h1><p className="muted">查看当前后端的任务、运行记录与依赖状态。</p><Workspace /></div></ThemedLayout></Refine>'}</App></ConfigProvider>);\n`);
@@ -33,6 +34,14 @@ export async function prepareFrontend({ kit, project, frontend, put, json }) {
     await put(path.join(web, 'index.md'), '# WorkerKit\n\n[打开业务工作台](./workspace)\n');
   }
   pkg.name = '@app/web';
+  // Vben shares its reviewed pnpm lock with the upstream workspace closure.
+  // Keep that declared dependency until the pinned lock is upgraded together.
+  if (frontend !== 'vben') delete pkg.dependencies?.echarts;
+  if (['pro', 'refine'].includes(frontend)) {
+    delete pkg.dependencies['@refinedev/react-router'];
+    delete pkg.dependencies['react-router'];
+  }
+  if (['tabler', 'adminlte'].includes(frontend)) delete pkg.dependencies.primeicons;
   if (frontend === 'nuxt') {
     pkg.devDependencies['@types/node'] = '26.6.5';
     const tsconfig = await json(path.join(web, 'tsconfig.json'));
