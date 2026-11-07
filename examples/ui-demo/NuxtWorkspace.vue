@@ -81,7 +81,10 @@ onUnmounted(() => {
           state.data.runtime.ok ? '依赖正常' : '依赖异常'
         }}</UBadge
         ><UButton
-          v-if="showCms !== false"
+          v-if="
+            showCms !== false &&
+            ['payload', 'sonic'].includes(state.data.backend)
+          "
           to="/admin"
           external
           variant="link"

@@ -40,8 +40,20 @@ const git = (source, args) => {
   }
 };
 const choices = {
+  sveltekit: 'sveltekit-dashboard',
+  astro: 'astro-dashboard',
+  'react-router': 'react-router-dashboard',
   nuxt: 'nuxt-dashboard',
   prime: 'prime-dashboard',
+  element: 'vue-components',
+  naive: 'vue-components',
+  shadcn: 'vue-components',
+  pure: 'pure-dashboard',
+  soybean: 'soybean-dashboard',
+  mui: 'react-components',
+  mantine: 'react-components',
+  vuetify: 'vue-components',
+  quasar: 'vue-components',
   vben: 'vben-dashboard/app',
   pro: 'react-admin',
   refine: 'react-admin',
@@ -256,7 +268,7 @@ export async function syncKit(args) {
 export async function createProject(args) {
   if (args.includes('--help') || args.includes('-h')) {
     console.log(
-      'workerkit create DIRECTORY --frontend nuxt|prime|vben|pro|refine|tabler|adminlte|docs --backend payload|sonic|native|hub',
+      'workerkit create DIRECTORY --frontend nuxt|prime|element|naive|shadcn|vuetify|quasar|mui|mantine|pure|soybean|vben|pro|refine|tabler|adminlte|docs --backend payload|sonic|native|nuxt|hub|hono|sveltekit|astro|react-router',
     );
     return;
   }
@@ -264,10 +276,20 @@ export async function createProject(args) {
   if (
     !options.directory ||
     !Object.hasOwn(choices, options.frontend) ||
-    !['payload', 'sonic', 'native', 'hub'].includes(options.backend)
+    ![
+      'payload',
+      'sonic',
+      'native',
+      'hub',
+      'nuxt',
+      'hono',
+      'sveltekit',
+      'astro',
+      'react-router',
+    ].includes(options.backend)
   )
     throw Error(
-      'Usage: workerkit create DIRECTORY --frontend nuxt|prime|vben|pro|refine|tabler|adminlte|docs --backend payload|sonic|native|hub',
+      'Usage: workerkit create DIRECTORY --frontend nuxt|prime|element|naive|shadcn|vuetify|quasar|mui|mantine|pure|soybean|vben|pro|refine|tabler|adminlte|docs --backend payload|sonic|native|nuxt|hub|hono|sveltekit|astro|react-router',
     );
   const project = path.resolve(options.directory);
   const relative = path.relative(kit, project);
@@ -283,12 +305,42 @@ export async function createProject(args) {
   if (await exists(project))
     throw Error('Destination already exists; choose a new directory.');
   const frontend = options.frontend,
-    backend = options.backend;
-  if (['native', 'hub'].includes(backend) && frontend !== 'nuxt')
+    backend = options.backend === 'nuxt' ? 'hub' : options.backend;
+  const frameworks = ['sveltekit', 'astro', 'react-router'];
+  if (frameworks.includes(backend) || frameworks.includes(frontend)) {
+    if (frontend !== backend)
+      throw Error(
+        'A full-stack framework starter requires matching --frontend and --backend',
+      );
+    await mkdir(project, { recursive: true });
+    const { prepareFrameworkProject } = await import(
+      './framework-template.mjs'
+    );
+    await prepareFrameworkProject({
+      kit,
+      project,
+      put,
+      snapshot,
+      framework: backend,
+    });
+    console.log(
+      `Created ${project}\n${backend} + Better Auth. Next: npm install, npm run setup, npm run dev`,
+    );
+    return;
+  }
+  if (['native', 'hub', 'hono'].includes(backend) && frontend !== 'nuxt')
     throw Error(
-      'The native/NuxtHub starter currently supports --frontend nuxt; other frontends remain available with Payload or SonicJS.',
+      'The Hono/native/Nuxt full-stack starter currently supports --frontend nuxt; other frontends remain available with Payload or SonicJS.',
     );
   await mkdir(project, { recursive: true });
+  if (backend === 'hono') {
+    const { prepareStandardProject } = await import('./standard-template.mjs');
+    await prepareStandardProject({ kit, project, put, snapshot });
+    console.log(
+      `Created ${project}\nNuxt UI + Hono + Better Auth. Next: npm install, npm run setup, npm run dev`,
+    );
+    return;
+  }
   if (backend === 'hub') {
     const { prepareHubProject } = await import('./hub-template.mjs');
     await prepareHubProject({ kit, project, put, snapshot });
@@ -319,30 +371,48 @@ export async function createProject(args) {
     'playwright-report',
     'public/media',
   ]);
-  await cp(
-    path.join(kit, 'examples', choices[frontend]),
-    path.join(project, 'web'),
-    {
-      recursive: true,
-      filter: (source) => {
-        const rel = path
-          .relative(path.join(kit, 'examples', choices[frontend]), source)
-          .replaceAll(path.sep, '/');
-        const name = path.basename(source);
-        if (
-          name === '.dev.vars' ||
-          name.startsWith('.dev.vars.') ||
-          name === '.env' ||
-          (name.startsWith('.env.') && name !== '.env.example')
-        )
-          return false;
-        return (
-          ![...ignored].some((x) => rel === x || rel.startsWith(x + '/')) &&
-          !rel.includes('.tsbuildinfo')
-        );
+  if (['pure', 'soybean'].includes(frontend)) {
+    const { prepareReviewedDashboard } = await import(
+      '../../scripts/build-upstream-dashboard.mjs'
+    );
+    await prepareReviewedDashboard(frontend, path.join(project, 'web'));
+    for (const file of ['operations.js', 'operations.d.ts']) {
+      const p = path.join(project, 'web/src/workerkit', file);
+      await put(
+        p,
+        (await readFile(p, 'utf8'))
+          .replaceAll(path.join(kit, 'src/'), '../../../vendor/worker-kit/src/')
+          .replaceAll(
+            '@pengzhendong/worker-kit/client',
+            '../../../vendor/worker-kit/src/client/index',
+          ),
+      );
+    }
+  } else
+    await cp(
+      path.join(kit, 'examples', choices[frontend]),
+      path.join(project, 'web'),
+      {
+        recursive: true,
+        filter: (source) => {
+          const rel = path
+            .relative(path.join(kit, 'examples', choices[frontend]), source)
+            .replaceAll(path.sep, '/');
+          const name = path.basename(source);
+          if (
+            name === '.dev.vars' ||
+            name.startsWith('.dev.vars.') ||
+            name === '.env' ||
+            (name.startsWith('.env.') && name !== '.env.example')
+          )
+            return false;
+          return (
+            ![...ignored].some((x) => rel === x || rel.startsWith(x + '/')) &&
+            !rel.includes('.tsbuildinfo')
+          );
+        },
       },
-    },
-  );
+    );
   const publicSource = path.join(kit, 'examples/nuxt-dashboard/public');
   await cp(publicSource, path.join(project, 'web/public'), {
     recursive: true,
@@ -418,7 +488,7 @@ export async function createProject(args) {
     type: 'module',
     engines: { node: '>=24.22.1' },
     devDependencies: { vite: '8.3.5' },
-    workspaces: frontend === 'vben' ? [] : ['web'],
+    workspaces: ['vben', 'pure', 'soybean'].includes(frontend) ? [] : ['web'],
     overrides: ['nuxt', 'prime'].includes(frontend)
       ? {
           tailwindcss: '4.3.4',

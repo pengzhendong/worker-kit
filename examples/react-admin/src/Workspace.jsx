@@ -42,9 +42,9 @@ export default function Workspace() {
             <Tag color={data.runtime.ok ? 'success' : 'error'}>
               {data.runtime.ok ? '依赖正常' : '依赖异常'}
             </Tag>
-            <Button href="/admin" type="link">
+            {["payload", "sonic"].includes(state.data.backend) && <Button href="/admin" type="link">
               管理内容与媒体 ↗
-            </Button>
+            </Button>}
           </>
         )}
       </div>

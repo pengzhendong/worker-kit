@@ -12,3 +12,9 @@ playwright-report/
 test-results/
 .DS_Store
 worker-configuration.d.ts
+
+# Optional full-stack framework build outputs
+.svelte-kit/
+.astro/
+.react-router/
+examples/react-router-dashboard/build/

@@ -1,0 +1,17 @@
+{
+  "name": "@worker-kit/auth-backend",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "better-auth": "1.7.18",
+    "hono": "4.13.13",
+    "@pengzhendong/worker-kit": "file:../..",
+    "agents": "0.32.0",
+    "cron-schedule": "6.0.0"
+  },
+  "devDependencies": {
+    "wrangler": "4.152.0",
+    "typescript": "6.0.3",
+    "tsx": "4.23.15"
+  }
+}

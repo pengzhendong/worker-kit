@@ -1,6 +1,6 @@
 {
   "name": "@pengzhendong/worker-kit",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "description": "Shared Cloudflare Workers foundations, consumed as a Git submodule.",
@@ -14,7 +14,10 @@
     "examples/docs",
     "examples/react-admin",
     "examples/bootstrap-admin",
-    "examples/native-dashboard"
+    "examples/native-dashboard",
+    "examples/vue-components",
+    "examples/auth-backend",
+    "examples/react-components"
   ],
   "exports": {
     "./client": "./src/client/index.ts",
@@ -97,7 +100,21 @@
     "test:integration": "node scripts/run-integrated-checks.mjs",
     "test:generated": "node scripts/check-generated.mjs",
     "test:management": "node scripts/check-management-parity.mjs",
-    "format:check": "prettier --check examples/ui-suite/preview.js examples/ui-suite/preview-protocol.js examples/ui-suite/frame-store.js examples/ui-demo/operations.js examples/ui-demo/operations.d.ts \"examples/ui-demo/Management*.vue\" examples/ui-demo/NuxtWorkspace.vue src/server/management.ts src/server/native-admin.ts src/server/task-worker.ts src/tooling/create.mjs src/tooling/native-template.mjs src/tooling/hub-template.mjs"
+    "format:check": "prettier --check examples/ui-suite/preview.js examples/ui-suite/preview-protocol.js examples/ui-suite/frame-store.js examples/ui-demo/operations.js examples/ui-demo/operations.d.ts \"examples/ui-demo/Management*.vue\" examples/ui-demo/NuxtWorkspace.vue src/server/management.ts src/server/native-admin.ts src/server/task-worker.ts src/tooling/create.mjs src/tooling/native-template.mjs src/tooling/hub-template.mjs",
+    "build:element": "WORKERKIT_DEMO_KIND=element vite build --config examples/vue-components/vite.config.ts",
+    "build:naive": "WORKERKIT_DEMO_KIND=naive vite build --config examples/vue-components/vite.config.ts",
+    "build:shadcn": "WORKERKIT_DEMO_KIND=shadcn vite build --config examples/vue-components/vite.config.ts",
+    "build:pure": "node scripts/build-upstream-dashboard.mjs pure",
+    "build:soybean": "node scripts/build-upstream-dashboard.mjs soybean",
+    "build:mui": "WORKERKIT_DEMO_KIND=mui vite build --config examples/react-components/vite.config.ts",
+    "build:mantine": "WORKERKIT_DEMO_KIND=mantine vite build --config examples/react-components/vite.config.ts",
+    "build:vuetify": "WORKERKIT_DEMO_KIND=vuetify vite build --config examples/vue-components/vite.config.ts",
+    "build:quasar": "WORKERKIT_DEMO_KIND=quasar vite build --config examples/vue-components/vite.config.ts",
+    "build:frameworks": "node scripts/build-frameworks.mjs",
+    "test:frameworks": "node scripts/check-frameworks.mjs",
+    "test:standard": "node scripts/check-standard-auth.mjs && node scripts/check-standard-roles.mjs",
+    "test:component-libraries": "node scripts/check-component-libraries.mjs && node scripts/check-expanded-libraries.mjs",
+    "test:matrix": "node scripts/check-candidate-matrix.mjs"
   },
   "peerDependencies": {
     "@ant-design/icons": "^6.3.4",

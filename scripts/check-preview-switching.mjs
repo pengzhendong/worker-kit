@@ -78,7 +78,7 @@ try {
   ).toBe('kept');
   await select('Vben Admin', '/vben/workspace', true);
   await select('Vben Admin', '/vben/workspace', true);
-  await select('PrimeVue / Sakai', '/prime/workspace');
+  await select('Sakai', '/prime/workspace');
   await select('Tabler', '/tabler/workspace');
   // Visiting a fourth frontend must not evict the first framework.
   await select('Nuxt UI', '/nuxt/workspace', true);
@@ -153,7 +153,7 @@ try {
   // Cache public component routes as well as Workspace, preserving their state.
   for (const [name, view] of [
     ['Nuxt UI', 'nuxt'],
-    ['PrimeVue / Sakai', 'prime'],
+    ['Sakai', 'prime'],
     ['Vben Admin', 'vben'],
     ['Ant Design Pro', 'pro'],
     ['Refine', 'refine'],

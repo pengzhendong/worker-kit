@@ -3,6 +3,15 @@ import { readBytesLimited } from '@pengzhendong/worker-kit/http';
 const frontends = new Set([
   'nuxt',
   'prime',
+  'element',
+  'naive',
+  'shadcn',
+  'vuetify',
+  'quasar',
+  'mui',
+  'mantine',
+  'pure',
+  'soybean',
   'vben',
   'pro',
   'refine',
@@ -15,11 +24,15 @@ export async function serveFrontend(
   env: Pick<CloudflareEnv, 'ASSETS' | 'SONIC_ORIGIN'>,
 ): Promise<Response | undefined> {
   const url = new URL(request.url);
+  const assets = env.ASSETS;
   if (url.pathname.startsWith('/management-assets/'))
-    return env.ASSETS.fetch(request);
+    return assets
+      ? assets.fetch(request)
+      : new Response('Assets not configured', { status: 503 });
   const mount = url.pathname.split('/')[1];
   const shell = url.pathname === '/' || url.pathname === '/index.html';
   if (!shell && !frontends.has(mount)) return undefined;
+  if (!assets) return new Response('Assets not configured', { status: 503 });
   if (!['GET', 'HEAD'].includes(request.method))
     return new Response('Method not allowed', {
       status: 405,
@@ -32,7 +45,7 @@ export async function serveFrontend(
   const asset = async (pathname: string) => {
     const target = new URL(url);
     target.pathname = pathname;
-    const response = await env.ASSETS.fetch(new Request(target, request));
+    const response = await assets.fetch(new Request(target, request));
     const range = request.headers.get('Range');
     const etag = response.headers.get('ETag');
     // Static Assets ignores Range. Delegate slicing to the native Cache API,
@@ -80,12 +93,18 @@ export async function serveFrontend(
     return response;
   };
   const backend =
-    url.origin === new URL(env.SONIC_ORIGIN).origin ? 'sonic' : 'payload';
+    url.origin === new URL(env.SONIC_ORIGIN).origin
+      ? 'sonic'
+      : url.searchParams.get('backend') === 'standard'
+        ? 'standard'
+        : 'payload';
   const decorate = (response: Response) =>
     new HTMLRewriter()
       .on('body', {
         element(element) {
           element.setAttribute('data-workerkit-backend', backend);
+          if (backend === 'standard')
+            element.setAttribute('data-workerkit-api-root', '/standard/api');
         },
       })
       .transform(response);

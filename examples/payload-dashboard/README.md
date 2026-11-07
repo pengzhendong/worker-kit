@@ -1,5 +1,7 @@
 # WorkerKit：单 Worker 的 Payload / SonicJS 对比
 
+> 0.5.0 已扩展至 17 套界面、Payload / SonicJS / Hono + Better Auth，以及 Nuxt、SvelteKit、Astro、React Router 和 Payload 的 Next/OpenNext。仍为同一个 Worker；当前说明见[技术地图](../docs/architecture.md)、[全栈验证](../docs/frameworks.md)和[候选调研](../docs/alternatives.md)。历史八套界面验证数据保留在下文。
+
 这是 worker-kit 接入 Payload 的完整示例：一个 Worker 内同时提供原生后台、Hono 业务 API 和定时事件入口，八套 UI 可以分别连接 Payload 或 SonicJS，复用所选后端的原生登录。使用 OpenNext 生产构建，由 Wrangler 的本地 workerd 提供页面与 API，连接本地 D1 和 R2。八套前端构建产物也一起放入同一个 Worker 的 Static Assets，统一入口可切换 Nuxt UI、PrimeVue、Vben、Ant Design Pro、Refine、Tabler、AdminLTE、VitePress、Payload 和 SonicJS；不依赖 5190 或其他 Worker。仓库配置只包含本地资源占位值；演示站已部署，线上资源与本地预览分开管理。
 
 ## 启动和查看

@@ -24,7 +24,7 @@ export function workspace() {
   if (!data) return html + '</div>';
   html += managementPanel(operations.snapshot(), operations);
   const manage = data.user.permissions.includes('tasks:manage');
-  html += `<p class="my-4">${escape(data.backend)} · ${escape(data.user.name)} · ${data.runtime.ok ? '依赖正常' : '依赖异常'} · <a href="/admin">管理内容与媒体 ↗</a></p>`;
+  html += `<p class="my-4">${escape(data.backend)} · ${escape(data.user.name)} · ${data.runtime.ok ? '依赖正常' : '依赖异常'}${['payload','sonic'].includes(data.backend) ? ' · <a href="/admin">管理内容与媒体 ↗</a>' : ''}</p>`;
   html += panel(
     '运行诊断',
     data.runtime.checks

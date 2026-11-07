@@ -2,14 +2,25 @@
 
 通过 **Git submodule** 引入的 Cloudflare Workers 共享基础库。业务项目保留自己的路由、页面、数据迁移和部署配置，公共能力从源码入口导入。
 
-当前版本：`0.4.0`。可以选择一套前端和一个后端，创建自己的单 Worker 应用。八套前端的「业务工作台」已对齐真实运行检查、KV 设置、受限访问密钥、审计、任务计划和交互式 API 文档，复用原 TaskManager；原组件体验页仍使用明确标注的 fixture。Payload、SonicJS 的原生用户、内容和媒体能力继续由上游维护。旧 React/Ant Design 6 与单管理员入口保留兼容，不进入新项目默认路径。
+当前版本：`0.5.0`。可以选择一套前端和一个后端，创建自己的单 Worker 应用。17 套前端的「业务工作台」已对齐真实运行检查、KV 设置、受限访问密钥、审计、任务计划和交互式 API 文档，复用原 TaskManager；原组件体验页仍使用明确标注的 fixture。Payload、SonicJS 的原生用户、内容和媒体能力继续由上游维护。旧 React/Ant Design 6 与单管理员入口保留兼容，不进入新项目默认路径。
+
+## 新的默认方案
+
+推荐 **Nuxt UI + Vue/Vite + Hono + Better Auth + D1/KV/SQLite DO**。Better Auth 负责密码、用户、角色与会话，WorkerKit 只做绑定与业务能力组合。完整 Nuxt / Nitro、Next / Payload，以及 SvelteKit、Astro、React Router 的官方 Workers 适配也已接入比较站。[项目清单、star 与取舍](examples/docs/alternatives.md) · [全栈验证](examples/docs/frameworks.md) · [发布验证记录](docs/verification-2026-11-07.md)。
+
+```sh
+npm run create -- ../my-worker --frontend nuxt --backend hono
+```
+
+前端可选 `nuxt / prime / element / naive / shadcn / vuetify / quasar / mui / mantine / pure / soybean / vben / pro / refine / tabler / adminlte / docs`。CMS 创建器支持这 17 套；轻量 Hono 与完整 Nuxt 起点当前使用 Nuxt UI，其他全栈起点成对选择。示范站装入所有方案，生成项目只带所选依赖。
 
 ## 先选运行路线
 
 | 路线 | 接入内容 | 展示入口 |
 | --- | --- | --- |
+| Hono + Better Auth | 默认管理路线，原生 D1 身份与 SQLite DO 密码运算 | https://kit.pzd17.top/standard/ |
 | 轻量 Worker | Nuxt UI + 原生 Worker/Hono + KV + 任务 DO；登录、运行检查、配置、受限密钥、审计和 API 文档 | https://kit.pzd17.top/native/ |
-| CMS | 八套界面 + Payload 或 SonicJS；原生内容/媒体/身份与统一管理工作台 | https://kit.pzd17.top/ |
+| CMS | 17 套界面 + Payload 或 SonicJS；原生内容/媒体/身份与统一管理工作台 | https://kit.pzd17.top/ |
 | Nuxt 全栈 | Nuxt + Nuxt UI + NuxtHub；统一管理工作台与真实 D1/KV/Blob/Cache SDK | https://kit.pzd17.top/hub/ |
 
 [技术地图](examples/docs/architecture.md)区分 Nuxt UI、官方 Dashboard Vue 模板、NuxtHub 和 CMS；[消费接入](examples/docs/migration.md)说明如何保留已有业务协议与数据。NuxtHub 是独立 Nuxt 应用路线，不放进通用 CMS 下拉选项。正式项目只安装所选方案。
@@ -26,7 +37,7 @@ npm run setup
 npm run dev
 ```
 
-创建命令只使用 Node 内置模块，不需要先安装整套预览依赖。打开 http://localhost:8787/ 。前端可选 `nuxt / prime / vben / pro / refine / tabler / adminlte / docs`，后端可选 `payload / sonic`。生成的项目只安装选中的后端，前端源码、业务任务、集合配置和迁移属于新项目；源码、安装、升级和兼容边界见[开发底座](docs/application-starter.md)。VitePress 提供文档中的轻量工作台，适合的业务复杂度与完整管理模板不同。
+创建命令只使用 Node 内置模块，不需要先安装整套预览依赖。打开 http://localhost:8787/ 。前端范围见上面的 17 套清单，后端可选 `payload / sonic`。生成的项目只安装选中的后端，前端源码、业务任务、集合配置和迁移属于新项目；源码、安装、升级和兼容边界见[开发底座](docs/application-starter.md)。VitePress 提供文档中的轻量工作台，适合的业务复杂度与完整管理模板不同。
 
 功能边界与后续取舍见[功能回顾](docs/feature-review.md)和[开源复用检查](docs/architecture-review.md)。
 
@@ -234,7 +245,7 @@ Honeybee 原项目已接入固定版本 submodule、公共布局与主题、底�
 - API 中心：29 个操作的搜索、方法与分组筛选、Scalar 文档与同源调试、访问令牌生成和撤销。
 - 运行状态：图标化的依赖连接检查、检查记录、应用及 Worker 版本；可选的 Cloudflare 请求量、错误率、CPU 与内存 P50/P99。未接入时不伪造数据，见[接入与数据来源](docs/runtime-status.md)。
 - 当前账户：当前身份、会话期限和退出。
-- 媒体预览：仅在兼容示例的开发环境中验证共享媒体组件；普通组件体验统一在八套原生前端中查看。
+- 媒体预览：仅在兼容示例的开发环境中验证共享媒体组件；普通组件体验统一在17 套原生前端中查看。
 - 开发工具：仅本地开发展示，按“本地调试、项目工具、模块与权限、运行与恢复、按需扩展”介绍已有工具、实际声明与授权、只读依赖诊断、错误恢复演示及检查命令。
 
 公开 `/health` 只做存活检查；受保护的依赖诊断按需读取 D1/KV/R2。运行指标和日志使用 Cloudflare 原生 Observability。D1 操作日志可通过 `AUDIT_RETENTION_DAYS` 显式启用保留策略和手动分批清理，默认 `"0"` 关闭；没有自动删除或自建采集服务。详见[运行检查与保留策略](docs/lifecycle-and-operations.md)。

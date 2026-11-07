@@ -90,7 +90,40 @@ async function setup() {
 }
 async function build() {
   let output;
-  if (config.frontend === 'vben') {
+  if (['pure', 'soybean'].includes(config.frontend)) {
+    const web = path.join(root, 'web');
+    await run(
+      'pnpm',
+      ['install', '--frozen-lockfile', '--ignore-scripts'],
+      web,
+    );
+    const env = {
+      VITE_PUBLIC_PATH: '/app/',
+      VITE_ROUTER_HISTORY: 'h5,/app/',
+      VITE_BASE_URL: '/app/',
+      VITE_AUTH_ROUTE_MODE: 'static',
+      VITE_CDN: 'false',
+    };
+    if (config.frontend === 'soybean')
+      await run(
+        process.execPath,
+        [
+          '--input-type=module',
+          '-e',
+          "import{build}from'vite-plus';await build({mode:'prod'});",
+        ],
+        web,
+        env,
+      );
+    else
+      await run(
+        'pnpm',
+        ['exec', 'vite', 'build', '--mode', 'production'],
+        web,
+        env,
+      );
+    output = path.join(web, 'dist');
+  } else if (config.frontend === 'vben') {
     await run(
       process.execPath,
       ['vendor/worker-kit/examples/vben-dashboard/setup.mjs', '--build'],

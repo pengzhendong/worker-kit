@@ -20,6 +20,15 @@ await mkdir(target, { recursive: true });
 for (const name of [
   'nuxt',
   'prime',
+  'element',
+  'naive',
+  'shadcn',
+  'vuetify',
+  'quasar',
+  'mui',
+  'mantine',
+  'pure',
+  'soybean',
   'vben',
   'pro',
   'refine',
@@ -55,6 +64,26 @@ for (const [name, directory] of [
   await rm(path.join(target, name), { recursive: true, force: true });
   await cp(directory, path.join(target, name), { recursive: true });
 }
+for (const [mount, dir] of [
+  [
+    'sveltekit',
+    'examples/sveltekit-dashboard/.svelte-kit/cloudflare/sveltekit',
+  ],
+  ['astro', 'examples/astro-dashboard/dist/client/astro'],
+  ['react-router', 'examples/react-router-dashboard/build/client'],
+]) {
+  await rm(path.join(target, mount), { recursive: true, force: true });
+  await cp(path.join(root, dir), path.join(target, mount), { recursive: true });
+}
+for (const name of ['pure', 'soybean'])
+  await cp(
+    path.join(root, '.wrangler/ui-build', name + '-dashboard/LICENSE'),
+    path.join(target, name, 'LICENSE.txt'),
+  );
+await cp(
+  path.join(root, 'examples/vue-components/LICENSE.shadcn'),
+  path.join(target, 'shadcn/LICENSE.txt'),
+);
 const shell = await renderPreviewShell({ integrated: true });
 await writeFile(path.join(target, 'index.html'), shell);
 await assembleSonicAssets(target);
@@ -102,5 +131,5 @@ await writeFile(
     '\n# END WorkerKit assets\n',
 );
 console.log(
-  'Assembled eight frontends, Payload and the selector in one Worker assets directory.',
+  'Assembled frontend comparison apps, Payload and the selector in one Worker assets directory.',
 );

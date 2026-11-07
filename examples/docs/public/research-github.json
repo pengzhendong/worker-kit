@@ -1,0 +1,326 @@
+[
+  {
+    "repository": "nuxt/ui",
+    "stars": 7058,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:13.209Z",
+    "url": "https://github.com/nuxt/ui",
+    "defaultBranch": "v4"
+  },
+  {
+    "repository": "primefaces/sakai-vue",
+    "stars": 1133,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:13.245Z",
+    "url": "https://github.com/primefaces/sakai-vue",
+    "defaultBranch": "master"
+  },
+  {
+    "repository": "vbenjs/vue-vben-admin",
+    "stars": 33757,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:13.264Z",
+    "url": "https://github.com/vbenjs/vue-vben-admin",
+    "defaultBranch": "main"
+  },
+  {
+    "repository": "primefaces/primevue",
+    "stars": 14450,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:13.320Z",
+    "url": "https://github.com/primefaces/primevue",
+    "defaultBranch": "master"
+  },
+  {
+    "repository": "ColorlibHQ/AdminLTE",
+    "stars": 45676,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:13.675Z",
+    "url": "https://github.com/ColorlibHQ/AdminLTE",
+    "defaultBranch": "master"
+  },
+  {
+    "repository": "refinedev/refine",
+    "stars": 36009,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:13.680Z",
+    "url": "https://github.com/refinedev/refine",
+    "defaultBranch": "main"
+  },
+  {
+    "repository": "tabler/tabler",
+    "stars": 42018,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:13.706Z",
+    "url": "https://github.com/tabler/tabler",
+    "defaultBranch": "dev"
+  },
+  {
+    "repository": "ant-design/ant-design-pro",
+    "stars": 38937,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:13.710Z",
+    "url": "https://github.com/ant-design/ant-design-pro",
+    "defaultBranch": "master"
+  },
+  {
+    "repository": "element-plus/element-plus",
+    "stars": 27838,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:14.064Z",
+    "url": "https://github.com/element-plus/element-plus",
+    "defaultBranch": "dev"
+  },
+  {
+    "repository": "unovue/shadcn-vue",
+    "stars": 10782,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:14.073Z",
+    "url": "https://github.com/unovue/shadcn-vue",
+    "defaultBranch": "dev"
+  },
+  {
+    "repository": "tusen-ai/naive-ui",
+    "stars": 18601,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:14.082Z",
+    "url": "https://github.com/tusen-ai/naive-ui",
+    "defaultBranch": "main"
+  },
+  {
+    "repository": "vuejs/vitepress",
+    "stars": 18468,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:14.124Z",
+    "url": "https://github.com/vuejs/vitepress",
+    "defaultBranch": "main"
+  },
+  {
+    "repository": "soybeanjs/soybean-admin",
+    "stars": 15274,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:14.480Z",
+    "url": "https://github.com/soybeanjs/soybean-admin",
+    "defaultBranch": "main"
+  },
+  {
+    "repository": "vuetifyjs/vuetify",
+    "stars": 41030,
+    "license": "NOASSERTION",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:14.483Z",
+    "url": "https://github.com/vuetifyjs/vuetify",
+    "defaultBranch": "master"
+  },
+  {
+    "repository": "quasarframework/quasar",
+    "stars": 27203,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:14.486Z",
+    "url": "https://github.com/quasarframework/quasar",
+    "defaultBranch": "dev"
+  },
+  {
+    "repository": "pure-admin/vue-pure-admin",
+    "stars": 20752,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:14.497Z",
+    "url": "https://github.com/pure-admin/vue-pure-admin",
+    "defaultBranch": "main"
+  },
+  {
+    "repository": "mantinedev/mantine",
+    "stars": 31918,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:14.852Z",
+    "url": "https://github.com/mantinedev/mantine",
+    "defaultBranch": "master"
+  },
+  {
+    "repository": "nitrojs/nitro",
+    "stars": 11363,
+    "license": "NOASSERTION",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:14.854Z",
+    "url": "https://github.com/nitrojs/nitro",
+    "defaultBranch": "main"
+  },
+  {
+    "repository": "nuxt/nuxt",
+    "stars": 61045,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:14.869Z",
+    "url": "https://github.com/nuxt/nuxt",
+    "defaultBranch": "main"
+  },
+  {
+    "repository": "mui/material-ui",
+    "stars": 99296,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:14.911Z",
+    "url": "https://github.com/mui/material-ui",
+    "defaultBranch": "master"
+  },
+  {
+    "repository": "remix-run/react-router",
+    "stars": 56630,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:15.254Z",
+    "url": "https://github.com/remix-run/react-router",
+    "defaultBranch": "main"
+  },
+  {
+    "repository": "sveltejs/kit",
+    "stars": 20903,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:15.266Z",
+    "url": "https://github.com/sveltejs/kit",
+    "defaultBranch": "main"
+  },
+  {
+    "repository": "withastro/astro",
+    "stars": 63791,
+    "license": "NOASSERTION",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:15.276Z",
+    "url": "https://github.com/withastro/astro",
+    "defaultBranch": "main"
+  },
+  {
+    "repository": "drizzle-team/drizzle-orm",
+    "stars": 36223,
+    "license": "Apache-2.0",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:15.645Z",
+    "url": "https://github.com/drizzle-team/drizzle-orm",
+    "defaultBranch": "main"
+  },
+  {
+    "repository": "honojs/hono",
+    "stars": 32846,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:15.656Z",
+    "url": "https://github.com/honojs/hono",
+    "defaultBranch": "main"
+  },
+  {
+    "repository": "better-auth/better-auth",
+    "stars": 30631,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:15.669Z",
+    "url": "https://github.com/better-auth/better-auth",
+    "defaultBranch": "main"
+  },
+  {
+    "repository": "vercel/next.js",
+    "stars": 143371,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:15.676Z",
+    "url": "https://github.com/vercel/next.js",
+    "defaultBranch": "canary"
+  },
+  {
+    "repository": "directus/directus",
+    "stars": 38675,
+    "license": "NOASSERTION",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:16.041Z",
+    "url": "https://github.com/directus/directus",
+    "defaultBranch": "main"
+  },
+  {
+    "repository": "strapi/strapi",
+    "stars": 73439,
+    "license": "NOASSERTION",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:16.050Z",
+    "url": "https://github.com/strapi/strapi",
+    "defaultBranch": "develop"
+  },
+  {
+    "repository": "payloadcms/payload",
+    "stars": 45713,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:16.050Z",
+    "url": "https://github.com/payloadcms/payload",
+    "defaultBranch": "main"
+  },
+  {
+    "repository": "SonicJs-Org/sonicjs",
+    "stars": 1789,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:16.057Z",
+    "url": "https://github.com/SonicJs-Org/sonicjs",
+    "defaultBranch": "main"
+  },
+  {
+    "repository": "expressjs/express",
+    "stars": 69576,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:16.413Z",
+    "url": "https://github.com/expressjs/express",
+    "defaultBranch": "master"
+  },
+  {
+    "repository": "pocketbase/pocketbase",
+    "stars": 61606,
+    "license": "MIT",
+    "archived": true,
+    "checkedAt": "2026-11-07T03:13:16.420Z",
+    "url": "https://github.com/pocketbase/pocketbase",
+    "defaultBranch": "master"
+  },
+  {
+    "repository": "nestjs/nest",
+    "stars": 76988,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:16.420Z",
+    "url": "https://github.com/nestjs/nest",
+    "defaultBranch": "master"
+  },
+  {
+    "repository": "supabase/supabase",
+    "stars": 114613,
+    "license": "Apache-2.0",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:13:16.446Z",
+    "url": "https://github.com/supabase/supabase",
+    "defaultBranch": "master"
+  },
+  {
+    "repository": "nuxt-hub/core",
+    "stars": 1302,
+    "license": "MIT",
+    "archived": false,
+    "checkedAt": "2026-11-07T03:19:03.051Z",
+    "url": "https://github.com/nuxt-hub/core",
+    "defaultBranch": "main"
+  }
+]

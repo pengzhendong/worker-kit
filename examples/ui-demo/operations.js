@@ -6,7 +6,7 @@ const previewParentOrigin =
     : null;
 const isPublicPreviewPage = () =>
   !document.querySelector('[data-workspace]') &&
-  (/^\/(nuxt|prime|vben|pro|refine|tabler|adminlte)\/(?:tasks|resources|logs|settings|components\/(?:table|form|dialogs|preview|layout|theme))?\/?$/.test(
+  (/^\/(nuxt|prime|element|naive|shadcn|vuetify|quasar|mui|mantine|pure|soybean|vben|pro|refine|tabler|adminlte)\/(?:tasks|resources|logs|settings|components\/(?:table|form|dialogs|preview|layout|theme))?\/?$/.test(
     location.pathname,
   ) ||
     /^\/docs\/(?:index|guide|components|features|upgrades|alternatives|architecture|migration)?(?:\.html)?\/?$/.test(
@@ -33,8 +33,14 @@ if (previewParentOrigin)
 
 // Framework-neutral client; rendering stays in each upstream's native components.
 export function createOperationsClient(options = {}) {
+  const baseUrl =
+    options.baseUrl ||
+    (typeof document !== 'undefined'
+      ? document.body.dataset.workerkitApiRoot
+      : undefined) ||
+    '/api/workerkit';
   const api = createApiClient({
-    baseUrl: options.baseUrl || '/api/workerkit',
+    baseUrl,
     scope: options.scope,
   });
   const listeners = new Set();
@@ -294,7 +300,7 @@ export function createOperationsClient(options = {}) {
       auditCursor = cursor || undefined;
       return action(read);
     },
-    apiUrl: (suffix) => (options.baseUrl || '/api/workerkit') + suffix,
+    apiUrl: (suffix) => baseUrl + suffix,
     dispose() {
       disposed = true;
       controller?.abort();
@@ -314,9 +320,11 @@ export function createOperationsClient(options = {}) {
     },
     loginUrl: () =>
       options.loginUrl ||
-      (document.body.dataset.workerkitBackend === 'sonic'
-        ? '/auth/login'
-        : '/admin/login') +
+      (document.body.dataset.workerkitBackend === 'standard'
+        ? '/standard/'
+        : document.body.dataset.workerkitBackend === 'sonic'
+          ? '/auth/login'
+          : '/admin/login') +
         '?redirect=' +
         encodeURIComponent(location.pathname + location.search),
   };

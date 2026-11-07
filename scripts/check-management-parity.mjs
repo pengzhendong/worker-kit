@@ -325,7 +325,7 @@ try {
   }
   const views = [
     ['Nuxt UI', 'nuxt'],
-    ['PrimeVue / Sakai', 'prime'],
+    ['Sakai', 'prime'],
     ['Vben Admin', 'vben'],
     ['Ant Design Pro', 'pro'],
     ['Refine', 'refine'],

@@ -44,7 +44,45 @@
       "/hub",
       "/hub/*",
       "!/native/assets/*",
-      "!/hub/_nuxt/*"
+      "!/hub/_nuxt/*",
+      "/element",
+      "/element/*",
+      "/naive",
+      "/naive/*",
+      "/shadcn",
+      "/shadcn/*",
+      "/standard",
+      "/standard/*",
+      "/pure",
+      "/pure/*",
+      "/soybean",
+      "/soybean/*",
+      "/vuetify",
+      "/vuetify/*",
+      "/quasar",
+      "/quasar/*",
+      "/mui",
+      "/mui/*",
+      "/mantine",
+      "/mantine/*",
+      "/sveltekit",
+      "/sveltekit/*",
+      "!/sveltekit/_app/*",
+      "/astro",
+      "/astro/*",
+      "!/astro/_astro/*",
+      "/react-router",
+      "/react-router/*",
+      "!/react-router/assets/*",
+      "!/element/assets/*",
+      "!/naive/assets/*",
+      "!/shadcn/assets/*",
+      "!/vuetify/assets/*",
+      "!/quasar/assets/*",
+      "!/mui/assets/*",
+      "!/mantine/assets/*",
+      "!/soybean/assets/*",
+      "!/pure/static/*"
     ]
   },
   "d1_databases": [
@@ -65,6 +103,12 @@
       "database_id": "00000000-0000-0000-0000-000000000006",
       "database_name": "workerkit-hub-local",
       "migrations_dir": "../../nuxthub-dashboard/app/server/db/migrations/sqlite"
+    },
+    {
+      "binding": "AUTH_DB",
+      "database_name": "workerkit-auth",
+      "database_id": "00000000-0000-0000-0000-000000000004",
+      "migrations_dir": "../../auth-backend/migrations"
     }
   ],
   "r2_buckets": [
@@ -89,6 +133,14 @@
       {
         "name": "TASKS",
         "class_name": "WorkerKitTasks"
+      },
+      {
+        "name": "AUTH_SERVICE",
+        "class_name": "WorkerKitAuthService"
+      },
+      {
+        "name": "STANDARD_TASKS",
+        "class_name": "WorkerKitStandardTasks"
       }
     ]
   },
@@ -97,6 +149,13 @@
       "tag": "workerkit-tasks-v1",
       "new_sqlite_classes": [
         "WorkerKitTasks"
+      ]
+    },
+    {
+      "tag": "v3-standard-auth",
+      "new_sqlite_classes": [
+        "WorkerKitAuthService",
+        "WorkerKitStandardTasks"
       ]
     }
   ],
@@ -134,5 +193,8 @@
         "period": 60
       }
     }
-  ]
+  ],
+  "define": {
+    "process.env.NODE_ENV": "\"production\""
+  }
 }

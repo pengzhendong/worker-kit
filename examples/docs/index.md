@@ -12,7 +12,7 @@ hero:
       text: 技术地图与选型
       link: /architecture
     - theme: alt
-      text: 比较八套界面
+      text: 比较 17 套界面
       link: ../?view=nuxt
       target: _top
 features:

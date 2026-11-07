@@ -51,7 +51,7 @@ try {
   await page.goto(base);
   for (const [name, view] of [
     ['Nuxt UI', 'nuxt'],
-    ['PrimeVue / Sakai', 'prime'],
+    ['Sakai', 'prime'],
     ['Vben Admin', 'vben'],
     ['Ant Design Pro', 'pro'],
     ['Refine', 'refine'],

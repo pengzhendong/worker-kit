@@ -54,7 +54,7 @@ onUnmounted(() => {
         <strong>{{ state.data.backend }}</strong
         ><span>{{ state.data.user.name }}</span
         ><span>{{ state.data.runtime.ok ? '依赖正常' : '依赖异常' }}</span
-        ><a href="/admin">管理内容与媒体 ↗</a>
+        ><a v-if="['payload', 'sonic'].includes(state.data.backend)" href="/admin">管理内容与媒体 ↗</a>
       </div>
       <ACard class="mb-5"
         ><h2 class="text-lg mb-4">运行诊断</h2>

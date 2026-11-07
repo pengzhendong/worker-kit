@@ -22,7 +22,9 @@ if (integrated) {
 const params = new URLSearchParams(location.search);
 const backendControl = document.querySelector('#backend');
 backendControl.hidden = !integrated;
-let backend = params.get('backend') === 'sonic' ? 'sonic' : 'payload';
+let backend = ['sonic', 'standard'].includes(params.get('backend'))
+  ? params.get('backend')
+  : 'payload';
 const backendOrigin = () =>
   backend === 'sonic' ? document.body.dataset.sonicOrigin : location.origin;
 const viewUrl = (view) =>
@@ -32,7 +34,8 @@ const viewUrl = (view) =>
       ? new URL('/admin', document.body.dataset.sonicOrigin).href
       : integrated
         ? new URL(
-            view === 'docs' ? '/docs/workspace.html' : `/${view}/workspace`,
+            (view === 'docs' ? '/docs/workspace.html' : `/${view}/workspace`) +
+              (backend === 'standard' ? '?backend=standard' : ''),
             backendOrigin(),
           ).href
         : `/${view}/`;
@@ -290,7 +293,11 @@ async function selectView(view, nextBackend = backend) {
 }
 backendControl.onchange = () =>
   selectView(
-    ['payload', 'sonic'].includes(active) ? backendControl.value : active,
+    ['payload', 'sonic'].includes(active)
+      ? backendControl.value === 'standard'
+        ? 'nuxt'
+        : backendControl.value
+      : active,
     backendControl.value,
   );
 const tabs = [...document.querySelectorAll('[data-view]')].filter(

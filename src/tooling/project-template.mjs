@@ -61,6 +61,104 @@ export async function prepareFrontend({ kit, project, frontend, put, json }) {
     );
     await rm(path.join(web, 'src/Demo.vue'));
     await rm(path.join(web, 'src/ComponentExperience.vue'));
+  } else if (['pure', 'soybean'].includes(frontend)) {
+    // The complete reviewed upstream workspace is now owned by the application.
+    // Keep its frozen pnpm lock and package identity intact.
+    return;
+  } else if (['mui', 'mantine'].includes(frontend)) {
+    const name = frontend === 'mui' ? 'Mui' : 'Mantine';
+    await put(
+      path.join(web, 'src/main.tsx'),
+      `import{createRoot}from'react-dom/client';import App from'./${name}App';import'./style.css';createRoot(document.getElementById('root')!).render(<App/>);`,
+    );
+    await rm(
+      path.join(
+        web,
+        'src',
+        frontend === 'mui' ? 'MantineApp.tsx' : 'MuiApp.tsx',
+      ),
+    );
+    for (const dep of frontend === 'mui'
+      ? ['@mantine/core', '@mantine/hooks']
+      : ['@mui/material', '@emotion/react', '@emotion/styled'])
+      delete pkg.dependencies[dep];
+    await edit('vite.config.ts', (text) =>
+      text
+        .replace(
+          "process.env.WORKERKIT_DEMO_KIND||'mui'",
+          JSON.stringify(frontend),
+        )
+        .replace('outDir:`dist/${kind}`', "outDir:'dist'")
+        .replace("publicDir:'../nuxt-dashboard/public'", "publicDir:'public'"),
+    );
+  } else if (
+    ['element', 'naive', 'shadcn', 'vuetify', 'quasar'].includes(frontend)
+  ) {
+    const element = frontend === 'element';
+    await put(
+      path.join(web, 'src/main.ts'),
+      element
+        ? `import { createApp } from 'vue';\nimport ElementPlus from 'element-plus';\nimport zhCn from 'element-plus/es/locale/lang/zh-cn';\nimport 'element-plus/dist/index.css';\nimport 'element-plus/theme-chalk/dark/css-vars.css';\nimport App from './ElementApp.vue';\nimport './style.css';\ncreateApp(App).use(ElementPlus, { locale: zhCn }).mount('#app');\n`
+        : `import { createApp } from 'vue';\nimport App from './${frontend === 'shadcn' ? 'Shadcn' : 'Naive'}App.vue';\nimport './style.css';\n${frontend === 'shadcn' ? "import './shadcn.css';\n" : ''}createApp(App).mount('#app');\n`,
+    );
+    if (frontend === 'vuetify')
+      await put(
+        path.join(web, 'src/main.ts'),
+        `import{createApp}from'vue';import{createVuetify}from'vuetify';import*as components from'vuetify/components';import*as directives from'vuetify/directives';import{aliases,mdi}from'vuetify/iconsets/mdi-svg';import'vuetify/styles';import App from'./VuetifyApp.vue';import'./style.css';createApp(App).use(createVuetify({components,directives,icons:{defaultSet:'mdi',aliases,sets:{mdi}}})).mount('#app');`,
+      );
+    if (frontend === 'quasar')
+      await put(
+        path.join(web, 'src/main.ts'),
+        `import{createApp}from'vue';import{Quasar}from'quasar';import*as components from'quasar';import iconSet from'quasar/icon-set/svg-mdi-v7';import'quasar/dist/quasar.css';import App from'./QuasarApp.vue';import'./style.css';createApp(App).use(Quasar,{components,iconSet}).mount('#app');`,
+      );
+    for (const [key, name] of [
+      ['element', 'Element'],
+      ['naive', 'Naive'],
+      ['shadcn', 'Shadcn'],
+      ['vuetify', 'Vuetify'],
+      ['quasar', 'Quasar'],
+    ])
+      if (key !== frontend)
+        for (const suffix of ['App', 'Workspace'])
+          await rm(path.join(web, 'src', name + suffix + '.vue'));
+    if (frontend !== 'vuetify') {
+      delete pkg.dependencies.vuetify;
+      delete pkg.dependencies['@mdi/js'];
+    }
+    if (frontend !== 'quasar') {
+      delete pkg.dependencies.quasar;
+      delete pkg.dependencies['@quasar/extras'];
+    }
+    if (!element) delete pkg.dependencies['element-plus'];
+    if (frontend !== 'naive') delete pkg.dependencies['naive-ui'];
+    if (frontend !== 'shadcn') {
+      await rm(path.join(web, 'src/components'), {
+        recursive: true,
+        force: true,
+      });
+      await rm(path.join(web, 'src/shadcn.css'));
+      await rm(path.join(web, 'shadcn-source.json'));
+      await rm(path.join(web, 'LICENSE.shadcn'));
+      for (const key of [
+        'reka-ui',
+        'cn',
+        'class-variance-authority',
+        '@vueuse/core',
+      ])
+        delete pkg.dependencies[key];
+    }
+    await edit('vite.config.ts', (text) =>
+      text
+        .replace(
+          "process.env.WORKERKIT_DEMO_KIND || 'element'",
+          JSON.stringify(frontend),
+        )
+        .replace('outDir: `dist/${kind}`', "outDir: 'dist'")
+        .replace(
+          "publicDir: '../nuxt-dashboard/public'",
+          "publicDir: 'public'",
+        ),
+    );
   } else if (frontend === 'vben') {
     await edit('src/bootstrap.ts', (text) =>
       text
@@ -148,14 +246,16 @@ const frontendServer = (
 ) => `export async function serveFrontend(request: Request, env: Pick<CloudflareEnv, 'ASSETS'>) {
   const url = new URL(request.url)
   if (url.pathname === '/') return Response.redirect(new URL('/app/workspace${backend.frontend === 'docs' ? '.html' : ''}', url).href, 302)
-  if (url.pathname.startsWith('/management-assets/')) return env.ASSETS.fetch(request)
+  const assets = env.ASSETS
+  if (url.pathname.startsWith('/management-assets/')) return assets ? assets.fetch(request) : new Response('Assets not configured', { status: 503 })
   if (!url.pathname.startsWith('/app/')) return undefined
+  if (!assets) return new Response('Assets not configured', { status: 503 })
   if (!['GET', 'HEAD'].includes(request.method)) return new Response(null, { status: 405 })
   if (url.pathname.endsWith('/')) url.pathname += 'index.html'
-  let response = await env.ASSETS.fetch(new Request(url, request))
+  let response = await assets.fetch(new Request(url, request))
   if (response.status === 404 && !url.pathname.split('/').at(-1)!.includes('.')) {
     url.pathname = ${backend.frontend === 'docs' ? "url.pathname + '.html'" : "'/app/index.html'"}
-    response = await env.ASSETS.fetch(new Request(url, request))
+    response = await assets.fetch(new Request(url, request))
   }
   return (response.headers.get('Content-Type') ?? '').includes('text/html') ? new HTMLRewriter().on('body', { element(el) { el.setAttribute('data-workerkit-backend', '${backend.backend}') } }).transform(response) : response
 }
@@ -195,6 +295,12 @@ export async function prepareBackend({
       (backend === 'sonic' && item.binding === 'SONIC_CACHE'),
   );
   delete config.ratelimits;
+  config.durable_objects.bindings = config.durable_objects.bindings.filter(
+    (item) => item.name === 'TASKS',
+  );
+  config.migrations = config.migrations.filter(
+    (item) => item.tag !== 'v3-standard-auth',
+  );
   const deps = {
     '@pengzhendong/worker-kit': 'file:../vendor/worker-kit',
     hono: original.dependencies.hono,

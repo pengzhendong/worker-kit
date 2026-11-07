@@ -36,6 +36,7 @@ export interface ManagementOptions<E extends object> {
   apiRoot: string;
   cookieName?: string;
   sessionHours?: number;
+  authentication?: string;
   settings: SettingsValues;
   tasks?: boolean;
 }
@@ -248,9 +249,9 @@ export function createManagementRoutes<E extends object>(
     c.json({
       storage: 'Cloudflare KV',
       sessionHours: options.sessionHours ?? null,
-      authentication: options.sessionHours
-        ? 'WorkerKit KV 会话'
-        : '由原生后端管理',
+      authentication:
+        options.authentication ??
+        (options.sessionHours ? 'WorkerKit KV 会话' : '由原生后端管理'),
       settings: Object.keys(options.settings),
       audit: 'KV 最近记录，30 天保留，尽力写入',
       permissions: ['runtime:read'],

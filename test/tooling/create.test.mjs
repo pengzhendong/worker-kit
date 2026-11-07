@@ -28,13 +28,20 @@ const has = async (file) => {
     return false;
   }
 };
-test('creates all sixteen native frontend/backend combinations without copying local state or the other CMS', async (t) => {
+test('creates all component-library and native frontend/backend combinations without copying local state or the other CMS', async (t) => {
   const root = await mkdtemp(path.join(tmpdir(), 'workerkit-create-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   t.mock.method(console, 'log', () => {});
   for (const frontend of [
     'nuxt',
     'prime',
+    'element',
+    'naive',
+    'shadcn',
+    'vuetify',
+    'quasar',
+    'mui',
+    'mantine',
     'vben',
     'pro',
     'refine',

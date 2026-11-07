@@ -1,0 +1,34 @@
+{
+  "name": "@worker-kit/vue-components",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite --host 127.0.0.1 --port 5187 --strictPort",
+    "check": "node typecheck.cjs -p tsconfig.json"
+  },
+  "dependencies": {
+    "element-plus": "2.14.8",
+    "naive-ui": "2.45.3",
+    "vue": "3.5.45",
+    "vue-router": "4.6.4",
+    "reka-ui": "2.11.0",
+    "cn": "0.5.2",
+    "class-variance-authority": "0.7.1",
+    "@vueuse/core": "14.3.0",
+    "@lucide/vue": "1.70.0",
+    "vuetify": "4.3.2",
+    "quasar": "2.35.2",
+    "@quasar/extras": "2.1.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "6.0.10",
+    "vite": "8.3.5",
+    "vue-tsc": "3.3.14",
+    "typescript": "6.0.3",
+    "@tailwindcss/vite": "4.3.4",
+    "tailwindcss": "4.3.4",
+    "@vue/compiler-sfc": "3.5.45",
+    "@types/node": "26.6.5"
+  }
+}

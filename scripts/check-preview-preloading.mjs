@@ -1,3 +1,4 @@
+import { frontendViews } from '../examples/ui-suite/catalog.js';
 import { browserOptions } from './browser.mjs';
 import { chromium, expect } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -8,7 +9,16 @@ const browser = await chromium.launch(browserOptions);
 const samples = [],
   errors = [];
 const views = [
-  ['PrimeVue / Sakai', 'prime'],
+  ['Sakai', 'prime'],
+  ['Element Plus', 'element'],
+  ['Naive UI', 'naive'],
+  ['shadcn-vue', 'shadcn'],
+  ['Vuetify', 'vuetify'],
+  ['Quasar', 'quasar'],
+  ['MUI', 'mui'],
+  ['Mantine', 'mantine'],
+  ['PureAdmin', 'pure'],
+  ['Soybean', 'soybean'],
   ['Vben Admin', 'vben'],
   ['Ant Design Pro', 'pro'],
   ['Refine', 'refine'],
@@ -97,11 +107,11 @@ try {
       });
       await expect(
         page.locator('iframe[data-preload-state="ready"]'),
-      ).toHaveCount(7, { timeout: 120000 });
+      ).toHaveCount(frontendViews.length - 1, { timeout: 180000 });
       expect(reads).toEqual([base]);
       await expect(
         page.locator('button[data-preload-status=ready]'),
-      ).toHaveCount(8);
+      ).toHaveCount(frontendViews.length);
       await expect(
         page.getByRole('tab', { name: 'Vben Admin', exact: true }),
       ).toHaveAccessibleDescription('界面已就绪，业务数据另行刷新');
@@ -119,9 +129,9 @@ try {
         page.getByRole('tab', { name: 'Nuxt UI', exact: true }),
       ).toHaveAttribute('aria-selected', 'true');
       await expect(page.locator('iframe:visible')).toHaveCount(1);
-      expect(navigations).toHaveLength(8);
+      expect(navigations).toHaveLength(frontendViews.length);
       console.log(
-        'Seven frontends warmed sequentially; foreground unchanged; no background business reads.',
+        'All other frontends warmed sequentially; foreground unchanged; no background business reads.',
       );
       for (const [name, view] of views) {
         const before = navigations.length,
@@ -152,16 +162,18 @@ try {
         });
         console.log(JSON.stringify(samples.at(-1)));
       }
-      expect(reads).toHaveLength(8);
-      // Opening the current CMS keeps all eight green markers and documents.
+      expect(reads).toHaveLength(frontendViews.length);
+      // Opening the current CMS keeps all green markers and documents.
       const beforeCms = navigations.length;
       await page.getByRole('tab', { name: 'Payload', exact: true }).click();
-      await expect(page.locator('iframe')).toHaveCount(9);
+      await expect(page.locator('iframe')).toHaveCount(
+        frontendViews.length + 1,
+      );
       await expect(
         page.locator('button[data-preload-status=ready]'),
-      ).toHaveCount(8);
+      ).toHaveCount(frontendViews.length);
       await page.waitForTimeout(300);
-      expect(reads).toHaveLength(8);
+      expect(reads).toHaveLength(frontendViews.length);
       await page.getByRole('tab', { name: 'Nuxt UI', exact: true }).click();
       await expect(workspace(page)).toContainText('依赖正常');
       expect(
@@ -171,7 +183,7 @@ try {
       ).toBe(true);
       await expect(
         page.locator('button[data-preload-status=ready]'),
-      ).toHaveCount(8);
+      ).toHaveCount(frontendViews.length);
       await page.getByLabel('选择后端').selectOption('sonic');
       await expect(workspace(page)).toContainText('登录后端', {
         timeout: 30000,
@@ -223,16 +235,14 @@ try {
       );
       await expect(prime).toBeAttached();
       await expect(
-        page.getByRole('tab', { name: 'PrimeVue / Sakai', exact: true }),
+        page.getByRole('tab', { name: 'Sakai', exact: true }),
       ).toHaveAttribute('data-preload-status', 'loading');
       await expect(
-        page.getByRole('tab', { name: 'PrimeVue / Sakai', exact: true }),
+        page.getByRole('tab', { name: 'Sakai', exact: true }),
       ).toHaveAccessibleDescription('正在准备界面');
-      await page
-        .locator('header')
-        .screenshot({
-          path: 'test-results/preview-preloading/tabs-loading.png',
-        });
+      await page.locator('header').screenshot({
+        path: 'test-results/preview-preloading/tabs-loading.png',
+      });
       const old = await prime.elementHandle();
       await page.getByRole('tab', { name: 'Vben Admin', exact: true }).hover();
       await expect(
@@ -291,11 +301,9 @@ try {
       await expect(
         page.getByRole('tab', { name: 'VitePress', exact: true }),
       ).toBeInViewport();
-      await page
-        .locator('header')
-        .screenshot({
-          path: 'test-results/preview-preloading/tabs-mobile.png',
-        });
+      await page.locator('header').screenshot({
+        path: 'test-results/preview-preloading/tabs-mobile.png',
+      });
       console.log('Save-Data suppresses background warmup.');
     } finally {
       await context.close();
@@ -317,7 +325,7 @@ try {
         timeout: 30000,
       });
       const tab = page.getByRole('tab', {
-        name: 'PrimeVue / Sakai',
+        name: 'Sakai',
         exact: true,
       });
       await expect(tab).toHaveAttribute('data-preload-status', 'loading');
@@ -325,11 +333,9 @@ try {
         timeout: 20000,
       });
       await expect(tab).toHaveAccessibleDescription('预加载未完成，点击后加载');
-      await page
-        .locator('header')
-        .screenshot({
-          path: 'test-results/preview-preloading/tabs-failed.png',
-        });
+      await page.locator('header').screenshot({
+        path: 'test-results/preview-preloading/tabs-failed.png',
+      });
       release();
       await page.unroute('**/prime/workspace');
       await tab.click();

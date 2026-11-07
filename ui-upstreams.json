@@ -13,5 +13,15 @@
     "repository": "primefaces/sakai-assets",
     "commit": "eaa70ece4cfa9aeb8f60b36dce5a422b6bae8003",
     "sha256": "0316812f8199e359d7d874f7d31c85ecb6db38938b003ccd07f55da9a8ca98a6"
+  },
+  "pure": {
+    "repository": "pure-admin/vue-pure-admin",
+    "commit": "fae75ad1cd52d11a7279931ef5bba2b80e363c7b",
+    "sha256": "86c5b29fe4c708d0641be6582b336b6441a9053fc3d36ff09f1404dca5625f37"
+  },
+  "soybean": {
+    "repository": "soybeanjs/soybean-admin",
+    "commit": "d2dfefd757e37d8d6077ea1cea6181fb628d6097",
+    "sha256": "96105001a9b19b7c02685d1028bb5a0a67b73d2180c9f3b9aac0b80073e61851"
   }
 }

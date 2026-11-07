@@ -89,6 +89,13 @@ async function signIn() {
     form.password = '';
     scope.reset('signed-in');
     session.value = value;
+    if (document.body.dataset.loginRedirect === 'true') {
+      const redirect = new URLSearchParams(location.search).get('redirect');
+      if (redirect?.startsWith('/') && !redirect.startsWith('//')) {
+        const target = new URL(redirect, location.origin);
+        if (target.origin === location.origin) location.assign(target.href);
+      }
+    }
   } catch (error) {
     if (!isRequestCancelled(error))
       loginError.value =

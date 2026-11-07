@@ -1,0 +1,1 @@
+import{defineConfig}from'astro/config';import cloudflare from'@astrojs/cloudflare';export default defineConfig({base:'/astro',output:'server',adapter:cloudflare({imageService:'compile',sessionKVBindingName:'NATIVE_STORE'}),devToolbar:{enabled:false}});

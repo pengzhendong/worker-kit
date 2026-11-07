@@ -129,3 +129,14 @@ NuxtHub 0.10.12 在模块 setup 中强制打开 Nitro deployConfig。自有 Work
 创建器支持 16 个 CMS 组合、Nuxt UI 轻量起点及 NuxtHub 全栈起点。模板运行脚本以普通模块保存，快照升级与回滚先校验所有文件；不引入模板插件引擎、嵌套 submodule 或隐式业务覆盖。
 
 新模板将 Tailwind、Vite/Node 适配器及 Oxide 固定为已验证的 4.3.4，避免首次安装因传递依赖浮动而与现有演示的 lockfile 不同。4.3.5 已在 npm 官方注册表发布，但本轮使用的镜像尚未完整同步；没有使用强制安装跳过依赖检查。后续升级应同时更新这一组版本并复跑新建项目检查。
+
+
+## 0.5.0 增补（2026-11-07）
+
+新管理路线采用 Better Auth 原生 D1、username/admin 插件，避免再维护用户、散列和会话引擎。SQLite DO 只承接官方库的密码工作负载与初始管理员串行化，认证算法、Cookie 和撤销仍属上游。公共 SDK 不强制安装 Better Auth，依赖仅属于实际选择该后端的示例/应用。
+
+新增 Element Plus、Naive UI、Vuetify、Quasar、MUI Core、Mantine；直接使用 npm 原生组件。shadcn-vue 是官方 registry 的固定提交源码，保留许可证和逐文件来源/hash，不以自写仿制控件冒充。PureAdmin/Soybean 保留原生布局、主题、菜单，适配明确放在 examples；去掉假 JWT、模拟通知与未暴露的演示路由，身份和写操作来自真实后端。
+
+SvelteKit/Astro 使用官方 Cloudflare adapter；React Router 使用原生 SSR、资源路由和 Context Provider；产物通过模块在同一 Worker 显式组合。共享代码仅有业务状态、接口契约、认证/绑定接线和真实测试，不创建跨框架 UI DSL。
+
+详细清单与未采用项目的明确理由见 [项目调研](../examples/docs/alternatives.md)。原有兼容 SDK 在消费项目迁移前保留，旧 KV 认证不再作为新应用首选。

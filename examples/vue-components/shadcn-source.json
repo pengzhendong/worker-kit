@@ -1,0 +1,407 @@
+{
+  "repository": "https://github.com/unovue/shadcn-vue",
+  "commit": "d1bf1b3a2d1a824b19f32d7253a28a43797b8253",
+  "style": "new-york-v4",
+  "changes": [
+    "Import alias adjusted from @/registry/new-york-v4/ui/ to @/components/ui/, as the upstream CLI does.",
+    "Repository Prettier formatting; no behavior changes to upstream components."
+  ],
+  "files": [
+    {
+      "file": "src/components/ui/button/Button.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/button/Button.vue",
+      "gitBlob": "b442cbb84b2ea5c25a93ab8f7c894a025e7640c0",
+      "sha256": "24fa5e4ec054b5c5c36a1451d1dd499c368f6196a12f6902e088db90dd9c7611"
+    },
+    {
+      "file": "src/components/ui/button/index.ts",
+      "source": "apps/v4/registry/new-york-v4/ui/button/index.ts",
+      "gitBlob": "0a62178892b4311c78de821093bc4666ecc9cd05",
+      "sha256": "6616b17c1863446b21a9394fe0799f7ef8846a6e6e3fa1696377a6eee1bdf3e7"
+    },
+    {
+      "file": "src/components/ui/card/Card.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/card/Card.vue",
+      "gitBlob": "1a56ffa6bed92c32112d3c74767e65768172ef58",
+      "sha256": "b5592123b7fae179da913db252ea64b66e28de248567834f8e9ad69a63ef41c1"
+    },
+    {
+      "file": "src/components/ui/card/CardAction.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/card/CardAction.vue",
+      "gitBlob": "edb7a5ebacea04bbbbe5073df79943d109d7923b",
+      "sha256": "64135a2f8ac71a1ec442969574acedfe576a11b3d683443d648700b961312c3b"
+    },
+    {
+      "file": "src/components/ui/card/CardContent.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/card/CardContent.vue",
+      "gitBlob": "4625121659da5550d4363a139023dbc658912421",
+      "sha256": "73b2f0e1a1a828c2488d9879543b65003dfa5b76c922f1043efa7ac668a00f9e"
+    },
+    {
+      "file": "src/components/ui/card/CardDescription.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/card/CardDescription.vue",
+      "gitBlob": "8ef82a9319de33ae6cc9dc2b1f4374b4547a42e9",
+      "sha256": "ce28ccf5def3f2048d231e758fdc483e128516937b37ad5a8e1704d4079bd598"
+    },
+    {
+      "file": "src/components/ui/card/CardFooter.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/card/CardFooter.vue",
+      "gitBlob": "703ac2006d40a615255b9d53632877bc635a191f",
+      "sha256": "42e5acdaad9b229072c9b81a83ee3163c7f862d5bde4dc22a12c25b12fb2d082"
+    },
+    {
+      "file": "src/components/ui/card/CardHeader.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/card/CardHeader.vue",
+      "gitBlob": "34d0f616cd29530e400219bbbde85e8de7916415",
+      "sha256": "e7636850e84dd1b938916bfbe46d20773dc6b236ff9f85ac4302bada21b97dff"
+    },
+    {
+      "file": "src/components/ui/card/CardTitle.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/card/CardTitle.vue",
+      "gitBlob": "2b31ec5a1920e300b5906d6d8083ee97441e1801",
+      "sha256": "14168f0d4ae7ecefca50a484c46c299b3eec50050cbe8ebd9a27d930b8abb0d9"
+    },
+    {
+      "file": "src/components/ui/card/index.ts",
+      "source": "apps/v4/registry/new-york-v4/ui/card/index.ts",
+      "gitBlob": "16277580b2d24fca5f9f322159b74b16831d3913",
+      "sha256": "0551e8242f0d4b07e55be11651143fcb03d7681872ceeeedd949e0a829e83fed"
+    },
+    {
+      "file": "src/components/ui/input/Input.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/input/Input.vue",
+      "gitBlob": "9a386a1b6c8bd46abdca1d814dd8d788f039ec41",
+      "sha256": "f4faabb6b2d0703616ed70facaa266f889365e4ccbbc1283c849ba82a6886b4a"
+    },
+    {
+      "file": "src/components/ui/input/index.ts",
+      "source": "apps/v4/registry/new-york-v4/ui/input/index.ts",
+      "gitBlob": "9976b86f52dab75932ee176adb52b3a915743ff5",
+      "sha256": "4ec18398d551a2ac96fc14a0a9cd31fc5beeb21a149655d6e0fe4b9c76ff8958"
+    },
+    {
+      "file": "src/components/ui/label/Label.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/label/Label.vue",
+      "gitBlob": "c71359aaf04720feecbec7008f9dcb7ce279e25c",
+      "sha256": "7c877c6df9eb643197f9c82108010acaf22b962b054ad95e44668cbd900f2d51"
+    },
+    {
+      "file": "src/components/ui/label/index.ts",
+      "source": "apps/v4/registry/new-york-v4/ui/label/index.ts",
+      "gitBlob": "036e35c34da5e0461cff44dea8d19791ced2b129",
+      "sha256": "15389ad9c52d5231a0c7d5fbb5fc8733661550e5769d6f98eb9cd2a0d43a50d9"
+    },
+    {
+      "file": "src/components/ui/table/Table.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/table/Table.vue",
+      "gitBlob": "68086912073414cadbfbd398d1f5c0d4b67b9e1c",
+      "sha256": "78651ba68965589257b4b5acb7f02de3ad9e8e67ce1f1a59b54c08f3bac02746"
+    },
+    {
+      "file": "src/components/ui/table/TableBody.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/table/TableBody.vue",
+      "gitBlob": "558cc6710ed737be12c883352a4bb89280da9096",
+      "sha256": "be8d166f40419bcd63940d440fda0b7e87aff3834bb83a76e85ed99037ace1f4"
+    },
+    {
+      "file": "src/components/ui/table/TableCaption.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/table/TableCaption.vue",
+      "gitBlob": "96cb32306c2e04f45d1809a0b661651f6baa3d7d",
+      "sha256": "53a998bb633f9a1806eccb325ec6f77c1d6c5a0463838896b242e53602c661f8"
+    },
+    {
+      "file": "src/components/ui/table/TableCell.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/table/TableCell.vue",
+      "gitBlob": "6d8c052ededabea3b1d769cbe83cf8305bfa0ea9",
+      "sha256": "872ec06737460b91a0e5858de4aa448b1d98e580b98ae32d7d7193da2de23da9"
+    },
+    {
+      "file": "src/components/ui/table/TableEmpty.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/table/TableEmpty.vue",
+      "gitBlob": "188e80014931d10616d362de26ba9eb14b57d962",
+      "sha256": "a77255f93cfa8633a7518417fbede755359c228f69d8b08f2afd20b9250736c1"
+    },
+    {
+      "file": "src/components/ui/table/TableFooter.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/table/TableFooter.vue",
+      "gitBlob": "7d05794a7c10f6ada689ca52bd12e127d44fd4e1",
+      "sha256": "c05d2381e0fbb43f878dacd2f4b7c0ef4c1b198f6eca72e832331e23dcc11568"
+    },
+    {
+      "file": "src/components/ui/table/TableHead.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/table/TableHead.vue",
+      "gitBlob": "6e280202e7aaf7c5aa9cd1f03846cae27786ab66",
+      "sha256": "eb5f43adc1f3e07c417359c8aeaebb83e68cd6451220d74f8537292e32689203"
+    },
+    {
+      "file": "src/components/ui/table/TableHeader.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/table/TableHeader.vue",
+      "gitBlob": "4f7ab6cb2911912deb641e9bc819dc31f2f0b5a4",
+      "sha256": "467fa525fb6ea27954f2dc3bec8b7afc788964bb4697887a5a4832e4cb04c35c"
+    },
+    {
+      "file": "src/components/ui/table/TableRow.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/table/TableRow.vue",
+      "gitBlob": "446081ce3bfa30200fb866a53df3bbdd8e5b38ad",
+      "sha256": "f75b7c0eb6e200856bec3a0a1ca0e6ffa2db55c0084110a9655266e0e6493c33"
+    },
+    {
+      "file": "src/components/ui/table/index.ts",
+      "source": "apps/v4/registry/new-york-v4/ui/table/index.ts",
+      "gitBlob": "3be308b55d8f9a318b419928d8c0a88df2137a26",
+      "sha256": "008e3d3f82abeabdc78504b2056e58f0b5688e2dec34e424ac1883d2c971c385"
+    },
+    {
+      "file": "src/components/ui/dialog/Dialog.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/dialog/Dialog.vue",
+      "gitBlob": "ade5260377978d29bee5220301407a785a0eba93",
+      "sha256": "1405683603687c1f07a4c7f26c91e0aaec9fb95b7cdc2346b457407a2c88acc3"
+    },
+    {
+      "file": "src/components/ui/dialog/DialogClose.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/dialog/DialogClose.vue",
+      "gitBlob": "c5fae043f74ae3f392712a4c99ef929f01d2177d",
+      "sha256": "02bb71e7bc2bf0b7a2f2a2d52b1fa1a2409796fafc8190cb79c5e6b8365557b7"
+    },
+    {
+      "file": "src/components/ui/dialog/DialogContent.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/dialog/DialogContent.vue",
+      "gitBlob": "1011a573a653b6927556ff460ae0dac446e97a73",
+      "sha256": "e10ba14c37031e045ca0b2cf6da9713456595af8077858c42e69e6ddc927b588"
+    },
+    {
+      "file": "src/components/ui/dialog/DialogDescription.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/dialog/DialogDescription.vue",
+      "gitBlob": "ced49d6a5a11e58a4825ef37cc6c4c0cafffd7ee",
+      "sha256": "e0217557acb91a821af9d8c606083e9f524491edf7b8aa60cf5864d68a6798d7"
+    },
+    {
+      "file": "src/components/ui/dialog/DialogFooter.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/dialog/DialogFooter.vue",
+      "gitBlob": "dd432605163ff69ef8b4ee7c981a34b6d5e18df9",
+      "sha256": "16c3aed52b5f79582f350c47cbe6a69fc5b5d579f5c12e67591113b40c650a37"
+    },
+    {
+      "file": "src/components/ui/dialog/DialogHeader.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/dialog/DialogHeader.vue",
+      "gitBlob": "614ca84c628c6f71153a3a6487fe32fd9cae0fc2",
+      "sha256": "71b7234b0a5f6526c9643f462b882f3c438daf8f4b2a3e8ed1681e4d602255c8"
+    },
+    {
+      "file": "src/components/ui/dialog/DialogOverlay.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/dialog/DialogOverlay.vue",
+      "gitBlob": "01e5b9fb14923a75716ef66da57fb1b3b2beac8a",
+      "sha256": "53f6602009772c08381bf2adc8b82268880b860d462fcdd5ed85ae6ee748d392"
+    },
+    {
+      "file": "src/components/ui/dialog/DialogScrollContent.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/dialog/DialogScrollContent.vue",
+      "gitBlob": "db328db974ac953038507d5461bbcc97022d35d1",
+      "sha256": "5aad66e075329518e5508af0c4a85aa172ff332e2467ada4bfb7a54b71f4ce33"
+    },
+    {
+      "file": "src/components/ui/dialog/DialogTitle.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/dialog/DialogTitle.vue",
+      "gitBlob": "b1b5c36c8db06fad86baf2d23e340b02248b1439",
+      "sha256": "a0165f69b579174c09287136b26301343d450bd67f76a92f2bfc4295aa531a67"
+    },
+    {
+      "file": "src/components/ui/dialog/DialogTrigger.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/dialog/DialogTrigger.vue",
+      "gitBlob": "49667e997b86da73b0d237382598db9ffe9d9106",
+      "sha256": "7b4f8328f54e05af2cb63ddb5f6750c37c9189b4da4de7076bb966adc197519e"
+    },
+    {
+      "file": "src/components/ui/dialog/index.ts",
+      "source": "apps/v4/registry/new-york-v4/ui/dialog/index.ts",
+      "gitBlob": "6768b090cc3c109e5b5fb82a5de1a1c238c540ae",
+      "sha256": "32802b7dc90459b4fc87b83355e9ba37156af8cb0723af5646c98d41488ed25d"
+    },
+    {
+      "file": "src/components/ui/tabs/Tabs.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/tabs/Tabs.vue",
+      "gitBlob": "410edfcf5942b9b5c28b5763301f52c090fef7c3",
+      "sha256": "a86ceb8e04beedc40ad3bb83daf5cfea14b13a86706808ebc918684dc44c2717"
+    },
+    {
+      "file": "src/components/ui/tabs/TabsContent.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/tabs/TabsContent.vue",
+      "gitBlob": "1f65cbb738ab6dd9f896833ab4eef4c25464561b",
+      "sha256": "7868e97d7ef101c58e030a15cf5645c15c5610b6a4cebc939f45949290d449f1"
+    },
+    {
+      "file": "src/components/ui/tabs/TabsList.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/tabs/TabsList.vue",
+      "gitBlob": "650b40cf7ede53f6a1737f56f01802de3e82123b",
+      "sha256": "8e67a28ee509596ea611ef695e64d2b7ffdcdc4da0b43bdabe2d0913f4ec85f6"
+    },
+    {
+      "file": "src/components/ui/tabs/TabsTrigger.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/tabs/TabsTrigger.vue",
+      "gitBlob": "4523984667ffe4155af5a27b149f19e182c60036",
+      "sha256": "057a59e541aa4618ea208fb5631357e216ce89e5224efd4279a366285161829a"
+    },
+    {
+      "file": "src/components/ui/tabs/index.ts",
+      "source": "apps/v4/registry/new-york-v4/ui/tabs/index.ts",
+      "gitBlob": "7f99b7f23b2f239480a6d91809301894cd67b929",
+      "sha256": "669ff852c3b5c4267a6488300793ee48d3750b4a41792ed1d158a6cd3c5cc3e1"
+    },
+    {
+      "file": "src/components/ui/switch/Switch.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/switch/Switch.vue",
+      "gitBlob": "158a73573a8646c6b1ba31f785bc22eacf68f801",
+      "sha256": "e8dd046164b5e06dd7c83d36e1b0189466a57fb32a5910390433cd498b7ccd7c"
+    },
+    {
+      "file": "src/components/ui/switch/index.ts",
+      "source": "apps/v4/registry/new-york-v4/ui/switch/index.ts",
+      "gitBlob": "cc081f3f1531294e843666a6bb12081dee99a7e6",
+      "sha256": "91d5bc314328a0756d1f89a37f46c0c53def9204d83586e8e94a4dd14b0351e2"
+    },
+    {
+      "file": "src/components/ui/badge/Badge.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/badge/Badge.vue",
+      "gitBlob": "6d632fcefc7665c6e1b092fa48defbc0843999a9",
+      "sha256": "1e60818fce6da1034d0762dd804da0404f1993aa01b8442a01b092fd965d5c01"
+    },
+    {
+      "file": "src/components/ui/badge/index.ts",
+      "source": "apps/v4/registry/new-york-v4/ui/badge/index.ts",
+      "gitBlob": "635c961bac5882d099aeafd4e694dc015979597e",
+      "sha256": "349eebb70b6ba4ef95bc2b3aa4537497aa2f73be30a6f7a911589e51f4470fb3"
+    },
+    {
+      "file": "src/components/ui/sheet/Sheet.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/sheet/Sheet.vue",
+      "gitBlob": "8522f84db114d6f75e1b180828781e89b7321a16",
+      "sha256": "65587d3d6fe5cfc6fb133b5ef06f97df6f0e4693eace070c63b1812886064c03"
+    },
+    {
+      "file": "src/components/ui/sheet/SheetClose.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/sheet/SheetClose.vue",
+      "gitBlob": "39a942c4d6255269cf937bf2e948316ed220a08b",
+      "sha256": "dc6b7f9bcb197db4e6f600c4a82510b1fff095990647031159a3635fe1b5ef00"
+    },
+    {
+      "file": "src/components/ui/sheet/SheetContent.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/sheet/SheetContent.vue",
+      "gitBlob": "d8547d2d4b5c387a2b163bed07a962563a95177e",
+      "sha256": "bb2ff4b03fd2b70239a602e3925cbada01b56816b55d9c8acc401668aded387d"
+    },
+    {
+      "file": "src/components/ui/sheet/SheetDescription.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/sheet/SheetDescription.vue",
+      "gitBlob": "13fe29b859125d4b063dd3113160f6a0ae23aa43",
+      "sha256": "bee95dde42079a9265ac6b7f36f862ffc65fe434fd564332d27f5a23bb82f00a"
+    },
+    {
+      "file": "src/components/ui/sheet/SheetFooter.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/sheet/SheetFooter.vue",
+      "gitBlob": "ef0645ebe080c09e7615435666a8a1bf96893712",
+      "sha256": "00ed4aa2c3eb0bf74f1bc2c1d02197d37bb3ab497397eb28da3e6e974455d100"
+    },
+    {
+      "file": "src/components/ui/sheet/SheetHeader.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/sheet/SheetHeader.vue",
+      "gitBlob": "9a0866a2ca765cba41d01dd638becba8eef0d483",
+      "sha256": "535cfe64455d7c9913403a92affd750bac1b20836a1a95b686a8ce169d688744"
+    },
+    {
+      "file": "src/components/ui/sheet/SheetOverlay.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/sheet/SheetOverlay.vue",
+      "gitBlob": "3978482199c81825bb6c682b049710faef0f197f",
+      "sha256": "683b2d564ebdd4e3c9f50a5a0eb7635d306ec4716626631e976b8ca60b288335"
+    },
+    {
+      "file": "src/components/ui/sheet/SheetTitle.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/sheet/SheetTitle.vue",
+      "gitBlob": "f003ea5f6d46beef272236c973bdd65bc805fcfc",
+      "sha256": "bb8831f73ac9837ba6aa6fd51a3f34d5d59e654d5a240d8c4c35f9bf6a160252"
+    },
+    {
+      "file": "src/components/ui/sheet/SheetTrigger.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/sheet/SheetTrigger.vue",
+      "gitBlob": "41b121dba14f2ce92aae9bde3e3f691cfab2d0ab",
+      "sha256": "699097b0af4eb0e44b9657e1de0f67fac7e82b1912041e0fe39856e0a21ac6f9"
+    },
+    {
+      "file": "src/components/ui/sheet/index.ts",
+      "source": "apps/v4/registry/new-york-v4/ui/sheet/index.ts",
+      "gitBlob": "7c70e5d7ee976aac5d5a91cda09bdb7bbe20293e",
+      "sha256": "f8bc234b92d01f15b199854e41f385af28afd1ad4a97b9ec244a97cfb253f5ae"
+    },
+    {
+      "file": "src/components/ui/select/Select.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/select/Select.vue",
+      "gitBlob": "c94bbe888d3ff94a3bf26313047a1e79e5acc0e2",
+      "sha256": "b8f24fc94eda92e310da1289e101dcf956d4737937bb8654c00eebf78521bdc2"
+    },
+    {
+      "file": "src/components/ui/select/SelectContent.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/select/SelectContent.vue",
+      "gitBlob": "43b90f8df5e80cf828d1d7e52dd003fc92f1e355",
+      "sha256": "e8bf48560297086ddffc7f7649f2ae4f38c88fba9d9974a973c46841fe8ec84d"
+    },
+    {
+      "file": "src/components/ui/select/SelectGroup.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/select/SelectGroup.vue",
+      "gitBlob": "e981c6c50425665c8461ac5cbeef83052ffea510",
+      "sha256": "fd037bcb5d1ef1414f1d52f4b8ee1f734643d58b9e624f3cce7efb1ee6bd0e2e"
+    },
+    {
+      "file": "src/components/ui/select/SelectItem.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/select/SelectItem.vue",
+      "gitBlob": "a3d7bfa5b9a8cd5459e7005d5e93c710e7dbf823",
+      "sha256": "ae8e4348a386bb94388ca1aca861228fb7038b923c8215e71aba7b2e0cce682d"
+    },
+    {
+      "file": "src/components/ui/select/SelectItemText.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/select/SelectItemText.vue",
+      "gitBlob": "b6700b17b5424ca0ad3b0701ab838fd21ce8f3f9",
+      "sha256": "d82dc892f00219bbd0ddb058a04288a77a187d95a085b7fe24e1f17d9df30e57"
+    },
+    {
+      "file": "src/components/ui/select/SelectLabel.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/select/SelectLabel.vue",
+      "gitBlob": "0c869d1e127038b93d984d3106644ef449f55925",
+      "sha256": "43c9f5c8ef76790d612a4f4afa00424f7651fbac08bfbd93c3a491c0c74482a9"
+    },
+    {
+      "file": "src/components/ui/select/SelectScrollDownButton.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/select/SelectScrollDownButton.vue",
+      "gitBlob": "a0b36158f5ba5c4954dda406f154213c13840de0",
+      "sha256": "21b4e29d5a42444017209ff0c9c00d28952b89204de0c25df21270e8556dab39"
+    },
+    {
+      "file": "src/components/ui/select/SelectScrollUpButton.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/select/SelectScrollUpButton.vue",
+      "gitBlob": "97c690e5b466329cf9e7c4023f042c975c90862a",
+      "sha256": "b694865c5fb893af24b2dbcccf213bf8111a03bcd949d2f1a07e81a57f7d81cf"
+    },
+    {
+      "file": "src/components/ui/select/SelectSeparator.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/select/SelectSeparator.vue",
+      "gitBlob": "b05536716af139c20ed2cf791cf1169df52e3e22",
+      "sha256": "19029a3461d9fb61a4063f9bf1168a8cb1ea526da4caec9fa172f35cf445a11c"
+    },
+    {
+      "file": "src/components/ui/select/SelectTrigger.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/select/SelectTrigger.vue",
+      "gitBlob": "09ebcb57032a9369823077d4504b0b7d4c922a96",
+      "sha256": "116e6981f1374878596f50aa25ac10fe4e45f804d3e6f2c97852928e8b28204c"
+    },
+    {
+      "file": "src/components/ui/select/SelectValue.vue",
+      "source": "apps/v4/registry/new-york-v4/ui/select/SelectValue.vue",
+      "gitBlob": "d5ce58b558f8cd1eb077b90769d3f5328e727b13",
+      "sha256": "c84909236330667ca9e5269576d8e159154001f9e0b20a75f0e9510fe52022b9"
+    },
+    {
+      "file": "src/components/ui/select/index.ts",
+      "source": "apps/v4/registry/new-york-v4/ui/select/index.ts",
+      "gitBlob": "96eae60cfe6fac70087858cb2efdd3935759ccf7",
+      "sha256": "acb7acc9cc92e025793496093332487241598b6bbcd7335a39c0f4a180de4218"
+    }
+  ]
+}
