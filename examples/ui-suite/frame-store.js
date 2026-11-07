@@ -1,24 +1,12 @@
 /** DOM lifetime and bounded frame ownership. No authentication or scheduling. */
-export function createFrameStore({
-  stage,
-  integrated,
-  isMobile,
-  onLoad,
-  onChange,
-}) {
+export function createFrameStore({ stage, isMobile, onLoad, onChange }) {
   const entries = new Map();
   function discard(entry) {
-    entry.finish?.(false);
     entry.frame.remove();
     entries.delete(entry.key);
     onChange();
   }
-  function touch(entry, limit) {
-    entries.delete(entry.key);
-    entries.set(entry.key, entry);
-    while (entries.size > limit) discard(entries.values().next().value);
-  }
-  function create(key, url, background = false) {
+  function create(key, url, { background = false } = {}) {
     const element = document.createElement('iframe');
     element.title = 'WorkerKit 界面预览';
     element.classList.toggle('mobile', isMobile());
@@ -26,13 +14,10 @@ export function createFrameStore({
     const entry = {
       key,
       frame: element,
-      refreshable: false,
       loaded: false,
-      settled: false,
     };
     entries.set(key, entry);
     if (background) {
-      element.name = integrated ? 'workerkit-preload' : '';
       element.dataset.preloadState = 'loading';
       element.hidden = false;
       element.setAttribute('aria-hidden', 'true');
@@ -52,5 +37,5 @@ export function createFrameStore({
     onChange();
     return entry;
   }
-  return { entries, create, discard, touch };
+  return { entries, create, discard };
 }

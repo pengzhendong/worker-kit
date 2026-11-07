@@ -1,13 +1,13 @@
 # 快速了解
 
-WorkerKit 为 Cloudflare Workers 提供可组合的管理基础能力，支持轻量 Worker、CMS 后端及 Nuxt 全栈示例。
+WorkerKit 为 Cloudflare Workers 提供可组合的管理基础能力，支持 Hono 后端、CMS 后端及 Nuxt 全栈示例。
 
 [先看技术地图与选型](./architecture) · [现有 Worker 接入](./migration)
 
 ## 在线查看
 
-- [界面与 CMS 比较](/?view=nuxt&backend=payload){target="_top"}：17 套前端连接 Hono + Better Auth、Payload 或 SonicJS 的真实任务工作台。
-- [轻量管理模板](/native/){target="_top"}：原生 Worker、KV 会话、配置、受限密钥、审计和 API 文档。
+- [界面与 CMS 比较](/?view=nuxt&backend=payload){target="_top"}：18 套前端连接 Hono + Better Auth、Payload 或 SonicJS 的真实任务工作台。
+- 单管理员模板使用 Nuxt UI 和 Hono，KV 保存会话与配置，另带受限密钥、审计和 API 文档。[Hono + KV 登录](/native/){target="_top"}
 - [NuxtHub 全栈](/hub/){target="_top"}：Nuxt UI、Nitro API 与真实 SQL / KV / Blob / Cache SDK。
 
 当前均由同一个展示 Worker 提供。各后端的登录、数据范围独立，演示账号为 `admin / password`。
@@ -29,4 +29,4 @@ npm run dev
 npm run create -- ../my-worker --frontend nuxt --backend native
 ```
 
-轻量路线当前提供 Nuxt UI。CMS 路线可选择 `nuxt / prime / vben / pro / refine / tabler / adminlte / docs`，后端选 `payload / sonic`。正式业务只安装选择的方案，业务页面、数据迁移和部署资源属于消费项目。
+Hono + KV 登录模板使用 Nuxt UI。CMS 路线可选择 `nuxt / primevue / sakai / vben / pro / refine / tabler / adminlte / docs`，后端选 `payload / sonic`。正式业务只安装选择的方案，业务页面、数据迁移和部署资源属于消费项目。

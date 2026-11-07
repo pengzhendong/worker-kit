@@ -334,19 +334,23 @@ try {
     ['VitePress', 'docs'],
   ];
   for (const route of routes.slice(0, 2)) {
-    await page.goto(
-      base + '/?view=nuxt&backend=' + route.name + '&preload=off',
-    );
-    for (const [label, view] of views) {
-      await page.getByRole('tab', { name: label, exact: true }).click();
-      const frame = page.frameLocator('#preview');
-      await expect(frame.locator('[data-workspace]')).toContainText('依赖正常');
-      await checkPanel(frame, route, view);
+    for (const [, view] of views) {
+      await page.goto(
+        route.origin +
+          (view === 'docs' ? '/docs/workspace.html' : `/${view}/workspace`),
+      );
+      await expect(page.locator('[data-workspace]')).toContainText('依赖正常');
+      await checkPanel(page, route, view);
     }
   }
   // A token must not reappear after external logout and a new authenticated refresh.
-  await page.goto(base + '/?view=nuxt&backend=payload&preload=off');
+  await page.goto(base + '/?view=payload&preload=off');
   const active = page.frameLocator('#preview');
+  const navToggle = active.locator(
+    '.nav-toggler[aria-label="Open Menu"]:visible',
+  );
+  if (await navToggle.count()) await navToggle.click();
+  await active.getByRole('link', { name: '应用运维', exact: true }).click();
   await expect(active.locator('[data-workspace]')).toContainText('依赖正常');
   const controls = active.locator('[data-management]');
   await controls.getByRole('button', { name: '访问密钥', exact: true }).click();

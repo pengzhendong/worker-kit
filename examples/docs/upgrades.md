@@ -13,7 +13,7 @@ npm run demo:build
 npm run test:ui-suite
 ```
 
-`npm run check:ui-suite` 会构建 17 套界面并启动隔离的测试预览，验证后关闭；本机需要 Chrome。`npm run upgrade:check` 还包含基础检查和旧后台 Linux UI 检查，任一失败都会停止。
+`npm run check:ui-suite` 会构建 18 套界面并启动隔离的测试预览，验证后关闭；本机需要 Chrome。`npm run upgrade:check` 还包含基础检查和旧后台 Linux UI 检查，任一失败都会停止。
 
 检查命令只报告更新，不自动改变版本。使用 `node scripts/ui-upstreams.mjs pin <name> <完整commit>` 下载并记录新校验值，审阅 manifest diff 后同步。升级模板时审阅上游差异、修改锁定版本和校验值、同步源码，再验证界面与兼容性；Sakai 跨 PrimeVue 大版本时还需同步更新配套依赖。
 
@@ -26,7 +26,7 @@ WorkerKit 自身可继续由消费项目作为 submodule 引用。组件库使�
 
 ## 新路线的验证
 
-轻量模板通过 `npm run create -- ../my-worker --frontend nuxt --backend native` 建立独立项目，再安装、setup、check 和真实浏览器检查。设置 schema 与业务字段留在应用，`kit:sync` 不覆盖业务页面和部署配置。
+Hono + KV 登录模板通过 `npm run create -- ../my-worker --frontend nuxt --backend native` 建立独立项目，再安装、setup、check 和真实浏览器检查。设置 schema 与业务字段留在应用，`kit:sync` 不覆盖业务页面和部署配置。
 
 NuxtHub 的依赖和 lockfile 在 `examples/nuxthub-dashboard/app`；使用 `npm run build:hub` 和该目录的 `npm run check`，组合后运行 `npm run test:native-hub` 验证真实存储、同源写请求、独立会话与移动界面。D1 迁移是单独步骤，不因构建成功就自动应用到线上。
 
@@ -59,4 +59,4 @@ npm run check
 
 因此无需把每一个 npm UI 库再变成 submodule。源码模板只固定明确的上游来源；依赖用包管理器升级，WorkerKit 共享源码使用快照或现有 submodule。
 
-新增方案检查：`npm run test:matrix` 检查 17 × 3 个真实后端组合，`npm run test:component-libraries` 检查新增原生组件，`npm run test:standard` 检查 Better Auth、任务与权限，`npm run test:frameworks` 检查三套新增全栈。默认连接已启动的本地统一 Worker。
+新增方案检查：`npm run test:matrix` 检查 18 × 3 个真实后端组合，`npm run test:component-libraries` 检查新增原生组件，`npm run test:standard` 检查 Better Auth、任务与权限，`npm run test:frameworks` 检查三套新增全栈。默认连接已启动的本地统一 Worker。

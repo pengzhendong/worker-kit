@@ -1,34 +1,95 @@
 import { spawn } from 'node:child_process';
-import { mkdir, cp, writeFile } from 'node:fs/promises';
+import { cp, mkdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { vbenBuildDirectory } from '../examples/vben-dashboard/paths.mjs';
+import { frontendViews } from '../examples/ui-suite/catalog.js';
 import { renderPreviewShell } from './render-preview-shell.mjs';
+
 const root = fileURLToPath(new URL('../', import.meta.url));
-const run = (args, base, kind = '') => new Promise((resolve, reject) => {
-  const child = spawn('npm', args, { cwd: root, stdio: 'inherit', env: { ...process.env, WORKERKIT_DEMO_BASE: base, WORKERKIT_DEMO_KIND: kind } });
-  child.on('error', reject);
-  child.on('exit', code => code === 0 ? resolve() : reject(new Error(`Build failed: ${args.join(' ')}`)));
-});
-await run(['run', 'upstreams:sync'], '/');
-await run(['run', 'build:nuxt'], '/nuxt/');
-await run(['run', 'build:prime'], '/prime/');
-await run(['run', 'build:element'], '/element/');
-await run(['run', 'build:naive'], '/naive/');
-await run(['run', 'build:shadcn'], '/shadcn/');
-for(const name of ['vuetify','quasar','mui','mantine'])await run(['run','build:'+name],'/'+name+'/');
-for (const name of ['pure', 'soybean']) await run(['run', 'build:' + name], '/' + name + '/');
-await run(['run', 'build:vben'], '/vben/');
-for (const kind of ['pro', 'refine']) await run(['run', 'build', '--workspace', '@worker-kit/react-admin-comparison'], `/${kind}/`, kind);
-for (const kind of ['tabler', 'adminlte']) await run(['run', 'build', '--workspace', '@worker-kit/bootstrap-admin-comparison'], `/${kind}/`, kind);
-await run(['run', 'build', '--workspace', '@worker-kit/docs'], '/docs/');
-const { vbenBuildDirectory } = await import('../examples/vben-dashboard/paths.mjs');
 const output = path.join(root, 'dist/ui-suite');
-await mkdir(output, { recursive: true });
-for (const [name, source] of Object.entries({ nuxt: 'examples/nuxt-dashboard/dist', prime: 'examples/prime-dashboard/dist', element: 'examples/vue-components/dist/element', naive: 'examples/vue-components/dist/naive', shadcn: 'examples/vue-components/dist/shadcn', vuetify:'examples/vue-components/dist/vuetify',quasar:'examples/vue-components/dist/quasar',mui:'examples/react-components/dist/mui',mantine:'examples/react-components/dist/mantine',pure: '.wrangler/ui-build/pure-dashboard/dist', soybean: '.wrangler/ui-build/soybean-dashboard/dist', vben: vbenBuildDirectory, pro: 'examples/react-admin/dist/pro', refine: 'examples/react-admin/dist/refine', tabler: 'examples/bootstrap-admin/dist/tabler', adminlte: 'examples/bootstrap-admin/dist/adminlte', docs: 'examples/docs/.vitepress/dist' })) {
-  // Replace only this generated output to avoid keeping stale chunks from older versions.
-  const { rm } = await import('node:fs/promises');
-  await rm(path.join(output, name), { recursive: true, force: true });
-  await cp(path.resolve(root, source), path.join(output, name), { recursive: true });
+const builds = {
+  nuxt: { source: 'examples/nuxt-dashboard/dist' },
+  prime: { source: 'examples/prime-dashboard/dist' },
+  primevue: {
+    source: 'examples/prime-dashboard/dist-primevue',
+    task: 'build:prime',
+    kind: 'primevue',
+  },
+  element: { source: 'examples/vue-components/dist/element' },
+  naive: { source: 'examples/vue-components/dist/naive' },
+  shadcn: { source: 'examples/vue-components/dist/shadcn' },
+  vuetify: { source: 'examples/vue-components/dist/vuetify' },
+  quasar: { source: 'examples/vue-components/dist/quasar' },
+  mui: { source: 'examples/react-components/dist/mui' },
+  mantine: { source: 'examples/react-components/dist/mantine' },
+  pure: { source: '.wrangler/ui-build/pure-dashboard/dist' },
+  soybean: { source: '.wrangler/ui-build/soybean-dashboard/dist' },
+  vben: { source: vbenBuildDirectory },
+  pro: {
+    source: 'examples/react-admin/dist/pro',
+    workspace: '@worker-kit/react-admin-comparison',
+    kind: 'pro',
+  },
+  refine: {
+    source: 'examples/react-admin/dist/refine',
+    workspace: '@worker-kit/react-admin-comparison',
+    kind: 'refine',
+  },
+  tabler: {
+    source: 'examples/bootstrap-admin/dist/tabler',
+    workspace: '@worker-kit/bootstrap-admin-comparison',
+    kind: 'tabler',
+  },
+  adminlte: {
+    source: 'examples/bootstrap-admin/dist/adminlte',
+    workspace: '@worker-kit/bootstrap-admin-comparison',
+    kind: 'adminlte',
+  },
+  docs: {
+    source: 'examples/docs/.vitepress/dist',
+    workspace: '@worker-kit/docs',
+  },
+};
+
+function run(args, base, kind = '') {
+  return new Promise((resolve, reject) => {
+    const child = spawn('npm', args, {
+      cwd: root,
+      stdio: 'inherit',
+      env: {
+        ...process.env,
+        WORKERKIT_DEMO_BASE: base,
+        WORKERKIT_DEMO_KIND: kind,
+      },
+    });
+    child.on('error', reject);
+    child.on('exit', (code) => {
+      if (code === 0) resolve();
+      else reject(new Error('Build failed: ' + args.join(' ')));
+    });
+  });
 }
+
+await run(['run', 'upstreams:sync'], '/');
+for (const name of frontendViews) {
+  const entry = builds[name];
+  if (!entry) throw new Error('No preview build configured for ' + name);
+  const args = entry.workspace
+    ? ['run', 'build', '--workspace', entry.workspace]
+    : ['run', entry.task ?? 'build:' + name];
+  await run(args, '/' + name + '/', entry.kind);
+}
+
+await mkdir(output, { recursive: true });
+for (const name of frontendViews) {
+  const target = path.join(output, name);
+  // Remove old hashed bundles from earlier builds.
+  await rm(target, { recursive: true, force: true });
+  await cp(path.resolve(root, builds[name].source), target, {
+    recursive: true,
+  });
+}
+await import('./build-component-gallery.mjs');
 await writeFile(path.join(output, 'index.html'), await renderPreviewShell());
 console.log('Built dist/ui-suite. Run npm run demo:preview');

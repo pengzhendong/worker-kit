@@ -12,17 +12,6 @@
       "enabled": true
     },
     {
-      "id": 2,
-      "name": "内容索引更新",
-      "description": "重建内容检索索引",
-      "app": "demo-content",
-      "schedule": "每 6 小时",
-      "status": "success",
-      "lastRun": "12:00:03",
-      "duration": "12.8 s",
-      "enabled": true
-    },
-    {
       "id": 3,
       "name": "服务健康检查",
       "description": "检查示例服务的响应状态",
@@ -31,28 +20,6 @@
       "status": "warning",
       "lastRun": "16:00:02",
       "duration": "4.1 s",
-      "enabled": true
-    },
-    {
-      "id": 4,
-      "name": "每日汇总报告",
-      "description": "生成当天的示例运行报告",
-      "app": "demo-reports",
-      "schedule": "每天 08:30",
-      "status": "success",
-      "lastRun": "08:30:05",
-      "duration": "23.6 s",
-      "enabled": true
-    },
-    {
-      "id": 5,
-      "name": "资源元数据更新",
-      "description": "同步分类、封面与资源信息",
-      "app": "demo-assets",
-      "schedule": "每天 03:00",
-      "status": "success",
-      "lastRun": "03:00:01",
-      "duration": "18.3 s",
       "enabled": true
     },
     {

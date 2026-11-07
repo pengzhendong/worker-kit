@@ -1,5 +1,6 @@
 node_modules/
 dist/
+examples/prime-dashboard/dist-primevue/
 .wrangler/
 .dev.vars
 .dev.vars.*

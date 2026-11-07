@@ -1,3 +1,8 @@
+import {
+  frontendPreviewPath,
+  officialDemos,
+  previewCategory,
+} from '../examples/ui-suite/catalog.js';
 import { browserOptions } from './browser.mjs';
 import { chromium, expect } from '@playwright/test';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
@@ -43,12 +48,11 @@ page.on('response', (response) => {
 let recordId,
   stage = 'opening';
 try {
-  await page.goto(base + '/?view=payload');
-  await expect(page.getByRole('tab')).toHaveCount(10);
-  await expect(page.getByRole('tab', { name: 'Payload' })).toHaveAttribute(
-    'aria-selected',
-    'true',
-  );
+  await page.goto(base + '/?view=payload&preload=off');
+  await expect(page.getByRole('tab')).toHaveCount(8);
+  await expect(
+    page.getByRole('tab', { name: 'Payload', exact: true }),
+  ).toHaveAttribute('aria-selected', 'true');
   const frame = page.frameLocator('#preview');
   stage = 'login';
   await frame
@@ -68,73 +72,37 @@ try {
     ['AdminLTE', 'adminlte'],
     ['VitePress', 'docs'],
   ];
+  await page.locator('#preview-category').selectOption('components');
   for (const [name, view] of views) {
     stage = `frontend ${view}`;
+    await page.locator('#preview-category').selectOption(previewCategory(view));
     await page.getByRole('tab', { name, exact: true }).click();
-    await expect
-      .poll(
-        () =>
-          new URL(
-            page
-              .frames()
-              .find((f) => f !== page.mainFrame())
-              .url(),
-          ).pathname,
-      )
-      .toMatch(new RegExp(`^/${view}/`));
-    await expect(frame.locator('[data-workspace]')).toContainText('依赖正常');
-    expect(
-      new URL(
-        page
-          .frames()
-          .find((f) => f !== page.mainFrame())
-          .url(),
-      ).origin,
-    ).toBe(base);
     await expect(page.locator('#open')).toHaveAttribute(
       'href',
-      base + (view === 'docs' ? '/docs/workspace.html' : `/${view}/workspace`),
+      officialDemos[view],
     );
-    const child = page.frames().find((f) => f !== page.mainFrame());
-    expect(
-      await child.evaluate(async () => {
-        const r = await fetch('/api/workerkit/session', {
-          credentials: 'same-origin',
-        });
-        return r.status;
-      }),
-    ).toBe(200);
-    if (view === 'nuxt') {
-      recordId = await child.evaluate(async () => {
-        const r = await fetch('/api/workerkit/notes', {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: '多前端共用后台验证',
-            status: 'draft',
-          }),
-        });
-        if (r.status !== 201) throw Error('Shared backend write failed');
-        return (await r.json()).item.id;
-      });
-    }
-    if (view === 'prime') {
-      expect(
-        await child.evaluate(
-          async (id) =>
-            (
-              await (
-                await fetch('/api/workerkit/notes', {
-                  credentials: 'same-origin',
-                })
-              ).json()
-            ).items.some((note) => note.id === id),
-          recordId,
-        ),
-      ).toBe(true);
+    await expect(page.locator('.stage')).toHaveAttribute('aria-busy', 'false');
+    await expect(page.locator('#preview')).toHaveAttribute(
+      'src',
+      base + frontendPreviewPath(view),
+    );
+    if (view !== 'docs') {
+      await expect(
+        frame.getByRole('heading', { name: '表格', exact: true }).last(),
+      ).toBeVisible();
     }
   }
+  await page.locator('#preview-category').selectOption('backend');
+  const created = await context.request.post(base + '/api/workerkit/notes', {
+    headers: { Origin: base },
+    data: { title: '多前端共用后台验证', status: 'draft' },
+  });
+  expect(created.status()).toBe(201);
+  recordId = (await created.json()).item.id;
+  const notes = await (
+    await context.request.get(base + '/api/workerkit/notes')
+  ).json();
+  expect(notes.items.some((note) => note.id === recordId)).toBe(true);
   stage = 'Payload switching';
   await page.getByRole('tab', { name: 'Payload', exact: true }).click();
   await expect(frame.getByText('依赖正常', { exact: true })).toBeVisible();
@@ -143,13 +111,15 @@ try {
   ).toHaveText('多前端共用后台验证');
   await frame.getByRole('button', { name: '运行检查', exact: true }).click();
   await expect(frame.locator('.wk-run').first()).toContainText('成功');
-  // The iframe stays same-origin, so native Payload login has also authenticated every UI.
   await page.screenshot({
     path: output + 'payload-desktop.png',
     animations: 'disabled',
   });
+  await page.locator('#preview-category').selectOption('components');
   await page.getByRole('tab', { name: 'Nuxt UI', exact: true }).click();
-  await expect(frame.locator('[data-workspace]')).toBeVisible();
+  await expect(
+    frame.getByRole('heading', { name: '表格', exact: true }).last(),
+  ).toBeVisible();
   await page.screenshot({
     path: output + 'frontend-desktop.png',
     animations: 'disabled',
@@ -159,7 +129,7 @@ try {
   await expect(page.locator('#preview')).toHaveClass('mobile');
   stage = 'mobile switching';
   await page.setViewportSize({ width: 390, height: 844 });
-  stage = 'Payload switching';
+  await page.locator('#preview-category').selectOption('backend');
   await page.getByRole('tab', { name: 'Payload', exact: true }).click();
   await expect(frame.getByText('依赖正常', { exact: true })).toBeVisible();
   expect(
@@ -172,10 +142,9 @@ try {
     animations: 'disabled',
   });
   await page.reload();
-  await expect(page.getByRole('tab', { name: 'Payload' })).toHaveAttribute(
-    'aria-selected',
-    'true',
-  );
+  await expect(
+    page.getByRole('tab', { name: 'Payload', exact: true }),
+  ).toHaveAttribute('aria-selected', 'true');
   await expect(
     page.frameLocator('#preview').getByText('依赖正常', { exact: true }),
   ).toBeVisible();
@@ -225,7 +194,7 @@ try {
         oneOrigin: base,
         availableViews: 10,
         iframePayloadLogin: true,
-        sharedCookieAcrossEightFrontends: true,
+        separatePublicFrontends: true,
         sharedD1WriteAndRead: true,
         realOperations: true,
         mobileSwitchAndRefresh: true,
@@ -238,7 +207,7 @@ try {
     ),
   );
   console.log(
-    'Unified Worker passed: ten views, in-frame login, shared session/D1, real operations, mobile switching and no other local servers.',
+    'Unified Worker passed: eight backend views, in-frame login, shared session/D1, real operations, mobile switching and no other local servers.',
   );
 } catch (error) {
   console.error(

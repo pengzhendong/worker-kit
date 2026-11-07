@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@lucide/vue": "catalog:",
     "@vben/layouts": "workspace:*",
     "@vben/hooks": "workspace:*",
     "@vben/locales": "workspace:*",

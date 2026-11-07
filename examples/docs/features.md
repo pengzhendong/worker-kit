@@ -2,7 +2,7 @@
 
 ## 公共管理功能（0.5.0）
 
-| 功能 | Payload + 17 套界面 | SonicJS + 17 套界面 | 轻量 Worker | NuxtHub |
+| 功能 | Payload + 18 套界面 | SonicJS + 18 套界面 | Hono + KV 登录 | NuxtHub |
 | --- | --- | --- | --- | --- |
 | 登录与权限 | Payload 原生身份与角色 | SonicJS 原生会话与 RBAC | WorkerKit KV 管理员会话 | WorkerKit KV 管理员会话 |
 | 运行状态与依赖检查 | 已接入 | 已接入 | 已接入 | 已接入 |
@@ -13,7 +13,7 @@
 | 同源交互式 API 文档 | 已接入 | 已接入 | 已接入 | 已接入 |
 | 原生用户、内容与媒体管理 | Payload 原生页面 | SonicJS 原生页面 | 由应用扩展 | 由应用扩展 |
 
-17 套 CMS 界面的「业务工作台」都有相同的管理入口，操作使用当前后端的真实接口。轻量模板按功能分页；NuxtHub 的「全栈工作台」提供同一组管理能力，「存储示例」另行演示真实 D1 / KV / R2 / Cache SDK。
+18 套 CMS 界面的「业务工作台」都有相同的管理入口，操作使用当前后端的真实接口。Hono + KV 登录按功能分页。NuxtHub 的「全栈工作台」提供同一组管理能力，「存储示例」另行演示真实 D1 / KV / R2 / Cache SDK。
 
 功能相同不代表权限相同。界面按服务端返回的权限显示入口，服务器独立检查每个请求。只读用户不能读取密钥、审计和配置，也不能执行任务写操作。访问密钥仅授予 `runtime:read`，不能用来登录管理员、修改配置或操作任务。
 
@@ -35,10 +35,10 @@ Hono + Better Auth 使用原生 D1 用户与会话、username/admin 插件、SQL
 
 ## 创建支持矩阵
 
-- `--backend payload` 或 `--backend sonic`：支持17 套前端。
+- `--backend payload` 或 `--backend sonic`：支持 18 套前端。
 - `--frontend nuxt --backend hono`：默认 Nuxt UI + Hono + Better Auth，D1/KV/SQLite DO，无 R2 必选项。
 - `--frontend sveltekit --backend sveltekit`、`astro / astro`、`react-router / react-router`：框架原生页面和 API + Better Auth + Nuxt UI 管理入口，同一个 Worker。
-- `--frontend nuxt --backend native`：Nuxt UI + Vue/Vite + 原生 Worker，默认包含 KV 和任务 DO。
+- `--frontend nuxt --backend native` 创建 Nuxt UI + Hono + KV 登录的 Worker，默认包含任务 DO。
 - `--frontend nuxt --backend hub`：完整 Nuxt + Nuxt UI + NuxtHub 应用；`--backend nuxt` 是其别名，使用 D1 / KV / R2 和任务 DO。
 
 这里的 `nuxt` 前端参数表示 Nuxt UI；只有 `hub` 路线采用完整 Nuxt 框架。两个 Nuxt UI 起点分别验证，不将其他框架标成可任意替换的全栈组合。

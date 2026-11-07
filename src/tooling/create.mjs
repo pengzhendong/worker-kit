@@ -45,6 +45,8 @@ const choices = {
   'react-router': 'react-router-dashboard',
   nuxt: 'nuxt-dashboard',
   prime: 'prime-dashboard',
+  primevue: 'prime-dashboard',
+  sakai: 'prime-dashboard',
   element: 'vue-components',
   naive: 'vue-components',
   shadcn: 'vue-components',
@@ -268,7 +270,7 @@ export async function syncKit(args) {
 export async function createProject(args) {
   if (args.includes('--help') || args.includes('-h')) {
     console.log(
-      'workerkit create DIRECTORY --frontend nuxt|prime|element|naive|shadcn|vuetify|quasar|mui|mantine|pure|soybean|vben|pro|refine|tabler|adminlte|docs --backend payload|sonic|native|nuxt|hub|hono|sveltekit|astro|react-router',
+      'workerkit create DIRECTORY --frontend nuxt|primevue|sakai|element|naive|shadcn|vuetify|quasar|mui|mantine|pure|soybean|vben|pro|refine|tabler|adminlte|docs --backend payload|sonic|native|nuxt|hub|hono|sveltekit|astro|react-router',
     );
     return;
   }
@@ -289,7 +291,7 @@ export async function createProject(args) {
     ].includes(options.backend)
   )
     throw Error(
-      'Usage: workerkit create DIRECTORY --frontend nuxt|prime|element|naive|shadcn|vuetify|quasar|mui|mantine|pure|soybean|vben|pro|refine|tabler|adminlte|docs --backend payload|sonic|native|nuxt|hub|hono|sveltekit|astro|react-router',
+      'Usage: workerkit create DIRECTORY --frontend nuxt|primevue|sakai|element|naive|shadcn|vuetify|quasar|mui|mantine|pure|soybean|vben|pro|refine|tabler|adminlte|docs --backend payload|sonic|native|nuxt|hub|hono|sveltekit|astro|react-router',
     );
   const project = path.resolve(options.directory);
   const relative = path.relative(kit, project);
@@ -361,6 +363,7 @@ export async function createProject(args) {
   const ignored = new Set([
     'node_modules',
     'dist',
+    'dist-primevue',
     '.git',
     '.wrangler',
     '.next',
@@ -429,9 +432,30 @@ export async function createProject(args) {
       path.join(project, 'web/LICENSE.vben'),
     );
   await mkdir(path.join(project, 'shared'), { recursive: true });
+  const hasComponentDemos = [
+    'element',
+    'naive',
+    'shadcn',
+    'vuetify',
+    'mui',
+    'mantine',
+  ].includes(frontend);
   for (const file of [
     'operations.js',
     'operations.d.ts',
+    ...([
+      'nuxt',
+      'prime',
+      'primevue',
+      'sakai',
+      'element',
+      'naive',
+      'shadcn',
+      'vuetify',
+      'quasar',
+    ].includes(frontend)
+      ? ['ComponentGallery.vue']
+      : []),
     'ManagementNuxt.vue',
     'NuxtWorkspace.vue',
     'ManagementPrime.vue',
@@ -439,11 +463,29 @@ export async function createProject(args) {
     'ManagementDocs.vue',
     'management-bootstrap.js',
     'reference.ts',
+    'workspace-pages.json',
+    ...(hasComponentDemos ? ['demo-settings.ts'] : []),
   ])
     await cp(
       path.join(kit, 'examples/ui-demo', file),
       path.join(project, 'shared', file),
     );
+  if (hasComponentDemos) {
+    // Generated projects have no media assets. Keep only the interactive task sample.
+    const demo = path.join(kit, 'examples/ui-demo');
+    const { tasks } = await json(path.join(demo, 'fixtures.json'));
+    const source = await readFile(
+      path.join(demo, 'component-fixtures.ts'),
+      'utf8',
+    );
+    await put(
+      path.join(project, 'shared/component-fixtures.ts'),
+      source.replace(
+        "import fixtures from './fixtures.json';",
+        `const fixtures = { tasks: ${JSON.stringify(tasks, null, 2)}, resources: [] as { name: string; type: string; url: string }[] };`,
+      ),
+    );
+  }
   for (const file of await filesIn(path.join(project, 'web'))) {
     if (!/\.(vue|tsx?|jsx?|m[tc]s)$/.test(file)) continue;
     const full = path.join(project, 'web', file);
@@ -489,7 +531,7 @@ export async function createProject(args) {
     engines: { node: '>=24.22.1' },
     devDependencies: { vite: '8.3.5' },
     workspaces: ['vben', 'pure', 'soybean'].includes(frontend) ? [] : ['web'],
-    overrides: ['nuxt', 'prime'].includes(frontend)
+    overrides: ['nuxt', 'prime', 'primevue', 'sakai'].includes(frontend)
       ? {
           tailwindcss: '4.3.4',
           '@tailwindcss/vite': '4.3.4',

@@ -18,6 +18,6 @@ watch(() => props.kind, () => { open.value = false; confirm.value = false; long.
   </template>
   <template v-else>
     <ACard class="mb-6"><div class="flex justify-between gap-4 items-center"><div><h2 class="demo-section-title">原生明暗主题</h2><p class="text-muted-foreground">Vben 原生偏好面板还能调整布局、主题和标签页。</p></div><AButton @click="updatePreferences({ theme: { mode: isDark ? 'light' : 'dark' } })">切换示例主题</AButton></div></ACard>
-    <div class="grid lg:grid-cols-2 gap-6"><ACard title="按钮层级"><ASpace wrap><AButton type="primary">主要按钮</AButton><AButton>描边按钮</AButton><AButton type="dashed">虚线按钮</AButton><AButton type="text">文字按钮</AButton><AButton disabled>禁用按钮</AButton></ASpace></ACard><ACard title="状态与表面"><ASpace class="mb-5"><ATag color="success">成功</ATag><ATag color="warning">警告</ATag><ATag color="error">错误</ATag><ATag>中性</ATag></ASpace><AAlert type="info" message="比较深浅背景下的文字、边框与状态色。" show-icon /></ACard></div>
+    <div class="grid lg:grid-cols-2 gap-6"><ACard title="按钮层级"><ASpace wrap><AButton type="primary">主要按钮</AButton><AButton>次要按钮</AButton><AButton type="dashed">虚线按钮</AButton><AButton type="text">文字按钮</AButton><AButton disabled>禁用按钮</AButton></ASpace></ACard><ACard title="状态与表面"><ASpace class="mb-5"><ATag color="success">成功</ATag><ATag color="warning">警告</ATag><ATag color="error">错误</ATag><ATag>中性</ATag></ASpace><AAlert type="info" message="比较深浅背景下的文字、边框与状态色。" show-icon /></ACard></div>
   </template>
 </template>

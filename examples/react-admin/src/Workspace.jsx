@@ -36,7 +36,6 @@ export default function Workspace() {
         </Button>
         {data && (
           <>
-            <ManagementPanel client={client} state={state} />
             <Tag>{data.backend}</Tag>
             <span>{data.user.name}</span>
             <Tag color={data.runtime.ok ? 'success' : 'error'}>
@@ -65,6 +64,7 @@ export default function Workspace() {
       {state.unauthorized && <Button href={client.loginUrl()}>登录后端</Button>}
       {data && (
         <>
+          <ManagementPanel client={client} state={state} />
           <Card title="运行诊断" style={{ marginBottom: 20 }}>
             <Table
               rowKey="name"
@@ -81,6 +81,7 @@ export default function Workspace() {
             <Card title="创建任务计划" style={{ marginBottom: 20 }}>
               <Form
                 layout="inline"
+                style={{ rowGap: 12 }}
                 initialValues={{ task: 'check-bindings', minutes: 60 }}
                 onFinish={(values) =>
                   client.create(values.task, values.minutes, values.inputs)

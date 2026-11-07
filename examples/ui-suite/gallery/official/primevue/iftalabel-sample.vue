@@ -1,0 +1,18 @@
+<template>
+<div class="card flex justify-center">
+        <IftaLabel>
+            <InputText id="username" v-model="value" autocomplete="off" />
+            <label for="username">Username</label>
+        </IftaLabel>
+    </div>
+</template>
+
+<script>
+export default {
+    data() {
+        return {
+            value: null
+        };
+    }
+};
+</script>

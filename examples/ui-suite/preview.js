@@ -1,49 +1,44 @@
 import { createFrameStore } from './frame-store.js';
 import {
-  activateFrame,
-  previewMessageEntry,
-  suspendFrame,
-} from './preview-protocol.js';
-import { frontendViews, frontendTitles, preloadLabels } from './catalog.js';
+  frontendPreviewPath,
+  frontendViews,
+  officialDemos,
+  preloadLabels,
+  previewCategory,
+} from './catalog.js';
 
-const views = { ...frontendTitles };
 const integrated = document.body.dataset.workerkitMode === 'integrated';
-if (integrated) {
-  document.querySelectorAll('[data-integrated-only]').forEach((link) => {
-    link.hidden = false;
-  });
-  views.payload = 'Payload 原生后台 · 共享登录与真实 D1/R2';
-  document.querySelector('[data-view="payload"]').hidden = false;
-  if (document.body.dataset.sonicOrigin) {
-    views.sonic = 'SonicJS 原生管理界面 · 独立登录与数据，同一个 Worker';
-    document.querySelector('[data-view="sonic"]').hidden = false;
-  }
-}
+const sonicOrigin = document.body.dataset.sonicOrigin;
+const backendViews = {
+  standard: '/standard/',
+  payload: '/admin/',
+  ...(sonicOrigin && {
+    sonic: new URL('/admin', sonicOrigin).href,
+  }),
+  native: '/native/',
+  hub: '/hub/',
+  sveltekit: '/sveltekit/',
+  astro: '/astro/',
+  'react-router': '/react-router/',
+};
+const backendTabs = document.querySelector('#backend-views');
+const uiTabs = document.querySelector('#ui-views');
+const categorySelect = document.querySelector('#preview-category');
+const backendCategory = categorySelect.querySelector('[value="backend"]');
+backendCategory.hidden = backendCategory.disabled = !integrated;
+for (const button of backendTabs.querySelectorAll('[data-view]'))
+  button.hidden =
+    !integrated || !Object.hasOwn(backendViews, button.dataset.view);
+
 const params = new URLSearchParams(location.search);
-const backendControl = document.querySelector('#backend');
-backendControl.hidden = !integrated;
-let backend = ['sonic', 'standard'].includes(params.get('backend'))
-  ? params.get('backend')
-  : 'payload';
-const backendOrigin = () =>
-  backend === 'sonic' ? document.body.dataset.sonicOrigin : location.origin;
 const viewUrl = (view) =>
-  view === 'payload'
-    ? new URL('/admin/', location.origin).href
-    : view === 'sonic'
-      ? new URL('/admin', document.body.dataset.sonicOrigin).href
-      : integrated
-        ? new URL(
-            (view === 'docs' ? '/docs/workspace.html' : `/${view}/workspace`) +
-              (backend === 'standard' ? '?backend=standard' : ''),
-            backendOrigin(),
-          ).href
-        : `/${view}/`;
+  new URL(backendViews[view] || frontendPreviewPath(view), location.origin)
+    .href;
 const stage = document.querySelector('.stage'),
   loading = document.querySelector('#loading');
+const open = document.querySelector('#open');
 const store = createFrameStore({
   stage,
-  integrated,
   isMobile: () => mobile,
   onChange: () => updateTabStates(),
   onLoad(entry) {
@@ -57,7 +52,6 @@ const frames = store.entries,
   createFrame = store.create,
   discard = store.discard;
 let frame,
-  selection = 0,
   mobile = false;
 let warming, idle, warmTimeout, preferred, intentTimer;
 const attempted = new Set();
@@ -68,7 +62,22 @@ const preloadAllowed = () =>
   document.visibilityState === 'visible' &&
   frontendViews.includes(active);
 let active = params.get('view') || 'nuxt';
-if (!views[active]) active = 'nuxt';
+if (
+  !frontendViews.includes(active) &&
+  !(integrated && Object.hasOwn(backendViews, active))
+)
+  active = 'nuxt';
+const lastView = {
+  components: 'nuxt',
+  templates: 'prime',
+  docs: 'docs',
+  backend: 'standard',
+};
+const categoryLabels = {
+  components: '组件库方案',
+  templates: '后台模板方案',
+  docs: '文档方案',
+};
 const setBusy = (value) => {
   stage.setAttribute('aria-busy', String(value));
   loading.hidden = !value;
@@ -80,10 +89,9 @@ function updateTabStates() {
     ['slow-2g', '2g'].includes(navigator.connection?.effectiveType);
   for (const view of frontendViews) {
     const button = document.querySelector(`[data-view="${view}"]`);
-    if (!button.querySelector('.preload-indicator')) continue;
     const entry = frames.get(viewUrl(view));
     const status = entry
-      ? entry.loaded && (!integrated || entry.prepared || entry.refreshable)
+      ? entry.loaded
         ? 'ready'
         : 'loading'
       : attempted.has(viewUrl(view))
@@ -96,11 +104,11 @@ function updateTabStates() {
     if (button.dataset.preloadStatus === status) continue;
     const label = preloadLabels[status];
     button.dataset.preloadStatus = status;
-    button.title = views[view] + ' · ' + label;
+    button.title = label;
     document.getElementById('preview-status-' + view).textContent = label;
   }
 }
-// Warm one frontend at a time, after foreground rendering/data have settled.
+// Warm public demos one at a time after the visible frame has loaded.
 function cancelIdle() {
   if (idle !== undefined) {
     if (window.cancelIdleCallback) cancelIdleCallback(idle);
@@ -133,8 +141,7 @@ function prioritizeView(view) {
   }, 120);
 }
 function progressWarm(entry) {
-  if (warming !== entry || !entry.loaded || (integrated && !entry.refreshable))
-    return;
+  if (warming !== entry || !entry.loaded) return;
   clearTimeout(warmTimeout);
   warming = undefined;
   entry.frame.dataset.preloadState = 'ready';
@@ -151,8 +158,7 @@ function scheduleWarm(view) {
     !preloadAllowed() ||
     warming ||
     !current?.loaded ||
-    stage.getAttribute('aria-busy') === 'true' ||
-    (integrated && !current.settled)
+    stage.getAttribute('aria-busy') === 'true'
   )
     return;
   const run = () => {
@@ -172,7 +178,7 @@ function scheduleWarm(view) {
     );
     if (!next) return;
     const url = viewUrl(next);
-    warming = createFrame(url, url, true);
+    warming = createFrame(url, url, { background: true });
     const entry = warming;
     warmTimeout = setTimeout(() => {
       if (warming === entry) {
@@ -187,44 +193,19 @@ function scheduleWarm(view) {
     ? requestIdleCallback(run, { timeout: 1500 })
     : setTimeout(run, 300);
 }
-window.addEventListener('message', (event) => {
-  const entry = previewMessageEntry(frames, event);
-  if (!entry) return;
-  if (event.data?.type === 'workerkit:preview-ready') {
-    entry.refreshable = event.data.ready === true;
-    if (entry.refreshable) entry.prepared = true;
-    progressWarm(entry);
-    if (entry.refreshable && entry.finish)
-      entry.frame.contentWindow.postMessage(
-        { type: 'workerkit:preview-refresh', id: entry.request },
-        event.origin,
-      );
-    updateTabStates();
-  }
-  if (
-    event.data?.type === 'workerkit:preview-settled' &&
-    (event.data.id ?? undefined) === entry.request
-  ) {
-    entry.settled = true;
-    scheduleWarm();
-  }
-  if (
-    ['workerkit:preview-cleared', 'workerkit:preview-refreshed'].includes(
-      event.data?.type,
-    ) &&
-    event.data.id === entry.request
-  ) {
-    entry.frame.name = '';
-    if (event.data.public) entry.settled = true;
-    entry.finish?.(true);
-  }
-});
-async function selectView(view, nextBackend = backend) {
-  const previousBackend = backend;
-  backend = nextBackend;
+function selectView(view) {
+  const category = previewCategory(view);
+  const isUi = category !== 'backend';
   active = view;
-  if (view === 'payload' || view === 'sonic') backend = view;
-  backendControl.value = backend;
+  lastView[category] = view;
+  categorySelect.value = category;
+  uiTabs.hidden = !isUi;
+  backendTabs.hidden = isUi;
+  if (isUi) {
+    uiTabs.setAttribute('aria-label', categoryLabels[category]);
+    for (const button of uiTabs.querySelectorAll('[data-view]'))
+      button.hidden = previewCategory(button.dataset.view) !== category;
+  }
   for (const button of document.querySelectorAll('[data-view]')) {
     button.setAttribute('aria-selected', String(button.dataset.view === view));
     button.tabIndex = button.dataset.view === view ? 0 : -1;
@@ -233,79 +214,42 @@ async function selectView(view, nextBackend = backend) {
     .querySelector(`[data-view="${view}"]`)
     .scrollIntoView({ block: 'nearest', inline: 'nearest' });
   const url = viewUrl(view);
-  document.querySelector('#open').href = url;
+  open.href = isUi ? officialDemos[view] : url;
+  open.textContent = isUi ? '官方演示 ↗' : '独立打开 ↗';
+  open.rel = isUi ? 'noopener noreferrer' : 'noopener';
   history.replaceState(
     null,
     '',
-    `?view=${view}${integrated ? '&backend=' + backend : ''}${params.get('preload') === 'off' ? '&preload=off' : ''}`,
+    `?view=${view}${params.get('preload') === 'off' ? '&preload=off' : ''}`,
   );
   if (frame?.getAttribute('src') === url && !frame.hidden) return;
-  const ticket = ++selection;
   stopWarm(url);
-  setBusy(true);
-  // Different backend origins own different identities and data.
-  if (previousBackend !== backend) {
-    attempted.clear();
-    for (const entry of [...frames.values()]) discard(entry);
-  }
   for (const entry of [...frames.values()]) {
-    entry.finish?.(false);
     entry.frame.hidden = true;
     entry.frame.removeAttribute('id');
-    // A native CMS may change the session. Clear private data and cancel reads
-    // without destroying the prepared framework or fetching hidden workspaces.
-    if (integrated && ['payload', 'sonic'].includes(view)) {
-      suspendFrame(entry);
-    }
-    if (
-      ['/admin/', '/admin'].includes(new URL(entry.key, location.href).pathname)
-    )
+    // Backend pages can contain private data. Only public UI demos are cached.
+    if (Object.keys(backendViews).some((name) => entry.key === viewUrl(name)))
       discard(entry);
   }
-  let entry = frames.get(url),
-    reused = !!entry;
-  if (!entry) entry = createFrame(url, url);
-  // Keep eight frontend instances plus one on-demand native CMS.
-  // The native page must not evict an already prepared frontend.
-  const limit =
-    frontendViews.length + (['payload', 'sonic'].includes(view) ? 1 : 0);
-  store.touch(entry, limit);
+  setBusy(true);
+  const entry = frames.get(url) || createFrame(url, url);
   frame = entry.frame;
   frame.id = 'preview';
-  if (frame.dataset.preloadState) frame.dataset.preloadState = 'foreground';
+  frame.title = isUi ? 'WorkerKit 组件预览' : 'WorkerKit 后端展示';
+  delete frame.dataset.preloadState;
   frame.removeAttribute('style');
   frame.removeAttribute('aria-hidden');
-  entry.settled = false;
-  if (reused && integrated) {
-    const refreshed = await activateFrame(entry);
-    if (ticket !== selection) return;
-    if (!refreshed) {
-      discard(entry);
-      entry = createFrame(url, url);
-      frame = entry.frame;
-      frame.id = 'preview';
-    }
-  }
-  if (ticket !== selection) return;
   frame.hidden = false;
   if (entry.loaded) setBusy(false);
   scheduleWarm();
 }
-backendControl.onchange = () =>
-  selectView(
-    ['payload', 'sonic'].includes(active)
-      ? backendControl.value === 'standard'
-        ? 'nuxt'
-        : backendControl.value
-      : active,
-    backendControl.value,
-  );
+categorySelect.onchange = () => selectView(lastView[categorySelect.value]);
 const tabs = [...document.querySelectorAll('[data-view]')].filter(
   (button) => !button.hidden,
 );
 for (const button of tabs) {
-  button.title = views[button.dataset.view];
-  if (frontendViews.includes(button.dataset.view)) {
+  const view = button.dataset.view;
+  if (frontendViews.includes(view)) {
     const marker = document.createElement('span');
     marker.className = 'preload-indicator';
     marker.setAttribute('aria-hidden', 'true');
@@ -315,27 +259,30 @@ for (const button of tabs) {
     description.hidden = true;
     button.after(description);
     button.setAttribute('aria-describedby', description.id);
-  } else button.title += ' · 原生页面按需打开，不预加载';
+  } else button.title = button.textContent + ' · 按需打开，不预加载';
   button.onpointerenter = button.onfocus = () =>
     prioritizeView(button.dataset.view);
   button.onpointerleave = button.onblur = () => clearTimeout(intentTimer);
   button.onclick = () => selectView(button.dataset.view);
   button.onkeydown = (e) => {
-    const i = tabs.indexOf(button);
+    const siblings = tabs.filter(
+      (tab) => !tab.hidden && tab.parentElement === button.parentElement,
+    );
+    const i = siblings.indexOf(button);
     const next =
       e.key === 'ArrowRight'
-        ? (i + 1) % tabs.length
+        ? (i + 1) % siblings.length
         : e.key === 'ArrowLeft'
-          ? (i + tabs.length - 1) % tabs.length
+          ? (i + siblings.length - 1) % siblings.length
           : e.key === 'Home'
             ? 0
             : e.key === 'End'
-              ? tabs.length - 1
+              ? siblings.length - 1
               : -1;
     if (next >= 0) {
       e.preventDefault();
-      tabs[next].focus();
-      selectView(tabs[next].dataset.view);
+      siblings[next].focus();
+      selectView(siblings[next].dataset.view);
     }
   };
 }

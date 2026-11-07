@@ -168,11 +168,14 @@ try {
     ['VitePress', 'docs'],
   ];
   for (const backend of ['payload', 'sonic']) {
-    await page.goto(base + '/?view=nuxt&backend=' + backend);
-    for (const [label, view] of views) {
+    const origin = backend === 'payload' ? base : sonic;
+    for (const [, view] of views) {
       stage = backend + ' / ' + view;
-      await page.getByRole('tab', { name: label, exact: true }).click();
-      const frame = page.frameLocator('#preview');
+      await page.goto(
+        origin +
+          (view === 'docs' ? '/docs/workspace.html' : `/${view}/workspace`),
+      );
+      const frame = page;
       await expect(frame.locator('[data-workspace]')).toContainText(
         '依赖正常',
         { timeout: 20000 },
@@ -191,8 +194,15 @@ try {
     ['payload', base],
     ['sonic', sonic],
   ]) {
-    await page.goto(base + '/?view=nuxt&backend=' + backend);
+    await page.goto(base + '/?view=' + backend);
     const frame = page.frameLocator('#preview');
+    if (backend === 'payload') {
+      const toggle = frame.locator(
+        '.nav-toggler[aria-label="Open Menu"]:visible',
+      );
+      if (await toggle.count()) await toggle.click();
+    }
+    await frame.getByRole('link', { name: '应用运维', exact: true }).click();
     const before = await inventory(origin);
     const minutes = Array.from({ length: 10021 }, (_, i) => i + 60).find(
       (value) =>
@@ -225,12 +235,12 @@ try {
       )
       .toBe(true);
   }
-  await page.goto(base + '/?view=nuxt&backend=payload');
-  const frame = page.frameLocator('#preview');
+  await page.goto(base + '/nuxt/workspace');
+  const frame = page;
   await expect(frame.locator('[data-workspace]')).toContainText('依赖正常');
   await page.screenshot({ path: output + 'desktop.png' });
   stage = 'desktop content and sidebar scrolling';
-  let child = page.frames().find((f) => f.url().includes('/nuxt/workspace'));
+  const child = page;
   const position = async () => ({
     navbar: await child
       .getByRole('button', { name: '切换明暗主题', exact: true })
@@ -286,7 +296,6 @@ try {
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  child = page.frames().find((f) => f.url().includes('/nuxt/workspace'));
   expect(
     await child.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -313,24 +322,15 @@ try {
     frame.getByRole('heading', { name: '运行概览', exact: true }).last(),
   ).toBeVisible();
   await expect(overviewLink).toBeHidden();
-  await page.getByRole('tab', { name: 'Nuxt UI', exact: true }).click();
-  // Re-selecting the active preview preserves its current route instead of reloading it.
-  await expect(
-    frame.getByRole('heading', { name: '运行概览', exact: true }).last(),
-  ).toBeVisible();
-  await frame.locator('[data-slot="toggle"]').first().click();
-  await frame.getByRole('link', { name: '业务工作台', exact: true }).click();
-  await expect(frame.locator('[data-workspace]')).toContainText('依赖正常');
-  await page.getByLabel('选择后端').selectOption('sonic');
-  await expect(frame.locator('[data-workspace]')).toContainText('依赖正常');
-  await expect(frame.locator('body')).toHaveAttribute(
+  await page.goto(sonic + '/nuxt/workspace?preview=backend');
+  const sonicWorkspace = page;
+  await expect(sonicWorkspace.locator('[data-workspace]')).toContainText(
+    '依赖正常',
+  );
+  await expect(sonicWorkspace.locator('body')).toHaveAttribute(
     'data-workerkit-backend',
     'sonic',
   );
-  await expect(frame.locator('[data-workspace]')).toContainText('依赖正常');
-  await expect(
-    frame.getByRole('button', { name: '刷新', exact: true }),
-  ).toBeEnabled();
   await page.screenshot({ path: output + 'mobile.png' });
   stage = 'native scheduled alarms';
   for (const plan of alarmPlans)

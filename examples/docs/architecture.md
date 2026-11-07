@@ -11,7 +11,8 @@ WorkerKit 是面向 Cloudflare Workers 的开发底座：选择一套界面或�
 | Vue / React | 前端框架 | 组件、状态、浏览器交互 |
 | Nuxt UI | Vue 组件库 | Dashboard 侧栏、表单、表格、弹窗、主题；可以直接配 Vue/Vite |
 | Dashboard Vue | Nuxt UI 官方 Vue/Vite 模板 | 页面布局示范，不是数据库或后端服务 |
-| PrimeVue / Sakai | 组件库 / 基于该库的后台模板 | PrimeVue 是控件，Sakai 把这些控件组合成布局 |
+| PrimeVue | Vue 组件库 | 提供表格、表单、菜单、弹窗和主题 |
+| Sakai | 基于 PrimeVue 的后台模板 | 提供完整后台布局和导航 |
 | Vben / PureAdmin / Soybean | 完整后台前端工程 | 布局、菜单、路由、主题；与 Nuxt UI 是候选关系 |
 | Nuxt | 全栈框架 | Vue 页面、路由、服务端渲染、Nitro 服务端 API |
 | Nitro | 服务端引擎 | Nuxt 的服务器路由和 Workers 构建适配 |
@@ -30,7 +31,7 @@ WorkerKit 是面向 Cloudflare Workers 的开发底座：选择一套界面或�
 | 内容、用户、媒体、角色与编辑发布 | 前端任选 + Payload 或 SonicJS | [比较](/?view=nuxt&backend=payload){target="_top"} |
 | 对比其他全栈技术 | SvelteKit / Astro / React Router + Better Auth | [原生全栈验证](./frameworks) |
 | 文档和知识内容 | VitePress | [文档入口](./guide) |
-| 保留现有旧 Worker 的极简认证 | 原生 KV 兼容模板 | [兼容入口](/native/){target="_top"} |
+| 一个管理员账号管理应用 | Nuxt UI + Hono + KV 登录 | [Hono + KV 登录](/native/){target="_top"} |
 
 用 Nuxt UI 并不是因为完整 Nuxt 无法部署到 Worker；二者都能部署。纯管理页面通常不需要每次请求都在服务器渲染，Vue/Vite 静态前端更直接；需要完整 Nuxt 时使用已经接入的全栈路线。
 

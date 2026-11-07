@@ -16,6 +16,10 @@ import {
   NTag,
 } from 'naive-ui';
 import { useWorkspace } from './useWorkspace';
+withDefaults(defineProps<{ section?: string; title?: string }>(), {
+  section: 'workspace',
+  title: '业务工作台',
+});
 const {
   client,
   state,
@@ -84,14 +88,18 @@ const taskOptions = computed(
   <div data-workspace>
     <div class="workspace-toolbar">
       <div>
-        <h1>业务工作台</h1>
+        <h1>{{ title }}</h1>
         <p>Naive UI 原生组件连接当前后端的真实接口。</p>
       </div>
       <NButton :loading="state.busy" @click="client.refresh()">刷新</NButton>
     </div>
     <NAlert v-if="state.busy && !state.data">正在更新工作台数据…</NAlert
     ><NAlert v-if="state.error" type="error">{{ state.error }}</NAlert
-    ><NButton v-if="state.unauthorized" tag="a" :href="client.loginUrl()"
+    ><NButton
+      v-if="state.unauthorized"
+      class="workspace-login"
+      tag="a"
+      :href="client.loginUrl()"
       >登录后端</NButton
     >
     <div v-if="state.data" class="workspace-stack">
@@ -110,8 +118,10 @@ const taskOptions = computed(
           >管理内容与媒体 ↗</NButton
         >
       </div>
-      <NCard v-if="management" title="管理功能"
-        ><NTabs type="line" animated>
+      <NCard
+        v-if="management && (section === 'workspace' || section === 'settings')"
+        title="管理功能"
+        ><NTabs :key="section" type="line" animated>
           <NTabPane v-if="management.settings" name="settings" tab="KV 设置"
             ><form
               class="workspace-form"
@@ -179,6 +189,7 @@ const taskOptions = computed(
               ><NButton @click="client.closeToken()">已保存，关闭</NButton>
             </div>
             <NDataTable
+              class="workspace-list"
               :columns="keyColumns"
               :data="management.keys.items"
               :scroll-x="650"
@@ -195,6 +206,7 @@ const taskOptions = computed(
           >
           <NTabPane v-if="management.audit" name="audit" tab="操作审计"
             ><NDataTable
+              class="workspace-list"
               :columns="auditColumns"
               :data="management.audit.items"
               :scroll-x="650"
@@ -211,7 +223,9 @@ const taskOptions = computed(
               :src="client.apiUrl('/reference')"
           /></NTabPane> </NTabs
       ></NCard>
-      <NCard title="运行诊断"
+      <NCard
+        v-if="section === 'workspace' || section === 'overview'"
+        title="运行诊断"
         ><div
           v-for="check in state.data.runtime.checks"
           :key="check.name"
@@ -221,7 +235,9 @@ const taskOptions = computed(
           ><span>{{ check.status }} · {{ check.durationMs }} ms</span>
         </div></NCard
       >
-      <NCard v-if="manageTasks" title="创建任务计划"
+      <NCard
+        v-if="manageTasks && (section === 'workspace' || section === 'tasks')"
+        title="创建任务计划"
         ><form
           class="workspace-form"
           @submit.prevent="
@@ -250,7 +266,9 @@ const taskOptions = computed(
           >
         </form></NCard
       >
-      <NCard title="任务计划"
+      <NCard
+        v-if="section === 'workspace' || section === 'tasks'"
+        title="任务计划"
         ><NEmpty v-if="!state.data.plans.length" description="暂无计划" />
         <div
           v-for="plan in state.data.plans"
@@ -282,7 +300,9 @@ const taskOptions = computed(
           </div>
         </div></NCard
       >
-      <NCard title="运行记录与日志"
+      <NCard
+        v-if="section === 'workspace' || section === 'runs'"
+        title="运行记录与日志"
         ><NEmpty v-if="!state.data.runs.length" description="暂无运行记录" />
         <article
           v-for="run in state.data.runs"

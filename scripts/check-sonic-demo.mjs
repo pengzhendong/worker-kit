@@ -75,7 +75,7 @@ try {
     ).status(),
   ).toBe(302);
   await page.goto(base + '/?view=sonic');
-  await expect(page.getByRole('tab')).toHaveCount(10);
+  await expect(page.getByRole('tab')).toHaveCount(8);
   await expect(
     page.getByRole('tab', { name: 'SonicJS', exact: true }),
   ).toHaveAttribute('aria-selected', 'true');
@@ -86,6 +86,20 @@ try {
   await expect(
     frame.getByRole('heading', { name: 'Content Management', exact: true }),
   ).toBeVisible({ timeout: 15000 });
+  await frame.getByRole('link', { name: '应用运维', exact: true }).click();
+  await expect(frame.locator('[data-workspace]')).toContainText('依赖正常');
+  await expect(frame.locator('body')).toHaveAttribute(
+    'data-workerkit-backend',
+    'sonic',
+  );
+  await frame.getByRole('link', { name: /管理内容与媒体/ }).click();
+  await expect(
+    frame.getByRole('heading', { name: 'Dashboard', exact: true }),
+  ).toBeVisible();
+  await frame.getByRole('link', { name: 'Content', exact: true }).click();
+  await expect(
+    frame.getByRole('heading', { name: 'Content Management', exact: true }),
+  ).toBeVisible();
   // SonicJS auth does not grant a Payload session, even within the same Worker.
   expect(
     (await context.request.get(base + '/api/workerkit/session')).status(),

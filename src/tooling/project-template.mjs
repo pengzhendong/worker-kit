@@ -4,7 +4,22 @@ import path from 'node:path';
 export async function prepareFrontend({ kit, project, frontend, put, json }) {
   const web = path.join(project, 'web');
   const edit = async (file, fn) =>
-    put(path.join(web, file), fn(await readFile(path.join(web, file), 'utf8')));
+    put(
+      path.join(web, file),
+      await fn(await readFile(path.join(web, file), 'utf8')),
+    );
+  const inlineComponentCatalog = async (text) => {
+    const source = JSON.parse(
+      await readFile(
+        path.join(kit, 'examples/ui-demo/component-pages.json'),
+        'utf8',
+      ),
+    );
+    return text.replace(
+      /^import componentPages from .*;\n/m,
+      'const componentPages = ' + JSON.stringify(source) + ';\n',
+    );
+  };
   const pkg = await json(path.join(web, 'package.json'));
   if (frontend === 'nuxt') {
     await edit('src/main.ts', (text) =>
@@ -17,6 +32,7 @@ export async function prepareFrontend({ kit, project, frontend, put, json }) {
     );
     await edit('src/App.vue', (text) =>
       text
+        .replace(/^import workspacePages from .*;\n/m, '')
         .replace(
           /import componentPages from .*;/,
           'const componentPages: { title: string; path: string; icon: string }[] = [];',
@@ -44,7 +60,7 @@ export async function prepareFrontend({ kit, project, frontend, put, json }) {
         .replaceAll('Demo User', '工作空间')
         .replaceAll('本地预览工作空间', '开发工作空间'),
     );
-  } else if (frontend === 'prime') {
+  } else if (['prime', 'primevue', 'sakai'].includes(frontend)) {
     await edit('src/main.js', (text) =>
       text
         .replace("import Demo from './Demo.vue';", '')
@@ -59,6 +75,35 @@ export async function prepareFrontend({ kit, project, frontend, put, json }) {
       path.join(web, 'src/layout/AppMenu.vue'),
       `<script setup>\nimport AppMenuItem from './AppMenuItem.vue';\nconst model = [{ label: '工作空间', items: [{ label: '业务工作台', icon: 'pi pi-bolt', to: '/workspace' }] }];\n</script>\n<template><ul class="layout-menu"><AppMenuItem v-for="(item,i) in model" :key="i" :item="item" :index="i" /></ul></template>\n`,
     );
+    if (frontend === 'primevue') {
+      await edit('vite.config.js', (text) =>
+        text
+          .replace("process.env.WORKERKIT_DEMO_KIND === 'primevue'", 'true')
+          .replace("library ? 'dist-primevue' : 'dist'", "'dist'"),
+      );
+      await edit('src/PrimeVueLayout.vue', (text) =>
+        text.replace(
+          /^import componentPages from .*;\n/m,
+          'const componentPages = [];\n',
+        ),
+      );
+      await edit('src/main.js', (text) =>
+        text.replace(
+          /const \{ default: AppLayout \} = __PRIMEVUE_LIBRARY__[\s\S]*?;\nif .*layout\.scss'\);\n/,
+          "import AppLayout from './PrimeVueLayout.vue';\n",
+        ),
+      );
+      await rm(path.join(web, 'src/layout'), { recursive: true });
+      await rm(path.join(web, 'src/assets/layout'), { recursive: true });
+    } else
+      await edit('src/main.js', (text) =>
+        text.replace(
+          /const \{ default: AppLayout \} = __PRIMEVUE_LIBRARY__[\s\S]*?;\n/,
+          "import AppLayout from './layout/AppLayout.vue';\n",
+        ),
+      );
+    if (frontend !== 'primevue')
+      await rm(path.join(web, 'src/PrimeVueLayout.vue'));
     await rm(path.join(web, 'src/Demo.vue'));
     await rm(path.join(web, 'src/ComponentExperience.vue'));
   } else if (['pure', 'soybean'].includes(frontend)) {
@@ -78,6 +123,14 @@ export async function prepareFrontend({ kit, project, frontend, put, json }) {
         frontend === 'mui' ? 'MantineApp.tsx' : 'MuiApp.tsx',
       ),
     );
+    await rm(
+      path.join(
+        web,
+        'src',
+        frontend === 'mui' ? 'MantineDemos.tsx' : 'MuiDemos.tsx',
+      ),
+    );
+    await edit('src/demo-navigation.ts', inlineComponentCatalog);
     for (const dep of frontend === 'mui'
       ? ['@mantine/core', '@mantine/hooks']
       : ['@mui/material', '@emotion/react', '@emotion/styled'])
@@ -109,7 +162,7 @@ export async function prepareFrontend({ kit, project, frontend, put, json }) {
     if (frontend === 'quasar')
       await put(
         path.join(web, 'src/main.ts'),
-        `import{createApp}from'vue';import{Quasar}from'quasar';import*as components from'quasar';import iconSet from'quasar/icon-set/svg-mdi-v7';import'quasar/dist/quasar.css';import App from'./QuasarApp.vue';import'./style.css';createApp(App).use(Quasar,{components,iconSet}).mount('#app');`,
+        `import{createApp}from'vue';import{Quasar}from'quasar';import*as components from'quasar';import iconSet from'quasar/icon-set/svg-mdi-v7';import lang from'quasar/lang/zh-CN';import'quasar/dist/quasar.css';import App from'./QuasarApp.vue';import'./style.css';createApp(App).use(Quasar,{components,iconSet,lang}).mount('#app');`,
       );
     for (const [key, name] of [
       ['element', 'Element'],
@@ -125,11 +178,25 @@ export async function prepareFrontend({ kit, project, frontend, put, json }) {
       delete pkg.dependencies.vuetify;
       delete pkg.dependencies['@mdi/js'];
     }
+    await rm(path.join(web, 'src/QuasarComponents.vue'));
+    for (const [kind, name] of [
+      ['element', 'Element'],
+      ['naive', 'Naive'],
+      ['shadcn', 'Shadcn'],
+      ['vuetify', 'Vuetify'],
+    ])
+      if (frontend !== kind)
+        await rm(path.join(web, 'src', name + 'Demos.vue'));
+    if (frontend === 'quasar') await rm(path.join(web, 'src/LibraryDemos.vue'));
+    await edit('src/demo-navigation.ts', inlineComponentCatalog);
     if (frontend !== 'quasar') {
       delete pkg.dependencies.quasar;
       delete pkg.dependencies['@quasar/extras'];
     }
-    if (!element) delete pkg.dependencies['element-plus'];
+    if (!element) {
+      delete pkg.dependencies['element-plus'];
+      await rm(path.join(web, 'src/ElementNavigation.vue'));
+    }
     if (frontend !== 'naive') delete pkg.dependencies['naive-ui'];
     if (frontend !== 'shadcn') {
       await rm(path.join(web, 'src/components'), {
@@ -162,7 +229,7 @@ export async function prepareFrontend({ kit, project, frontend, put, json }) {
   } else if (frontend === 'vben') {
     await edit('src/bootstrap.ts', (text) =>
       text
-        .replace(/^import componentPages from .*;\n/m, '')
+        .replace(/^import (componentPages|workspacePages) from .*;\n/gm, '')
         .replace(
           /const pages = \[[\s\S]*?\n  \];/,
           "const pages = [{ path: '/workspace', name: 'Workspace', title: '业务工作台', icon: 'lucide:activity' }];",

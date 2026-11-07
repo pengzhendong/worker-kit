@@ -4,14 +4,15 @@
 
 筛选范围是本轮列出的维护中 JavaScript / TypeScript UI、后台模板、全栈与后端项目，主要关注万星以上项目，同时保留已经接入的 Nuxt UI、SonicJS、Sakai 等。它不是 GitHub 所有仓库的穷举；没有因 star 更大就把需要额外服务器的系统塞进免费 Worker。原始快照见 [GitHub 数据](./research-github.json)。
 
-## 已接入的 17 套前端
+## 已接入的 18 套前端
 
 这些方案使用本地静态资产，前端库本身不消耗服务端计算配额。真实工作台连接选定后端的设置、密钥、审计、诊断、任务和 Scalar API 文档；展示站可切换，正式业务只安装其中一套。
 
 | 项目 | GitHub star | 类型 | 本例接入与边界 | 预览 |
 | --- | ---: | --- | --- | --- |
 | [Nuxt UI](https://github.com/nuxt/ui) | 7,058 | 组件库 | Vue/Vite；完整 Nuxt 另选全栈路线 | [打开](/?view=nuxt&backend=standard){target="_top"} |
-| [Sakai / PrimeVue](https://github.com/primefaces/primevue) | 14,450 | 模板 / 组件库 | Sakai 提供布局，PrimeVue 提供控件；不是两个后端 | [打开](/?view=prime&backend=standard){target="_top"} |
+| [PrimeVue](https://github.com/primefaces/primevue) | 14,450 | 组件库 | Vue 控件，可独立用于自有页面 | [打开](/?view=primevue){target="_top"} |
+| [Sakai](https://github.com/primefaces/sakai-vue) | 1,133 | 后台模板 | 基于 PrimeVue，提供后台布局和导航 | [打开](/?view=prime){target="_top"} |
 | [Element Plus](https://github.com/element-plus/element-plus) | 27,838 | 组件库 | Vue 3；原生表格、表单、Dialog | [打开](/?view=element&backend=standard){target="_top"} |
 | [Naive UI](https://github.com/tusen-ai/naive-ui) | 18,601 | 组件库 | Vue 3；原生 DataTable、Tabs、Drawer | [打开](/?view=naive&backend=standard){target="_top"} |
 | [shadcn-vue](https://github.com/unovue/shadcn-vue) | 10,782 | 源码组件 | 官方 registry 源码 + Reka UI；按源码差异升级 | [打开](/?view=shadcn&backend=standard){target="_top"} |
@@ -28,7 +29,7 @@
 | [AdminLTE](https://github.com/ColorlibHQ/AdminLTE) | 45,676 | Bootstrap 模板 | npm 模板与原生 PushMenu | [打开](/?view=adminlte&backend=standard){target="_top"} |
 | [VitePress](https://github.com/vuejs/vitepress) | 18,468 | 文档框架 | 指南、搜索与轻量管理工作台 | [打开](/?view=docs&backend=standard){target="_top"} |
 
-Sakai 模板自身的 star 为 1,133，上表列的是其底层 PrimeVue 组件库，二者不能相加。Vuetify 仓库包含多种资产，表内采用的是 npm `vuetify` 的 MIT Core。所有源码型接入保留上游许可证。
+Vuetify 仓库包含多种资产，表内采用的是 npm `vuetify` 的 MIT Core。所有源码型接入保留上游许可证。
 
 ## 已接入的全栈、后端和基础能力
 

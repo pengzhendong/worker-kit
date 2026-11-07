@@ -6,9 +6,12 @@ const previewParentOrigin =
     : null;
 const isPublicPreviewPage = () =>
   !document.querySelector('[data-workspace]') &&
-  (/^\/(nuxt|prime|element|naive|shadcn|vuetify|quasar|mui|mantine|pure|soybean|vben|pro|refine|tabler|adminlte)\/(?:tasks|resources|logs|settings|components\/(?:table|form|dialogs|preview|layout|theme))?\/?$/.test(
+  (/^\/(nuxt|prime|vben|pro|refine|tabler|adminlte)\/(?:tasks|logs|settings|components\/(?:table|form|dialogs|preview|layout|theme))?\/?$/.test(
     location.pathname,
   ) ||
+    /^\/(element|naive|shadcn|vuetify|quasar|mui|mantine|pure|soybean)\/components\/preview\/?$/.test(
+      location.pathname,
+    ) ||
     /^\/docs\/(?:index|guide|components|features|upgrades|alternatives|architecture|migration)?(?:\.html)?\/?$/.test(
       location.pathname,
     ));

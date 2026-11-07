@@ -2,7 +2,7 @@
   { "key": "table", "path": "/components/table", "title": "表格", "description": "比较搜索、分页、状态、行操作与窄屏横向滚动。", "example": "/tasks", "icon": "table-2" },
   { "key": "form", "path": "/components/form", "title": "表单", "description": "比较输入、选择、数字、开关、校验与保存反馈。", "example": "/settings", "icon": "text-cursor-input" },
   { "key": "dialogs", "path": "/components/dialogs", "title": "弹窗", "description": "比较弹窗、确认、取消、键盘关闭与焦点恢复。", "icon": "panels-top-left" },
-  { "key": "preview", "path": "/components/preview", "title": "文件预览", "description": "比较资源列表、图片放大、音视频播放与本地文件选择。", "example": "/resources", "icon": "scan-eye" },
   { "key": "layout", "path": "/components/layout", "title": "布局", "description": "比较响应式卡片、长内容滚动、固定导航与手机抽屉。", "icon": "layout-panel-left" },
-  { "key": "theme", "path": "/components/theme", "title": "主题", "description": "比较明暗模式、按钮层级、状态颜色和禁用状态。", "icon": "palette" }
+  { "key": "theme", "path": "/components/theme", "title": "主题", "description": "比较明暗模式、按钮层级、状态颜色和禁用状态。", "icon": "palette" },
+  { "key": "preview", "path": "/components/preview", "title": "文件", "description": "比较资源列表、图片放大、音视频播放与本地文件选择。", "icon": "scan-eye" }
 ]

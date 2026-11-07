@@ -10,6 +10,7 @@ import {
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { assembleSonicAssets } from './assemble-sonic-assets.mjs';
+import { frontendViews, previewCategory } from '../ui-suite/catalog.js';
 import { renderPreviewShell } from '../../scripts/render-preview-shell.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const source = path.join(root, 'dist/ui-suite');
@@ -17,27 +18,11 @@ const target = fileURLToPath(
   new URL('./app/.open-next/assets/', import.meta.url),
 );
 await mkdir(target, { recursive: true });
-for (const name of [
-  'nuxt',
-  'prime',
-  'element',
-  'naive',
-  'shadcn',
-  'vuetify',
-  'quasar',
-  'mui',
-  'mantine',
-  'pure',
-  'soybean',
-  'vben',
-  'pro',
-  'refine',
-  'tabler',
-  'adminlte',
-  'docs',
-]) {
+for (const name of frontendViews) {
   // Fail if a UI build is missing. Never silently publish a partial application.
   await readFile(path.join(source, name, 'index.html'));
+  if (previewCategory(name) === 'components')
+    await readFile(path.join(source, name, 'gallery/index.html'));
   for (const file of await readdir(path.join(source, name), {
     recursive: true,
   })) {
@@ -49,6 +34,8 @@ for (const name of [
         'Demo static media must fit 2 MiB; use the native R2 backend for larger files.',
       );
   }
+}
+for (const name of frontendViews) {
   await rm(path.join(target, name), { recursive: true, force: true });
   await cp(path.join(source, name), path.join(target, name), {
     recursive: true,
@@ -110,6 +97,7 @@ headers = headers.replace(
 const rules = [
   'nuxt',
   'prime',
+  'primevue',
   'vben',
   'pro',
   'refine',

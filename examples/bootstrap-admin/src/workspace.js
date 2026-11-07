@@ -20,7 +20,7 @@ export function workspace() {
     `<section class="card mb-4"><div class="card-header"><h2 class="card-title">${title}</h2></div><div class="card-body">${content}</div></section>`;
   const button = (action, label, id = '') =>
     `<button class="btn btn-sm btn-outline-primary" data-workspace-action="${action}" data-plan="${escape(id)}" ${disabled}>${label}</button>`;
-  let html = `<div data-workspace>${button('refresh', '刷新')}${busy && !data ? '<div class="alert alert-info mt-3" role="status">正在更新工作台数据…</div>' : ''}${error ? `<div class="alert alert-danger mt-3" role="alert">${escape(error)}</div>` : ''}${unauthorized ? `<a class="btn btn-primary" href="${operations.loginUrl()}">登录后端</a>` : ''}`;
+  let html = `<div data-workspace><div class="d-flex mb-3">${button('refresh', '刷新')}</div>${busy && !data ? '<div class="alert alert-info" role="status">正在更新工作台数据…</div>' : ''}${error ? `<div class="alert alert-danger" role="alert">${escape(error)}</div>` : ''}${unauthorized ? `<a class="btn btn-primary" href="${operations.loginUrl()}">登录后端</a>` : ''}`;
   if (!data) return html + '</div>';
   html += managementPanel(operations.snapshot(), operations);
   const manage = data.user.permissions.includes('tasks:manage');

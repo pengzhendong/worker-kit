@@ -86,7 +86,7 @@ await writeFile(
   ),
 );
 // The comparison app has fixtures; generated business apps intentionally do not.
-for (const file of ['data.ts', 'component-pages.json', 'fixtures.json']) {
+for (const file of ['data.ts', 'component-pages.json', 'workspace-pages.json', 'fixtures.json', 'demo-settings.ts']) {
   const source = path.join(
     process.env.WORKERKIT_SHARED || path.join(root, 'examples/ui-demo'),
     file,

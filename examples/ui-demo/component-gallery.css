@@ -1,0 +1,29 @@
+.component-gallery {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+:is(
+  .page-container,
+  .primevue-shell .layout-main,
+  .library-content,
+  .native-library-content
+):has(> .component-gallery) {
+  padding: 8px 12px;
+}
+
+.page-container:has(> .component-gallery) {
+  height: 100%;
+  max-width: none;
+}
+
+.v-main > .native-library-content:has(> .component-gallery) {
+  height: calc(100dvh - var(--v-layout-top));
+  max-height: none;
+}
+
+.react-library-main:has(> .component-gallery) {
+  padding: 72px 12px 8px;
+}

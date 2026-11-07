@@ -21,7 +21,7 @@ watch(() => route.path, () => { open.value = false; confirm.value = false; long.
     </template>
     <template v-else>
       <UCard class="mb-6"><div class="flex items-center justify-between gap-4"><div><h3 class="section-title">原生明暗主题</h3><p class="section-description">按钮与所有组件跟随主题变化。</p></div><UColorModeButton aria-label="切换示例主题" /></div></UCard>
-      <div class="grid lg:grid-cols-2 gap-6"><UCard><h3 class="section-title mb-4">按钮层级</h3><div class="flex flex-wrap gap-3"><UButton>主要按钮</UButton><UButton variant="outline">描边按钮</UButton><UButton variant="soft">柔和按钮</UButton><UButton variant="ghost">文字按钮</UButton><UButton disabled>禁用按钮</UButton></div></UCard><UCard><h3 class="section-title mb-4">状态与表面</h3><div class="flex gap-3 mb-4"><UBadge color="success">成功</UBadge><UBadge color="warning">警告</UBadge><UBadge color="error">错误</UBadge><UBadge color="neutral">中性</UBadge></div><UAlert color="info" variant="subtle" title="信息提示" description="比较深浅背景下的文字、边框与状态色。" /></UCard></div>
+      <div class="grid lg:grid-cols-2 gap-6"><UCard><h3 class="section-title mb-4">按钮层级</h3><div class="flex flex-wrap gap-3"><UButton>主要按钮</UButton><UButton variant="outline">次要按钮</UButton><UButton variant="soft">柔和按钮</UButton><UButton variant="ghost">文字按钮</UButton><UButton disabled>禁用按钮</UButton></div></UCard><UCard><h3 class="section-title mb-4">状态与表面</h3><div class="flex gap-3 mb-4"><UBadge color="success">成功</UBadge><UBadge color="warning">警告</UBadge><UBadge color="error">错误</UBadge><UBadge color="neutral">中性</UBadge></div><UAlert color="info" variant="subtle" title="信息提示" description="比较深浅背景下的文字、边框与状态色。" /></UCard></div>
     </template>
   </div>
 </template>

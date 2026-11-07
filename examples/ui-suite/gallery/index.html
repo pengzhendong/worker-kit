@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WorkerKit · 组件目录</title>
+    <link rel="icon" href="/nuxt/favicon.svg" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a id="back" href="/" aria-label="返回 WorkerKit 预览">
+        <img src="/nuxt/favicon.svg" width="26" height="26" alt="" />
+        <span>WorkerKit</span>
+      </a>
+      <label>
+        <span>组件库</span>
+        <select id="library" aria-label="组件库"></select>
+      </label>
+      <a id="source" target="_blank" rel="noopener noreferrer">官方目录 ↗</a>
+    </header>
+    <main class="gallery">
+      <aside class="catalog" aria-labelledby="title">
+        <div class="catalog-controls">
+          <h1 id="title">组件目录</h1>
+          <label class="search">
+            <svg
+              aria-hidden="true"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <circle cx="11" cy="11" r="6" />
+              <path d="m16 16 4 4" />
+            </svg>
+            <input
+              id="search"
+              type="search"
+              aria-label="搜索组件"
+              placeholder="搜索组件"
+            />
+          </label>
+          <div class="filters">
+            <select id="category" aria-label="用途">
+              <option value="">全部用途</option>
+            </select>
+            <p id="results" role="status"></p>
+          </div>
+        </div>
+        <ul id="entries" aria-label="组件列表"></ul>
+      </aside>
+      <section class="preview" aria-labelledby="selected-title">
+        <div class="preview-heading">
+          <h2 id="selected-title"></h2>
+          <label id="variant-picker" hidden>
+            <span>示例</span>
+            <select id="variant"></select>
+          </label>
+          <a id="reference" target="_blank" rel="noopener noreferrer"
+            >官方文档 ↗</a
+          >
+        </div>
+        <div id="demo"></div>
+      </section>
+    </main>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

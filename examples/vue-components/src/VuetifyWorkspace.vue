@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import { useWorkspace } from './useWorkspace';
+withDefaults(defineProps<{ section?: string; title?: string }>(), {
+  section: 'workspace',
+  title: '业务工作台',
+});
 const {
   client,
   state,
@@ -22,13 +26,18 @@ const {
   <div data-workspace>
     <div class="workspace-toolbar">
       <div>
-        <h1>业务工作台</h1>
+        <h1>{{ title }}</h1>
         <p>Vuetify 原生组件 · 当前后端真实数据</p>
       </div>
       <VBtn :loading="state.busy" @click="client.refresh()">刷新</VBtn>
     </div>
     <VAlert v-if="state.error" type="error">{{ state.error }}</VAlert
-    ><VBtn v-if="state.unauthorized" :href="client.loginUrl()">登录后端</VBtn>
+    ><VBtn
+      v-if="state.unauthorized"
+      class="workspace-login"
+      :href="client.loginUrl()"
+      >登录后端</VBtn
+    >
     <div v-if="state.data" class="workspace-stack">
       <div class="workspace-status">
         <VChip>{{ state.data.backend }}</VChip
@@ -37,7 +46,9 @@ const {
           state.data.runtime.ok ? '依赖正常' : '依赖异常'
         }}</VChip>
       </div>
-      <VCard v-if="management" title="KV 设置"
+      <VCard
+        v-if="management && (section === 'workspace' || section === 'settings')"
+        title="KV 设置"
         ><VCardText
           ><form
             class="workspace-form"
@@ -67,7 +78,7 @@ const {
           </form></VCardText
         ></VCard
       >
-      <VCard v-if="management?.keys" title="访问密钥"
+      <VCard v-if="section === 'workspace' && management?.keys" title="访问密钥"
         ><VCardText
           ><form
             class="workspace-form"
@@ -93,7 +104,7 @@ const {
             }}</code
             ><VBtn @click="client.closeToken()">已保存，关闭</VBtn>
           </div>
-          <VTable
+          <VTable class="workspace-list"
             ><thead>
               <tr>
                 <th>名称</th>
@@ -128,9 +139,11 @@ const {
           ></VCardText
         ></VCard
       >
-      <VCard v-if="management?.audit" title="操作审计"
+      <VCard
+        v-if="section === 'workspace' && management?.audit"
+        title="操作审计"
         ><VCardText
-          ><VTable
+          ><VTable class="workspace-list"
             ><tbody>
               <tr v-for="item in management.audit.items" :key="item.id">
                 <td>{{ formatTime(item.at) }}</td>
@@ -145,7 +158,9 @@ const {
           ></VCardText
         ></VCard
       >
-      <VCard title="运行诊断"
+      <VCard
+        v-if="section === 'workspace' || section === 'overview'"
+        title="运行诊断"
         ><VCardText
           ><div
             v-for="check in state.data.runtime.checks"
@@ -155,7 +170,9 @@ const {
             {{ check.name }} · {{ check.status }}
           </div></VCardText
         ></VCard
-      ><VCard v-if="manageTasks" title="创建任务计划"
+      ><VCard
+        v-if="manageTasks && (section === 'workspace' || section === 'tasks')"
+        title="创建任务计划"
         ><VCardText
           ><form
             class="workspace-form"
@@ -184,7 +201,9 @@ const {
             /><VBtn type="submit">创建计划</VBtn>
           </form></VCardText
         ></VCard
-      ><VCard title="任务计划"
+      ><VCard
+        v-if="section === 'workspace' || section === 'tasks'"
+        title="任务计划"
         ><VCardText
           ><div
             v-for="plan in state.data.plans"
@@ -207,7 +226,9 @@ const {
           </div>
           <p v-if="!state.data.plans.length">暂无计划</p></VCardText
         ></VCard
-      ><VCard title="运行记录与日志"
+      ><VCard
+        v-if="section === 'workspace' || section === 'runs'"
+        title="运行记录与日志"
         ><VCardText
           ><div v-for="run in state.data.runs" :key="run.id">
             {{ run.task }} · {{ runLabel[run.status] }}
@@ -217,7 +238,7 @@ const {
           </div>
           <p v-if="!state.data.runs.length">暂无运行记录</p></VCardText
         ></VCard
-      ><VCard title="API 中心"
+      ><VCard v-if="section === 'workspace'" title="API 中心"
         ><VCardText
           ><iframe
             class="workspace-reference"

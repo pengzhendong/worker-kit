@@ -17,6 +17,7 @@ test('both preview builds publish a self-contained shell with the same controlle
   assert.match(standalone, /<script type="module">[\s\S]+<\/script>/);
   for (const view of [
     'nuxt',
+    'primevue',
     'prime',
     'vben',
     'pro',

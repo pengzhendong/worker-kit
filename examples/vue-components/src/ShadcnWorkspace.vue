@@ -29,6 +29,10 @@ import {
   DialogTitle,
 } from './components/ui/dialog';
 import { useWorkspace } from './useWorkspace';
+withDefaults(defineProps<{ section?: string; title?: string }>(), {
+  section: 'workspace',
+  title: '业务工作台',
+});
 const {
   client,
   state,
@@ -51,7 +55,7 @@ const {
   <div data-workspace>
     <div class="workspace-toolbar">
       <div>
-        <h1>业务工作台</h1>
+        <h1>{{ title }}</h1>
         <p>shadcn-vue 源码组件连接当前后端的真实接口。</p>
       </div>
       <Button variant="outline" :disabled="state.busy" @click="client.refresh()"
@@ -62,7 +66,10 @@ const {
     <p v-if="state.error" role="alert" class="text-destructive">
       {{ state.error }}
     </p>
-    <a v-if="state.unauthorized" :href="client.loginUrl()" class="underline"
+    <a
+      v-if="state.unauthorized"
+      class="workspace-login underline"
+      :href="client.loginUrl()"
       >登录后端</a
     >
     <div v-if="state.data" class="workspace-stack">
@@ -79,10 +86,12 @@ const {
           >管理内容与媒体 ↗</a
         >
       </div>
-      <Card v-if="management" data-management
+      <Card
+        v-if="management && (section === 'workspace' || section === 'settings')"
+        data-management
         ><CardHeader><CardTitle>管理功能</CardTitle></CardHeader
         ><CardContent
-          ><Tabs default-value="settings"
+          ><Tabs :key="section" default-value="settings"
             ><TabsList class="flex-wrap h-auto">
               <TabsTrigger v-if="management.settings" value="settings"
                 >KV 设置</TabsTrigger
@@ -223,6 +232,7 @@ const {
                   ></TableBody
                 ></Table
               ><Button
+                class="mt-4"
                 variant="outline"
                 :disabled="state.busy || !management.audit.cursor"
                 @click="client.pageAudit(management.audit.cursor)"
@@ -237,7 +247,7 @@ const {
                   client.apiUrl('/reference')
                 " /></TabsContent></Tabs></CardContent
       ></Card>
-      <Card
+      <Card v-if="section === 'workspace' || section === 'overview'"
         ><CardHeader><CardTitle>运行诊断</CardTitle></CardHeader
         ><CardContent
           ><div
@@ -250,7 +260,8 @@ const {
           </div></CardContent
         ></Card
       >
-      <Card v-if="manageTasks"
+      <Card
+        v-if="manageTasks && (section === 'workspace' || section === 'tasks')"
         ><CardHeader><CardTitle>创建任务计划</CardTitle></CardHeader
         ><CardContent
           ><form
@@ -291,7 +302,7 @@ const {
           </form></CardContent
         ></Card
       >
-      <Card
+      <Card v-if="section === 'workspace' || section === 'tasks'"
         ><CardHeader><CardTitle>任务计划</CardTitle></CardHeader
         ><CardContent
           ><p v-if="!state.data.plans.length">暂无计划</p>
@@ -328,7 +339,7 @@ const {
           </div></CardContent
         ></Card
       >
-      <Card
+      <Card v-if="section === 'workspace' || section === 'runs'"
         ><CardHeader><CardTitle>运行记录与日志</CardTitle></CardHeader
         ><CardContent
           ><p v-if="!state.data.runs.length">暂无运行记录</p>

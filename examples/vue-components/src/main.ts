@@ -40,20 +40,31 @@ if (__UI_KIND__ === 'element') {
     )
     .mount('#app');
 } else if (__UI_KIND__ === 'quasar') {
-  const [{ default: App }, { Quasar }, components, { default: iconSet }] =
-    await Promise.all([
-      import('./QuasarApp.vue'),
-      import('quasar'),
-      import('quasar'),
-      import('quasar/icon-set/svg-mdi-v7'),
-      import('quasar/dist/quasar.css'),
-    ]);
-  createApp(App)
+  const [
+    { default: App },
+    { Quasar },
+    components,
+    { default: iconSet },
+    { default: lang },
+    { default: demoPages },
+    { default: demoComponent },
+  ] = await Promise.all([
+    import('./QuasarApp.vue'),
+    import('quasar'),
+    import('quasar'),
+    import('quasar/icon-set/svg-mdi-v7'),
+    import('quasar/lang/zh-CN'),
+    import('../../ui-demo/component-pages.json'),
+    import('./QuasarComponents.vue'),
+    import('quasar/dist/quasar.css'),
+  ]);
+  createApp(App, { demoPages, demoComponent })
     .use(Quasar, {
       components: Object.fromEntries(
         Object.entries(components).filter(([name]) => /^Q[A-Z]/.test(name)),
       ),
       iconSet,
+      lang,
     })
     .mount('#app');
 } else {

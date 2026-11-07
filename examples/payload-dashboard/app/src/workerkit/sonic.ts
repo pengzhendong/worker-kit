@@ -1,4 +1,9 @@
-import { createSonicJSApp, registerCollections } from '@sonicjs-cms/core';
+import {
+  createSonicJSApp,
+  getPluginMenu,
+  registerCollections,
+  setPluginMenu,
+} from '@sonicjs-cms/core';
 import { sonicNotes } from './sonic-collection';
 import {
   demoUsername,
@@ -51,6 +56,14 @@ const app = createSonicJSApp({
     extendBetterAuth: (options) => ({ ...options, logger: { disabled: true } }),
   },
 });
+setPluginMenu([
+  ...getPluginMenu(),
+  {
+    label: '应用运维',
+    path: '/nuxt/workspace?preview=backend',
+    icon: 'chart',
+  },
+]);
 
 export async function serveSonic(
   request: Request,

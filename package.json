@@ -226,7 +226,8 @@
     "agents": "0.32.0",
     "cron-schedule": "6.0.0",
     "@scalar/api-reference": "1.75.1",
-    "prettier": "3.6.2"
+    "prettier": "3.6.2",
+    "unplugin-vue-components": "32.1.0"
   },
   "bin": {
     "workerkit": "./src/tooling/cli.mjs"

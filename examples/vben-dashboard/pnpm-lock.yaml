@@ -190,6 +190,9 @@ importers:
 
   apps/workerkit-demo:
     dependencies:
+      '@lucide/vue':
+        specifier: 'catalog:'
+        version: 1.60.0(vue@3.5.41(typescript@6.0.3))
       '@vben/hooks':
         specifier: workspace:*
         version: link:../../packages/effects/hooks

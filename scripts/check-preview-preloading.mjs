@@ -1,374 +1,151 @@
-import { frontendViews } from '../examples/ui-suite/catalog.js';
+import {
+  frontendPreviewPath,
+  frontendViews,
+  officialDemos,
+  previewCategory,
+} from '../examples/ui-suite/catalog.js';
 import { browserOptions } from './browser.mjs';
 import { chromium, expect } from '@playwright/test';
-import { mkdir, writeFile } from 'node:fs/promises';
+
 const base = process.env.PAYLOAD_PREVIEW_URL || 'http://kit.localhost:5184';
-const sonic =
-  process.env.SONIC_PREVIEW_URL || 'http://sonic.kit.localhost:5184';
 const browser = await chromium.launch(browserOptions);
-const samples = [],
-  errors = [];
-const views = [
-  ['Sakai', 'prime'],
-  ['Element Plus', 'element'],
-  ['Naive UI', 'naive'],
-  ['shadcn-vue', 'shadcn'],
-  ['Vuetify', 'vuetify'],
-  ['Quasar', 'quasar'],
-  ['MUI', 'mui'],
-  ['Mantine', 'mantine'],
-  ['PureAdmin', 'pure'],
-  ['Soybean', 'soybean'],
-  ['Vben Admin', 'vben'],
-  ['Ant Design Pro', 'pro'],
-  ['Refine', 'refine'],
-  ['Tabler', 'tabler'],
-  ['AdminLTE', 'adminlte'],
-  ['VitePress', 'docs'],
-];
-async function fixture(saveData = false) {
-  const context = await browser.newContext({
+const iconMenuSelectors = {
+  pure: '.el-menu-item',
+  soybean: '.n-menu-item-content',
+  vben: '.vben-menu-item',
+  mui: '.MuiListItemButton-root',
+  mantine: '.mantine-NavLink-root',
+};
+
+try {
+  const page = await browser.newPage({
     viewport: { width: 1440, height: 960 },
   });
-  if (saveData)
-    await context.addInitScript(() =>
-      Object.defineProperty(navigator, 'connection', {
-        value: { saveData: true, effectiveType: '4g' },
-      }),
-    );
-  expect(
-    (
-      await context.request.post(base + '/api/users/login', {
-        headers: { Origin: base },
-        data: { username: 'admin', password: 'password' },
-      })
-    ).status(),
-  ).toBe(200);
-  const page = await context.newPage();
-  page.setDefaultTimeout(30000);
+  await page.route(
+    /^https?:\/\/(api\.iconify\.design|api\.simplesvg\.com|api\.unisvg\.com)\//,
+    (route) => route.abort(),
+  );
+  const requests = [],
+    documents = [],
+    errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
+  page.on('request', (request) => {
+    const path = new URL(request.url()).pathname;
+    if (path.startsWith('/api/') || /\/(standard|native|hub)\/api\//.test(path))
+      requests.push(path);
+    if (request.isNavigationRequest() && request.frame() !== page.mainFrame())
+      documents.push(request.url());
+  });
   await page.addInitScript(() => {
     if (window !== top) return;
-    window.__maxWarming = 0;
+    window.maxWarming = 0;
     new MutationObserver(() => {
-      window.__maxWarming = Math.max(
-        window.__maxWarming,
+      window.maxWarming = Math.max(
+        window.maxWarming,
         document.querySelectorAll('iframe[data-preload-state="loading"]')
           .length,
       );
-    }).observe(document, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['data-preload-state'],
-    });
+    }).observe(document, { childList: true, subtree: true, attributes: true });
   });
-  return { context, page };
-}
-const workspace = (page) =>
-  page.frameLocator('#preview').locator('[data-workspace]');
-try {
-  {
-    const { context, page } = await fixture();
-    const data = await (
-      await context.request.get(base + '/api/workerkit/workspace')
-    ).json();
-    let release;
-    const firstRead = new Promise((resolve) => {
-      release = resolve;
-    });
-    const reads = [],
-      navigations = [];
-    page.on('request', (request) => {
-      if (new URL(request.url()).pathname === '/api/workerkit/workspace')
-        reads.push(new URL(request.url()).origin);
-      if (request.isNavigationRequest() && request.frame() !== page.mainFrame())
-        navigations.push(request.url());
-    });
-    let held = false;
-    await page.route('**/api/workerkit/workspace', async (route) => {
-      if (!held) {
-        held = true;
-        await firstRead;
-        await route.fulfill({ json: data });
-      } else await route.continue();
-    });
-    try {
-      await page.goto(base + '/?view=nuxt');
-      await expect.poll(() => reads.length).toBe(1);
-      await page.waitForTimeout(600); // The held foreground read must prevent idle warmup.
-      await expect(page.locator('iframe')).toHaveCount(1);
+  await page.goto(base + '/?view=nuxt');
+  const tab = (view) => page.locator(`[data-view="${view}"]`);
+  const preview = page.frameLocator('#preview');
+  const initial = base + frontendPreviewPath('nuxt');
+  await expect
+    .poll(() => page.locator('#ui-views [data-preload-status=ready]').count(), {
+      timeout: 120000,
+    })
+    .toBe(frontendViews.length);
+  expect(await page.locator('#preview').getAttribute('src')).toBe(initial);
+  expect(await page.evaluate(() => window.maxWarming)).toBe(1);
+
+  for (const view of frontendViews) {
+    const before = documents.length;
+    await page.locator('#preview-category').selectOption(previewCategory(view));
+    await tab(view).click();
+    await expect(page.locator('.stage')).toHaveAttribute('aria-busy', 'false');
+    await expect(page.locator('#open')).toHaveAttribute(
+      'href',
+      officialDemos[view],
+    );
+    await expect(page.locator('#preview')).toBeVisible();
+    await expect(page.locator('#preview')).toHaveAttribute(
+      'src',
+      base + frontendPreviewPath(view),
+    );
+    if (view !== 'docs') {
       await expect(
-        page.getByRole('tab', { name: 'Vben Admin', exact: true }),
-      ).toHaveAttribute('data-preload-status', 'waiting');
-      release();
-      await expect(workspace(page)).toContainText('依赖正常', {
-        timeout: 30000,
-      });
-      await expect(
-        page.locator('iframe[data-preload-state="ready"]'),
-      ).toHaveCount(frontendViews.length - 1, { timeout: 180000 });
-      expect(reads).toEqual([base]);
-      await expect(
-        page.locator('button[data-preload-status=ready]'),
-      ).toHaveCount(frontendViews.length);
-      await expect(
-        page.getByRole('tab', { name: 'Vben Admin', exact: true }),
-      ).toHaveAccessibleDescription('界面已就绪，业务数据另行刷新');
-      expect(
-        await page
-          .locator('header')
-          .evaluate((element) => element.getBoundingClientRect().height),
-      ).toBe(52);
-      await mkdir('test-results/preview-preloading', { recursive: true });
-      await page
-        .locator('header')
-        .screenshot({ path: 'test-results/preview-preloading/tabs-ready.png' });
-      expect(await page.evaluate(() => window.__maxWarming)).toBe(1);
-      await expect(
-        page.getByRole('tab', { name: 'Nuxt UI', exact: true }),
-      ).toHaveAttribute('aria-selected', 'true');
-      await expect(page.locator('iframe:visible')).toHaveCount(1);
-      expect(navigations).toHaveLength(frontendViews.length);
-      console.log(
-        'All other frontends warmed sequentially; foreground unchanged; no background business reads.',
-      );
-      for (const [name, view] of views) {
-        const before = navigations.length,
-          start = performance.now();
-        await page.getByRole('tab', { name, exact: true }).click();
-        await expect(page.locator('.stage')).toHaveAttribute(
-          'aria-busy',
-          'false',
-          { timeout: 1000 },
-        );
-        const shellMs = Math.round(performance.now() - start);
-        await expect(workspace(page)).toContainText('依赖正常', {
-          timeout: 30000,
-        });
-        expect(navigations.length).toBe(before);
-        expect(
-          await page
-            .frameLocator('#preview')
-            .locator('body')
-            .evaluate(() => document.documentElement.scrollWidth > innerWidth),
-        ).toBe(false);
-        samples.push({
-          view,
-          firstVisit: true,
-          shellMs,
-          dataMs: Math.round(performance.now() - start),
-          newDocuments: navigations.length - before,
-        });
-        console.log(JSON.stringify(samples.at(-1)));
+        preview.getByRole('heading', { name: '表格', exact: true }).last(),
+      ).toBeVisible();
+      for (const name of [
+        '运行概览',
+        '任务调度',
+        '运行日志',
+        '业务工作台',
+        '赞助商',
+      ]) {
+        await expect(preview.getByText(name, { exact: true })).toHaveCount(0);
       }
-      expect(reads).toHaveLength(frontendViews.length);
-      // Opening the current CMS keeps all green markers and documents.
-      const beforeCms = navigations.length;
-      await page.getByRole('tab', { name: 'Payload', exact: true }).click();
-      await expect(page.locator('iframe')).toHaveCount(
-        frontendViews.length + 1,
-      );
-      await expect(
-        page.locator('button[data-preload-status=ready]'),
-      ).toHaveCount(frontendViews.length);
-      await page.waitForTimeout(300);
-      expect(reads).toHaveLength(frontendViews.length);
-      await page.getByRole('tab', { name: 'Nuxt UI', exact: true }).click();
-      await expect(workspace(page)).toContainText('依赖正常');
+    }
+    if (view === 'soybean') {
+      const gap = await preview
+        .getByText('原生组件演示，操作在当前浏览器内完成。', { exact: true })
+        .evaluate((description) => {
+          const card = description.parentElement.nextElementSibling;
+          return (
+            card.getBoundingClientRect().top -
+            description.getBoundingClientRect().bottom
+          );
+        });
       expect(
-        navigations
-          .slice(beforeCms)
-          .every((url) => /^\/admin(?:\/|$)/.test(new URL(url).pathname)),
-      ).toBe(true);
-      await expect(
-        page.locator('button[data-preload-status=ready]'),
-      ).toHaveCount(frontendViews.length);
-      await page.getByLabel('选择后端').selectOption('sonic');
-      await expect(workspace(page)).toContainText('登录后端', {
-        timeout: 30000,
-      });
-      await expect(
-        page.locator('iframe[data-preload-state="ready"]').first(),
-      ).toBeAttached({ timeout: 60000 });
-      expect(
-        await page
-          .locator('iframe')
-          .evaluateAll((elements) =>
-            elements.every(
-              (element) =>
-                new URL(element.src).origin ===
-                new URL(document.body.dataset.sonicOrigin).origin,
-            ),
-          ),
-      ).toBe(true);
-      expect(reads.filter((origin) => origin === sonic)).toHaveLength(1);
-      await page.getByRole('tab', { name: 'Payload', exact: true }).click();
-      await expect(page.locator('iframe')).toHaveCount(1);
-      await page.waitForTimeout(500);
-      await expect(page.locator('iframe')).toHaveCount(1);
-      console.log(
-        'Same-backend CMS keeps prepared frameworks; backend switch isolates instances; native CMS is not preloaded.',
-      );
-    } finally {
-      release();
-      await context.close();
+        gap,
+        'Soybean keeps the table below its description',
+      ).toBeLessThanOrEqual(36);
     }
-  }
-  {
-    const { context, page } = await fixture();
-    let release;
-    const gate = new Promise((resolve) => {
-      release = resolve;
-    });
-    await page.route('**/prime/workspace', async (route) => {
-      await gate;
-      await route.continue().catch(() => {});
-    });
-    try {
-      await page.goto(base + '/?view=nuxt');
-      await expect(workspace(page)).toContainText('依赖正常', {
-        timeout: 30000,
-      });
-      const prime = page.locator(
-        'iframe[data-preload-state="loading"][src$="/prime/workspace"]',
+    const menuSelector = iconMenuSelectors[view];
+    if (menuSelector) {
+      const drawings = [];
+      for (const label of ['表格', '表单', '弹窗', '文件', '布局', '主题']) {
+        const icon = preview
+          .locator(menuSelector)
+          .filter({ hasText: new RegExp(`^${label}$`) })
+          .locator('svg');
+        await expect(icon).toBeVisible();
+        drawings.push(await icon.innerHTML());
+      }
+      expect(drawings.every(Boolean), view + ' renders its local icons').toBe(
+        true,
       );
-      await expect(prime).toBeAttached();
-      await expect(
-        page.getByRole('tab', { name: 'Sakai', exact: true }),
-      ).toHaveAttribute('data-preload-status', 'loading');
-      await expect(
-        page.getByRole('tab', { name: 'Sakai', exact: true }),
-      ).toHaveAccessibleDescription('正在准备界面');
-      await page.locator('header').screenshot({
-        path: 'test-results/preview-preloading/tabs-loading.png',
-      });
-      const old = await prime.elementHandle();
-      await page.getByRole('tab', { name: 'Vben Admin', exact: true }).hover();
-      await expect(
-        page.locator(
-          'iframe[data-preload-state="ready"][src$="/vben/workspace"]',
-        ),
-      ).toBeAttached({ timeout: 60000 });
-      expect(await old.evaluate((element) => element.isConnected)).toBe(false);
-      await expect(prime).toBeAttached();
-      const interrupted = await prime.elementHandle();
-      await page.getByRole('tab', { name: 'AdminLTE', exact: true }).click();
-      await expect(workspace(page)).toContainText('依赖正常', {
-        timeout: 30000,
-      });
-      expect(await interrupted.evaluate((element) => element.isConnected)).toBe(
-        false,
+      expect(new Set(drawings).size, view + ' uses distinct menu icons').toBe(
+        6,
       );
-      await expect(page.locator('#preview')).toHaveAttribute(
-        'src',
-        base + '/adminlte/workspace',
-      );
-      expect(await page.evaluate(() => window.__maxWarming)).toBe(1);
-      console.log(
-        'Hover prioritizes the intended frontend; foreground clicks interrupt an unrelated preload.',
-      );
-    } finally {
-      release();
-      await context.close();
     }
+    expect(documents.length, view + ' reuses its warmed document').toBe(before);
   }
-  {
-    const { context, page } = await fixture(true);
-    try {
-      await page.goto(base + '/?view=nuxt');
-      await expect(workspace(page)).toContainText('依赖正常', {
-        timeout: 30000,
-      });
-      await page.getByRole('tab', { name: 'Vben Admin', exact: true }).hover();
-      await page.waitForTimeout(600);
-      await expect(page.locator('iframe')).toHaveCount(1);
-      await expect(
-        page.getByRole('tab', { name: 'Vben Admin', exact: true }),
-      ).toHaveAttribute('data-preload-status', 'disabled');
-      await expect(
-        page.getByRole('tab', { name: 'Vben Admin', exact: true }),
-      ).toHaveAccessibleDescription('自动预加载已关闭，点击后加载');
-      await page.setViewportSize({ width: 390, height: 844 });
-      expect(
-        await page.evaluate(
-          () => document.documentElement.scrollWidth <= innerWidth,
-        ),
-      ).toBe(true);
-      await page
-        .getByRole('tab', { name: 'VitePress', exact: true })
-        .scrollIntoViewIfNeeded();
-      await expect(
-        page.getByRole('tab', { name: 'VitePress', exact: true }),
-      ).toBeInViewport();
-      await page.locator('header').screenshot({
-        path: 'test-results/preview-preloading/tabs-mobile.png',
-      });
-      console.log('Save-Data suppresses background warmup.');
-    } finally {
-      await context.close();
-    }
-  }
-  {
-    const { context, page } = await fixture();
-    let release;
-    const gate = new Promise((resolve) => {
-      release = resolve;
-    });
-    await page.route('**/prime/workspace', async (route) => {
-      await gate;
-      await route.continue().catch(() => {});
-    });
-    try {
-      await page.goto(base + '/?view=nuxt');
-      await expect(workspace(page)).toContainText('依赖正常', {
-        timeout: 30000,
-      });
-      const tab = page.getByRole('tab', {
-        name: 'Sakai',
-        exact: true,
-      });
-      await expect(tab).toHaveAttribute('data-preload-status', 'loading');
-      await expect(tab).toHaveAttribute('data-preload-status', 'failed', {
-        timeout: 20000,
-      });
-      await expect(tab).toHaveAccessibleDescription('预加载未完成，点击后加载');
-      await page.locator('header').screenshot({
-        path: 'test-results/preview-preloading/tabs-failed.png',
-      });
-      release();
-      await page.unroute('**/prime/workspace');
-      await tab.click();
-      await expect(workspace(page)).toContainText('依赖正常', {
-        timeout: 30000,
-      });
-      await expect(tab).toHaveAttribute('data-preload-status', 'ready');
-      console.log(
-        'A stalled preload shows a failure marker; clicking still loads the frontend.',
-      );
-    } finally {
-      release();
-      await context.close();
-    }
-  }
-  expect(errors).toEqual([]);
-  await mkdir('test-results/preview-preloading', { recursive: true });
-  await writeFile(
-    'test-results/preview-preloading/result.json',
-    JSON.stringify(
-      {
-        base,
-        samples,
-        maxConcurrentPreload: 1,
-        backgroundBusinessReads: 0,
-        hoverPriority: true,
-        foregroundPreemption: true,
-        backendIsolation: true,
-        errors,
-      },
-      null,
-      2,
+  expect(requests, 'UI previews must not request business APIs').toEqual([]);
+  expect(
+    documents.every((url) =>
+      frontendViews.some((view) => url === base + frontendPreviewPath(view)),
     ),
+  ).toBe(true);
+  expect(errors).toEqual([]);
+  await page.close();
+
+  const lowData = await browser.newPage();
+  await lowData.addInitScript(() =>
+    Object.defineProperty(navigator, 'connection', {
+      value: { saveData: true, effectiveType: '4g' },
+    }),
+  );
+  await lowData.goto(base + '/?view=nuxt');
+  await expect(
+    lowData.locator('[data-view=naive]'),
+  ).toHaveAccessibleDescription('自动预加载已关闭，点击后加载');
+  await expect(lowData.locator('iframe')).toHaveCount(1);
+  await lowData.close();
+
+  console.log(
+    `PASS: all ${frontendViews.length} local previews warm sequentially, reuse documents and make no backend requests.`,
   );
 } finally {
   await browser.close();

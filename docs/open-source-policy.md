@@ -70,6 +70,16 @@ Worker Console 的小脚本试点使用 [QuickJS Emscripten](https://github.com/
 
 Nuxt UI、PrimeVue/Sakai 与 Vben 的隔离试点、固定版本、许可证和启动方式见 [ui-demos.md](ui-demos.md)。只使用通用 fixture，禁止引用真实消费项目名称或业务数据。三套尚未作为公共默认，也不改变既有 React 或服务端入口。
 
+组件目录通过现有 Vue、React 和 Vite 构建流程运行官方示例。`examples/ui-suite/gallery/official/sources.json` 固定每套库的源码提交、示例 blob 和许可证，源码随仓库保存。新增时按目录路由登记示例文件，检查与已安装版本兼容，并在浏览器拦截外部请求后验证示例。按需加载使用 Vite 动态导入，Vue 组件解析使用 `unplugin-vue-components`，仅作为构建依赖。WorkerKit 的适配范围是剥离文档外壳、补全自动导入和替换外部资源；无需将上游文档站纳入 Worker 构建。
+
+shadcn-vue 的数据表格复用 TanStack Vue Table 8.21.3（MIT），沿用工作区已有的 Vue 3 兼容版本。MUI 数字输入复用 Base UI 1.9.0（MIT，支持 React 19）。两者仅进入相应的组件库示例，WorkerKit 提供样式与本地数据。Vuetify 服务端表格使用官方示例中的本地模拟 API，分页和加载状态在同一个页面验证。
+
+shadcn-vue 的日期范围日历复用工作区已有的 @internationalized/date 3.12.4（Apache 2.0），该依赖固定在 Vue 示例工作区。代码块、附件、标记和执行轨迹随预览加载固定提交里的 Nova 样式。代码块组合上游的行号和复制按钮，附件用站内图片和浏览器状态演示移除操作。
+
+shadcn-vue 表单使用固定的 VeeValidate 4.15.1（MIT，兼容当前 Vue 3.5）和上游字段组件。Nuxt UI 的表情菜单使用 TipTap Emoji 3.32.3（MIT），与当前 TipTap 核心、ProseMirror 和 Suggestion 版本对齐。两者仅声明在使用它们的示例工作区。Nuxt Content 导航和搜索使用 Nuxt UI 随包提供的控件及本地文档数据。SSR 对照样例在构建时通过 Vue 或 React 的服务端渲染器生成。
+
+图表示例沿用各库的官方组合。Nuxt UI 使用 TanStack Charts 1.4.0（MIT，支持 Vue 3.5），shadcn-vue 使用同版本的 Unovis Vue 和 TypeScript 包 1.8.0（Apache 2.0）。Naive UI 公式示例使用 KaTeX 0.19.1（MIT），字体随构建提供。Vuetify 使用其原生 SVG 图标渲染和 Material Design Icons SVG 路径，MUI 示例使用与 Material UI 同版本的图标包。这些依赖均固定在对应示范的工作区中，示例代码按需加载。
+
 ### React 与 Bootstrap 预览
 
 组件体验导航按表格、表单、弹窗、预览、布局和主题分别配置图标。React 使用现有 Ant Design Icons，PrimeVue 使用 PrimeIcons；Bootstrap 示例复用仓库已采用的 PrimeIcons 7.0.0 字体与样式，依赖只进入该示例。Nuxt UI 与 Vben 保留现有 Lucide 配置，各方案使用原生图标的颜色与尺寸约定。
@@ -92,7 +102,7 @@ Static Assets 的 Range 缺口使用原生 Cache API 补齐，仅适用于构建
 
 使用已发布的 `@sonicjs-cms/core@3.0.0`（MIT）及原生 Hono app、CollectionConfig、Better Auth、RBAC 和 D1 迁移，只进入可选的完整示例。未修改依赖包源码，未新增 submodule。SonicJS 没有完整的管理端子路径挂载配置，因此一个 Worker 按两个同站点主机名分流，保留根路由、原生表单、Cookie 和内部链接；避免使用 HTML/JS 正则改写或全局切换 Cookie。仅增加明确的绑定组合、同源写请求检查与受限的 iframe 响应策略。两套 CMS 用各自的 D1/R2/认证，登录和数据不互相冒用。首次本地管理员通过已发布的 Better Auth 密码哈希与 SonicJS RBAC SDK 创建；已有用户不重置。升级时运行两套 CMS 的原生 workerd 功能和切换回归。
 
-跨框架预览继续使用浏览器原生 iframe 隔离样式，最多保留八套已访问的前端实例，查看同一后端的原生 CMS 时临时增加一个原生页面，离开后移除。进入原生 CMS 清空隐藏工作台的私有数据并取消旧请求，保留已准备的界面；返回时重新读取身份与业务数据。切换后端仍销毁旧实例，避免跨身份复用。父子窗口只通过校验来源的 `postMessage` 请求工作台重新读取原生认证接口；不传递用户数据或令牌，不保存 API 响应。选择器承担这一小段展示与刷新协调，不添加新的缓存库或框架包装层。业务组件与页面标题仍使用各上游的原生布局。预加载沿用这些 iframe，用浏览器原生 requestIdleCallback（不可用时用定时器）逐个准备前端；正在浏览的界面和点击操作优先。后台实例通过命名标记暂停业务读取，真正激活时由既有刷新协议恢复，不预先访问两套 CMS。
+跨框架预览用浏览器原生 iframe 隔离样式。公开界面示例可在浏览器空闲时逐个准备，切换时复用已加载的页面。后端展示按需打开，切换时移除旧页面，返回后重新读取会话与业务数据。组件和页面标题沿用各上游的原生布局。
 
 预览站静态资源加速使用 Cloudflare 原生 Static Assets、`_headers` 和 `run_worker_first` 排除规则（[官方说明](https://developers.cloudflare.com/workers/static-assets/binding/)），不引入运行时代理缓存。SonicJS 固定公共依赖随构建发布，保留 Tailwind/Alpine/Chart.js 的 MIT、HTMX 的 0BSD 与 Inter 的 OFL 许可证，并校验 SHA-256。按已发布 SDK 的实际能力，未发现 CDN URL 配置项，因此只用原生 HTMLRewriter 做资源属性和字体 URL 的有限替换，不修改安装包或原生业务代码。SDK 个别确认弹窗仍引用 Tailwind Plus Elements；它使用独立商业许可证，不在本地镜像清单内，不能将 SonicJS 自身的 MIT 误解为所有引用脚本都适用 MIT。
 
@@ -137,6 +147,11 @@ NuxtHub 0.10.12 在模块 setup 中强制打开 Nitro deployConfig。自有 Work
 
 新增 Element Plus、Naive UI、Vuetify、Quasar、MUI Core、Mantine；直接使用 npm 原生组件。shadcn-vue 是官方 registry 的固定提交源码，保留许可证和逐文件来源/hash，不以自写仿制控件冒充。PureAdmin/Soybean 保留原生布局、主题、菜单，适配明确放在 examples；去掉假 JWT、模拟通知与未暴露的演示路由，身份和写操作来自真实后端。
 
+演示侧栏随构建打包菜单图标。PureAdmin 与 Soybean 使用各自已有的 Iconify 图标集，Vben 使用上游已有的 Lucide，MUI 和 Mantine 通过各自的菜单组件使用仓库已有的 Ant Design 图标包。
+
 SvelteKit/Astro 使用官方 Cloudflare adapter；React Router 使用原生 SSR、资源路由和 Context Provider；产物通过模块在同一 Worker 显式组合。共享代码仅有业务状态、接口契约、认证/绑定接线和真实测试，不创建跨框架 UI DSL。
 
 详细清单与未采用项目的明确理由见 [项目调研](../examples/docs/alternatives.md)。原有兼容 SDK 在消费项目迁移前保留，旧 KV 认证不再作为新应用首选。
+
+
+组件目录以各项目的官方文档清单为索引，构建时读取仓库内的目录数据。站内演示使用锁定版本的原生组件和本地示例数据，目录只列可在站内运行的示例，每一项附上对应的官方页面链接。shadcn-vue 的补充组件使用同一上游提交，许可证和逐文件 Git blob 记录随示例保存。目录只构建到比较站。

@@ -7,6 +7,7 @@ export async function startLocalWorker({
   cwd,
   port,
   readyUrl,
+  persistTo,
   stderr = 'inherit',
 }) {
   const occupied = await new Promise((resolve) => {
@@ -30,6 +31,7 @@ export async function startLocalWorker({
       String(port),
       '--inspector-port',
       String(port + 100),
+      ...(persistTo ? ['--persist-to', persistTo] : []),
     ],
     { cwd, stdio: ['ignore', 'ignore', stderr] },
   );

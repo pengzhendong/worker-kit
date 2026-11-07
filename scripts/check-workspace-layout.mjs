@@ -109,14 +109,32 @@ try {
           layout.misleading,
           `${view}: workspace copy must reflect its backend`,
         ).toBe(false);
-        await expect(
-          page
-            .locator('[data-workspace]')
-            .getByRole('button', { name: /刷\s*新/ }),
-        ).toHaveCount(1);
+        const workspace = page.locator('[data-workspace]');
+        const refresh = workspace.getByRole('button', { name: /^刷\s*新$/ });
+        const management = workspace.locator('[data-management]');
+        await expect(refresh).toHaveCount(1);
+        const refreshBox = await refresh.boundingBox();
+        const managementBox = await management.boundingBox();
+        const managementGap =
+          managementBox.y - (refreshBox.y + refreshBox.height);
+        expect(
+          managementGap,
+          `${backend}/${view}/${width}: refresh needs space before the management card`,
+        ).toBeGreaterThanOrEqual(12);
         if (backend === 'payload')
           await page.screenshot({ path: `${output}/${view}-${width}.png` });
-        results.push({ backend, view, width, ...layout });
+        if (view === 'tabler' || view === 'adminlte') {
+          await management.getByRole('button', { name: '访问密钥' }).click();
+          const table = await management.getByRole('table').boundingBox();
+          const pagination = await management
+            .getByRole('button', { name: '返回首页' })
+            .boundingBox();
+          expect(
+            pagination.y - (table.y + table.height),
+            `${backend}/${view}/${width}: pagination needs space below the keys table`,
+          ).toBeGreaterThanOrEqual(12);
+        }
+        results.push({ backend, view, width, managementGap, ...layout });
         console.log(
           `${backend}/${view}/${width}: title, copy, controls and width passed`,
         );

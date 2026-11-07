@@ -1,6 +1,6 @@
 import { readFile, writeFile, readdir, rm, mkdir } from 'node:fs/promises';
 import path from 'node:path';
-export async function adapt(root) {
+export async function adapt(root, { comparison = false } = {}) {
   const edit = async (file, change) => {
     const p = path.join(root, file);
     await writeFile(p, change(await readFile(p, 'utf8')));
@@ -13,16 +13,116 @@ export async function adapt(root) {
         recursive: true,
         force: true,
       });
+  const workspacePages = JSON.parse(
+    await readFile(
+      new URL('../ui-demo/workspace-pages.json', import.meta.url),
+      'utf8',
+    ),
+  );
+  const icons = [
+    'ep/data-line',
+    'ep/monitor',
+    'ep/calendar',
+    'ep/list',
+    'ep/setting',
+  ];
+  const components = comparison
+    ? JSON.parse(
+        await readFile(
+          new URL('../ui-demo/component-pages.json', import.meta.url),
+          'utf8',
+        ),
+      )
+    : [{ key: 'preview', title: '文件', path: '/components/preview' }];
+  const componentIcons = {
+    table: 'ep/grid',
+    form: 'ep/edit',
+    dialogs: 'ep/postcard',
+    preview: 'ep/view',
+    layout: 'ep/menu',
+    theme: 'ep/sunny',
+  };
+  if (comparison)
+    await writeFile(
+      path.join(root, 'src/workerkit/ElementDemoRoute.vue'),
+      `<script setup>
+import Demos from './ElementDemos.vue';
+import { useDataThemeChange } from '@/layout/hooks/useDataThemeChange';
+defineProps(['section', 'title']);
+const { dataTheme, dataThemeChange } = useDataThemeChange();
+function toggleTheme() {
+  dataTheme.value = !dataTheme.value;
+  dataThemeChange(dataTheme.value ? 'dark' : 'light');
+}
+</script>
+<template><Demos :key="section" :kind="section" :title="title" @toggle-theme="toggleTheme" /></template>
+`,
+    );
+  const sections = [
+    ...workspacePages.map(({ id, label, path }, index) => [
+      id,
+      label,
+      path === '/' ? '/overview' : path,
+      icons[index],
+    ]),
+    ['keys', '访问密钥', '/keys', 'ep/key'],
+    ['audit', '操作审计', '/audit', 'ep/checked'],
+    ['api', 'API 中心', '/api', 'ep/document'],
+    ...components.map(({ key, title, path }) => [
+      key,
+      title,
+      path,
+      comparison ? componentIcons[key] : 'ep/view',
+    ]),
+  ];
+  // PureAdmin interprets slash-form names as icons registered in its local set.
+  await edit('src/components/ReIcon/src/offlineIcon.ts', (text) => {
+    const missing = [...new Set(sections.map(([, , , icon]) => icon))].filter(
+      (icon) => !text.includes(JSON.stringify(icon)),
+    );
+    const imports = missing.map(
+      (icon, index) =>
+        `import WorkerKitIcon${index} from "~icons/${icon}?raw";`,
+    );
+    const registrations = missing.map(
+      (icon, index) =>
+        `addIcon(${JSON.stringify(icon)}, getSvgInfo(WorkerKitIcon${index}));`,
+    );
+    return [...imports, text, ...registrations, ''].join('\n');
+  });
   await writeFile(
     path.join(root, 'src/router/modules/workspace.ts'),
-    `export default {path:'/',component:()=>import('@/layout/index.vue'),redirect:'/workspace',meta:{title:'工作空间',icon:'ep/monitor'},children:[{path:'/workspace',name:'WorkerKitWorkspace',component:()=>import('@/workerkit/ElementWorkspace.vue'),meta:{title:'业务工作台',showLink:true}}]};\n`,
+    `const componentPreview = location.pathname.includes("/components/");
+const sections = ${JSON.stringify(sections)}.filter(([, , path]) => !componentPreview || path.startsWith("/components/"));
+export default {
+  path: '/',
+  component: () => import('@/layout/index.vue'),
+  redirect: componentPreview ? sections[0][2] : '/workspace',
+  meta: { title: componentPreview ? '对比示例' : '工作空间', icon: 'ep/monitor' },
+  children: sections.map(([section, title, path, icon]) => ({
+    path,
+    name: 'WorkerKit-' + section,
+    component: path.startsWith('/components/')
+      ? () => import('@/workerkit/${comparison ? 'ElementDemoRoute.vue' : 'DemoFiles.vue'}')
+      : () => import('@/workerkit/ElementWorkspace.vue'),
+    props: { section, title },
+    meta: { title, icon, showLink: true },
+  })),
+};
+`,
   );
   await edit('src/router/index.ts', (text) => {
     const start = text.indexOf('router.beforeEach('),
       end = text.indexOf('router.afterEach(');
     if (start < 0 || end < start)
       throw Error('Review Pure Admin router adaptation');
-    return text.slice(0, start) + text.slice(end);
+    const keepBackend = `router.beforeEach((to, from) => {
+  const backend = from.query.backend ?? new URLSearchParams(location.search).get('backend');
+  if (backend && !to.query.backend)
+    return { path: to.path, query: { ...to.query, backend }, hash: to.hash };
+});
+`;
+    return text.slice(0, start) + keepBackend + text.slice(end);
   });
   await edit('src/main.ts', (text) => {
     for (const pattern of [

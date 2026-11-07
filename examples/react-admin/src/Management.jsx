@@ -32,7 +32,7 @@ export default function ManagementPanel({ client, state }) {
     maintenance: '维护模式',
   };
   return (
-    <section data-management style={{ margin: '20px 0' }}>
+    <section data-management style={{ marginBottom: 20 }}>
       <Card title="管理功能">
         <p>与当前后端共用登录；配置、密钥和审计按后端隔离。</p>
         <Space wrap style={{ margin: '16px 0' }}>
@@ -88,6 +88,7 @@ export default function ManagementPanel({ client, state }) {
             <h3>访问密钥</h3>
             <Form
               layout="inline"
+              style={{ rowGap: 12, marginBottom: 16 }}
               initialValues={{ expiresInDays: 30 }}
               onFinish={(value) =>
                 client.issueKey(value.name, value.expiresInDays)
@@ -112,7 +113,11 @@ export default function ManagementPanel({ client, state }) {
                 <p>完整令牌只显示一次，请保存后关闭。</p>
                 <code
                   data-issued-token
-                  style={{ display: 'block', overflowWrap: 'anywhere' }}
+                  style={{
+                    display: 'block',
+                    overflowWrap: 'anywhere',
+                    marginBottom: 12,
+                  }}
                 >
                   {state.issuedToken}
                 </code>
@@ -145,7 +150,7 @@ export default function ManagementPanel({ client, state }) {
                 },
               ]}
             />
-            <Space>
+            <Space wrap style={{ marginTop: 16 }}>
               <Button disabled={state.busy} onClick={() => client.pageKeys()}>
                 返回首页
               </Button>
@@ -181,7 +186,7 @@ export default function ManagementPanel({ client, state }) {
                 { title: '对象', dataIndex: 'target' },
               ]}
             />
-            <Space>
+            <Space wrap style={{ marginTop: 16 }}>
               <Button disabled={state.busy} onClick={() => client.pageAudit()}>
                 返回首页
               </Button>

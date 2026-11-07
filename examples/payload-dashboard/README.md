@@ -43,7 +43,7 @@ WORKERKIT_SUITE_URL=http://kit.localhost:5184 npm run test:ui-suite
 - Payload 第一个原生注册账号成为管理员；已有试点升级时，仅将最早建立的用户设为管理员。之后新建用户默认只读。
 - 原生 D1/R2 检查、手动执行和执行记录；`worker.ts` 包装 OpenNext 的 fetch，在同一个 Worker 上增加 scheduled 事件。未配置自动 cron，预览可通过 Wrangler 本地 `/__scheduled` 验证。
 - 一个 `worker.ts`、一个 `wrangler.jsonc`、一个 `ASSETS` 目录。Payload 和 SonicJS 分别绑定自己的 D1/R2，SonicJS 另有 KV；不依赖 Service Binding，不要求另起预览或业务 Worker。
-- `/` 是紧凑切换入口，默认 Payload；`/nuxt/`、`/prime/`、`/vben/`、`/pro/`、`/refine/`、`/tabler/`、`/adminlte/`、`/docs/` 均由同一个 Worker 提供，深链接可直接访问和刷新。
+- `/` 是紧凑切换入口，按组件库、后台模板、文档和后端分类；`/nuxt/`、`/primevue/`、`/prime/`、`/vben/`、`/pro/`、`/refine/`、`/tabler/`、`/adminlte/`、`/docs/` 均由同一个 Worker 提供，深链接可直接访问和刷新。
 - 各 UI 保留原生布局、组件、构建和路由，产物合并到 Static Assets。切换后端时，前端加载在所选 CMS 的同一 origin 上，因此浏览器直接使用该 CMS 的 Cookie 和 API；两套 CMS 仍按同站点域名分流。
 - Payload 在这个同源 iframe 内登录即可；同一个 Cookie 可用于八套 UI 对 `/api/workerkit/*` 的请求；SonicJS 的原生会话独立。验证会从 Nuxt 页面写入 D1、从 PrimeVue 页面读取同一条记录，并在 Payload 运行台中查看。
 - **业务工作台已接通真实接口。** 八套 UI 均可连接任一后端，创建任务计划、运行、暂停、恢复并查看运行记录和依赖检查。复用原 TaskManager 与原生 Agents Scheduler，使用本 Worker 的 SQLite DO 持久化；两套后端的任务按对象名称隔离。原有组件演示页面仍保留 fixture，不冒充真实业务。内容、用户、媒体继续使用选定 CMS 的原生管理界面。

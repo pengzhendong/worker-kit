@@ -39,14 +39,16 @@ try {
   for (const kind of ['element', 'naive', 'shadcn']) {
     console.log('Checking native library ' + kind);
     const tab = (name) =>
-      kind === 'naive'
-        ? page.locator('.n-tabs-tab').filter({ hasText: name })
-        : page.getByRole('tab', { name, exact: true });
+      kind === 'element'
+        ? page.getByRole('menuitem', { name, exact: true })
+        : kind === 'naive'
+          ? page.locator('.n-tabs-tab').filter({ hasText: name })
+          : page.getByRole('tab', { name, exact: true });
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(base + '/' + kind + '/workspace?backend=standard');
     await expect(page.getByText('依赖正常', { exact: true })).toBeVisible();
     const marker = 'QA-' + kind + '-' + randomUUID().slice(0, 5);
-    await tab('KV 设置').click();
+    await tab(kind === 'element' ? '应用设置' : 'KV 设置').click();
     await page.getByLabel('站点名称', { exact: true }).fill(marker);
     await page.getByRole('button', { name: '保存设置', exact: true }).click();
     await expect
@@ -87,6 +89,23 @@ try {
     });
     const content = page.locator('[data-library-scroll]'),
       header = page.locator('[data-library-header]');
+    if (kind === 'element') {
+      await expect(page.getByRole('tablist')).toHaveCount(0);
+      await page.setViewportSize({ width: 1440, height: 420 });
+      const sidebar = page.locator('.library-sidebar');
+      const brand = sidebar.locator('.library-brand');
+      const sidebarScroll = sidebar.locator('.el-scrollbar__wrap');
+      const brandBefore = await brand.boundingBox();
+      await sidebarScroll.evaluate((el) => {
+        el.scrollTop = el.scrollHeight;
+      });
+      assert(await sidebarScroll.evaluate((el) => el.scrollTop > 0));
+      assert.deepEqual(await brand.boundingBox(), brandBefore);
+      assert.equal(await content.evaluate((el) => el.scrollTop), 0);
+      await sidebarScroll.evaluate((el) => {
+        el.scrollTop = 0;
+      });
+    }
     const before = await header.boundingBox();
     await content.evaluate((el) => {
       el.scrollTop = el.scrollHeight;
@@ -96,6 +115,14 @@ try {
       Math.round((await header.boundingBox()).y),
       Math.round(before.y),
     );
+    if (kind === 'element') {
+      await tab('任务调度').click();
+      await expect(
+        page.getByRole('heading', { name: '任务调度', exact: true }),
+      ).toBeVisible();
+      await expect.poll(() => content.evaluate((el) => el.scrollTop)).toBe(0);
+      await page.setViewportSize({ width: 1440, height: 900 });
+    }
     await page.screenshot({
       path: `test-results/component-libraries/${kind}-desktop.png`,
       animations: 'disabled',
@@ -114,14 +141,24 @@ try {
     await page.getByRole('button', { name: '打开侧边栏', exact: true }).click();
     const drawer = page.getByRole('dialog');
     await expect(drawer).toBeVisible();
-    await drawer.getByText('组件体验', { exact: true }).click();
+    for (const label of [
+      '业务工作台',
+      '运行概览',
+      '任务调度',
+      '运行日志',
+      '应用设置',
+      '文件',
+    ])
+      await expect(drawer.getByText(label, { exact: true })).toHaveCount(1);
+    await expect(drawer.getByText('资源管理', { exact: true })).toHaveCount(0);
+    await drawer.getByText('弹窗', { exact: true }).click();
     await expect(drawer).toHaveCount(0);
     await expect(
-      page.getByRole('heading', { name: '组件体验', exact: true }),
+      page.getByRole('heading', { name: '弹窗', exact: true }),
     ).toBeVisible();
     await expect.poll(() => content.evaluate((el) => el.scrollTop)).toBe(0);
     await page
-      .getByRole('button', { name: '打开原生弹窗', exact: true })
+      .getByRole('button', { name: '打开示例弹窗', exact: true })
       .click();
     await expect(page.getByRole('dialog')).toBeVisible();
     await page.keyboard.press('Escape');

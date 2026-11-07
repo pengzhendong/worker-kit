@@ -27,7 +27,7 @@ function upload() {
 
 <template>
   <div>
-    <div class="page-heading"><div><h2>{{ route.meta.title || '资源管理' }}</h2><p>{{ route.meta.description || '浏览图片、音视频和文档，统一管理应用中的资源。' }}</p></div><UButton icon="i-lucide-upload" @click="uploadOpen = true">添加文件</UButton></div>
+    <div class="page-heading"><div><h2>{{ route.meta.title || '文件' }}</h2><p>{{ route.meta.description || '浏览图片、音视频和文档，统一管理应用中的资源。' }}</p></div><UButton icon="i-lucide-upload" @click="uploadOpen = true">添加文件</UButton></div>
     <div class="flex justify-between items-center gap-4 flex-wrap mb-6"><UTabs v-model="category" :items="categories" :content="false" variant="link" :ui="{ list: 'flex-wrap', trigger: 'px-3' }" /><UInput v-model="query" icon="i-lucide-search" placeholder="搜索资源…" aria-label="搜索资源" class="w-full sm:w-60" /></div>
     <div class="grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
       <UCard v-for="resource in filtered" :key="resource.id" :ui="{ body: 'p-0', root: 'overflow-hidden' }">

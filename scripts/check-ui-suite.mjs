@@ -1,5 +1,6 @@
 import { browserOptions } from './browser.mjs';
 import { checkComponents } from './check-ui-components.mjs';
+import { checkGallery } from './check-ui-gallery.mjs';
 import { chromium, expect } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
@@ -48,7 +49,6 @@ try {
     if (response.url().startsWith(base) && response.status() >= 400)
       badResponses.push(`${response.status()} ${response.url()}`);
   });
-  await page.goto(base);
   for (const [name, view] of [
     ['Nuxt UI', 'nuxt'],
     ['Sakai', 'prime'],
@@ -59,15 +59,17 @@ try {
     ['AdminLTE', 'adminlte'],
     ['VitePress', 'docs'],
   ]) {
-    await page.getByRole('tab', { name, exact: true }).click();
-    const frame = page.frameLocator('#preview');
+    await page.goto(`${base}/${view}/`);
+    const frame = page;
     if (view === 'docs') {
+      const guide = frame.getByRole('link', {
+        name: '技术地图与选型',
+        exact: true,
+      });
+      await expect(guide).toBeVisible();
+      await guide.click();
       await expect(
-        frame.getByRole('link', { name: '阅读指南', exact: true }),
-      ).toBeVisible();
-      await frame.getByRole('link', { name: '阅读指南', exact: true }).click();
-      await expect(
-        frame.getByRole('heading', { name: /快速了解/ }),
+        frame.getByRole('heading', { name: /^技术地图与选型/, level: 1 }),
       ).toBeVisible();
     } else {
       await expect(
@@ -96,7 +98,7 @@ try {
       await expect(
         frame.getByText('演示任务「定时数据同步」执行完成', { exact: true }),
       ).toBeVisible();
-      await nav('资源管理');
+      await nav('文件');
       await frame
         .getByRole('button', { name: '预览周末片段.mp4', exact: true })
         .click();
@@ -109,11 +111,10 @@ try {
       await page.keyboard.press('Escape');
     }
     await page.screenshot({ path: `${screenshots}${view}-desktop.png` });
-    await page.getByRole('button', { name: '手机', exact: true }).click();
-    await expect(page.locator('#preview')).toHaveClass('mobile');
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.screenshot({ path: `${screenshots}${view}-phone.png` });
-    await page.getByRole('button', { name: '桌面', exact: true }).click();
-    console.log(`${view}: mounted and interactive in unified preview`);
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    console.log(`${name}: local integration example mounted and interactive`);
   }
   expect(errors).toEqual([]);
   expect(badResponses).toEqual([]);
@@ -144,6 +145,12 @@ try {
     await expect(
       mobile.getByRole('heading', { name: '任务调度', exact: true }).last(),
     ).toBeVisible();
+    expect(
+      await mobile.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+      `${view}: the task toolbar must fit the mobile viewport`,
+    ).toBe(true);
     await mobile.goto(`${base}/${view}/settings`);
     await mobile
       .getByLabel('工作空间名称', { exact: true })
@@ -187,6 +194,7 @@ try {
     );
   }
   await checkComponents(browser, base, screenshots);
+  await checkGallery(browser, base);
   // Direct links and browser refresh must work under each deployment base.
   for (const path of [
     '/nuxt/tasks',

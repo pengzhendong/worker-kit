@@ -3,6 +3,7 @@ import { readBytesLimited } from '@pengzhendong/worker-kit/http';
 const frontends = new Set([
   'nuxt',
   'prime',
+  'primevue',
   'element',
   'naive',
   'shadcn',

@@ -38,7 +38,18 @@ h2 {
 .library-form > * {
   min-width: 160px;
 }
+.library-token {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  margin-block-start: 16px;
+}
+.library-table {
+  overflow-x: auto;
+  margin-block: 16px;
+}
 .audit-list {
+  margin-block-end: 12px;
   max-height: 260px;
   overflow: auto;
 }
@@ -73,3 +84,33 @@ iframe {
     min-width: 0;
   }
 }
+
+.demo-files > label > input,
+.demo-files img,
+.demo-files audio,
+.demo-files video {
+  display: block;
+  max-width: 100%;
+  margin-top: 12px;
+}
+.demo-files img,
+.demo-files video {
+  max-height: 55vh;
+}
+
+.react-component-demo { display: grid; gap: 16px; }
+.react-component-demo .demo-field { max-width: 380px; margin-bottom: 12px; }
+.react-component-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.react-component-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+
+.react-component-grid > div > * { min-height: 96px; }
+@media (max-width: 767px) {
+  .react-component-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 479px) {
+  .react-component-grid { grid-template-columns: 1fr; }
+}
+
+.demo-table-scroll { overflow-x: auto; margin-block: 16px; }
+.demo-file-samples { margin-block: 16px; }
+.demo-statuses { flex-basis: 100%; }

@@ -50,9 +50,9 @@ try {
     const tab = (name) =>
       kind === 'soybean'
         ? page.locator('.n-tabs-tab').filter({ hasText: name })
-        : page.getByRole('tab', { name, exact: true });
+        : page.locator('.sidebar-container').getByText(name, { exact: true });
     const hasTabs = ['pure', 'soybean'].includes(kind);
-    if (hasTabs) await tab('KV 设置').click();
+    if (hasTabs) await tab(kind === 'pure' ? '应用设置' : 'KV 设置').click();
     const marker = 'QA-' + kind + '-' + randomUUID().slice(0, 5);
     await page.getByRole('textbox', { name: /^站点名称/ }).fill(marker);
     await page.getByRole('button', { name: '保存设置', exact: true }).click();
@@ -121,6 +121,12 @@ try {
       path: `test-results/expanded-libraries/${kind}-mobile.png`,
       animations: 'disabled',
     });
+    if (kind === 'soybean') {
+      await page.setViewportSize({ width: 320, height: 844 });
+      await expect
+        .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
+        .toBe(320);
+    }
     results.push({
       kind,
       settings: true,

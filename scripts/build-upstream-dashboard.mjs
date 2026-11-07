@@ -5,7 +5,11 @@ import { fileURLToPath } from 'node:url';
 import { ensureSource, pins } from './ui-upstreams.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-export async function prepareReviewedDashboard(name, work) {
+export async function prepareReviewedDashboard(
+  name,
+  work,
+  { comparison = false } = {},
+) {
   if (!['pure', 'soybean'].includes(name))
     throw Error('Choose pure or soybean');
   const source = await ensureSource(name);
@@ -24,6 +28,13 @@ export async function prepareReviewedDashboard(name, work) {
   await mkdir(bridge, { recursive: true });
   for (const file of [
     'useWorkspace.ts',
+    'DemoFiles.vue',
+    ...(comparison
+      ? [
+          'LibraryDemos.vue',
+          name === 'pure' ? 'ElementDemos.vue' : 'NaiveDemos.vue',
+        ]
+      : []),
     name === 'pure' ? 'ElementWorkspace.vue' : 'NaiveWorkspace.vue',
     'style.css',
   ]) {
@@ -32,13 +43,19 @@ export async function prepareReviewedDashboard(name, work) {
         path.join(root, 'examples/vue-components/src', file),
         'utf8',
       )
-    ).replace('../../ui-demo/operations', './operations');
+    )
+      .replace('../../ui-demo/operations', './operations')
+      .replace('../../ui-demo/demo-settings', './demo-settings')
+      .replace('../../ui-demo/component-fixtures', './component-fixtures');
     await writeFile(path.join(bridge, file), content);
   }
   for (const file of [
     'operations.js',
     'operations.d.ts',
     'backend-session.ts',
+    ...(comparison
+      ? ['demo-settings.ts', 'component-fixtures.ts', 'fixtures.json']
+      : []),
   ]) {
     const content = (
       await readFile(path.join(root, 'examples/ui-demo', file), 'utf8')
@@ -50,7 +67,13 @@ export async function prepareReviewedDashboard(name, work) {
     path.join(work, 'public/favicon.svg'),
   );
   const { adapt } = await import(`../examples/${name}-dashboard/adapter.mjs`);
-  await adapt(work);
+  await adapt(work, { comparison });
+  if (comparison)
+    await cp(
+      path.join(root, 'examples/nuxt-dashboard/public/media'),
+      path.join(work, 'public/media'),
+      { recursive: true },
+    );
 }
 
 if (
@@ -59,7 +82,7 @@ if (
 ) {
   const name = process.argv[2],
     work = path.join(root, '.wrangler/ui-build', name + '-dashboard');
-  await prepareReviewedDashboard(name, work);
+  await prepareReviewedDashboard(name, work, { comparison: true });
   const run = (args, command = 'pnpm') =>
     new Promise((resolve, reject) => {
       const child = spawn(command, args, {

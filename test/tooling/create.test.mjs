@@ -34,7 +34,8 @@ test('creates all component-library and native frontend/backend combinations wit
   t.mock.method(console, 'log', () => {});
   for (const frontend of [
     'nuxt',
-    'prime',
+    'primevue',
+    'sakai',
     'element',
     'naive',
     'shadcn',
@@ -58,6 +59,17 @@ test('creates all component-library and native frontend/backend combinations wit
         '--backend',
         backend,
       ]);
+      if (frontend === 'primevue' || frontend === 'sakai') {
+        const primeVueOnly = frontend === 'primevue';
+        assert.equal(
+          await has(path.join(target, 'web/src/PrimeVueLayout.vue')),
+          primeVueOnly,
+        );
+        assert.equal(
+          await has(path.join(target, 'web/src/layout/AppLayout.vue')),
+          !primeVueOnly,
+        );
+      }
       const pkg = await read(target, 'server/package.json');
       assert.equal(Boolean(pkg.dependencies.payload), backend === 'payload');
       assert.equal(

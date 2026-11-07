@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useWorkspace } from './useWorkspace';
+const props = defineProps<{ section: string; title: string }>();
 const {
   client,
   state,
@@ -18,14 +19,19 @@ const {
   formatTime,
   runLabel,
 } = useWorkspace();
+const unavailable = computed(() => {
+  const section = props.section;
+  if (section === 'settings' || section === 'keys' || section === 'audit')
+    return !management.value?.[section];
+  return section === 'api' && !management.value;
+});
 const keyRows = computed(() => management.value?.keys?.items || []);
 </script>
 <template>
   <div data-workspace>
     <div class="workspace-toolbar">
       <div>
-        <h1>业务工作台</h1>
-        <p>Element Plus 原生组件连接当前后端的真实接口。</p>
+        <h1>{{ title }}</h1>
       </div>
       <ElButton :loading="state.busy" @click="client.refresh()">刷新</ElButton>
     </div>
@@ -40,7 +46,11 @@ const keyRows = computed(() => management.value?.keys?.items || []);
       type="error"
       :closable="false"
     />
-    <ElLink v-if="state.unauthorized" :href="client.loginUrl()" type="primary"
+    <ElLink
+      v-if="state.unauthorized"
+      class="workspace-login"
+      :href="client.loginUrl()"
+      type="primary"
       >登录后端</ElLink
     >
     <div v-if="state.data" class="workspace-stack">
@@ -57,138 +67,144 @@ const keyRows = computed(() => management.value?.keys?.items || []);
           >管理内容与媒体 ↗</ElLink
         >
       </div>
-      <ElCard v-if="management"
-        ><template #header>管理功能</template
-        ><ElTabs>
-          <ElTabPane v-if="management.settings" label="KV 设置"
-            ><form
-              class="workspace-form"
-              @submit.prevent="client.saveSettings(values)"
-            >
-              <label
-                v-for="(value, key) in values"
-                :key="key"
-                class="workspace-field"
-                >{{ labels[key] || key
-                }}<ElSwitch
-                  v-if="typeof value === 'boolean'"
-                  :model-value="Boolean(value)"
-                  @update:model-value="values[key] = $event"
-                  :disabled="
-                    !management.capabilities.settings.manage
-                  " /><ElInputNumber
-                  v-else-if="typeof value === 'number'"
-                  :model-value="Number(value)"
-                  @update:model-value="values[key] = Number($event)"
-                  :disabled="
-                    !management.capabilities.settings.manage
-                  " /><ElInput
-                  v-else
-                  :model-value="String(value)"
-                  @update:model-value="values[key] = String($event)"
-                  :disabled="!management.capabilities.settings.manage"
-                  required /></label
+      <ElAlert
+        v-if="unavailable"
+        title="当前账户或后端未开放此功能"
+        type="info"
+        :closable="false"
+      />
+      <ElCard v-if="section === 'settings' && management?.settings">
+        <form
+          class="workspace-form"
+          @submit.prevent="client.saveSettings(values)"
+        >
+          <label
+            v-for="(value, key) in values"
+            :key="key"
+            class="workspace-field"
+            >{{ labels[key] || key
+            }}<ElSwitch
+              v-if="typeof value === 'boolean'"
+              :model-value="Boolean(value)"
+              @update:model-value="values[key] = $event"
+              :disabled="
+                !management.capabilities.settings.manage
+              " /><ElInputNumber
+              v-else-if="typeof value === 'number'"
+              :model-value="Number(value)"
+              @update:model-value="values[key] = Number($event)"
+              :disabled="!management.capabilities.settings.manage" /><ElInput
+              v-else
+              :model-value="String(value)"
+              @update:model-value="values[key] = String($event)"
+              :disabled="!management.capabilities.settings.manage"
+              required /></label
+          ><ElButton
+            native-type="submit"
+            type="primary"
+            :disabled="state.busy || !management.capabilities.settings.manage"
+            >保存设置</ElButton
+          >
+        </form>
+        <p class="muted">只保存声明的非敏感字段；KV 跨区域同步可能短暂延迟。</p>
+      </ElCard>
+      <ElCard v-if="section === 'keys' && management?.keys">
+        <form
+          class="workspace-form"
+          @submit.prevent="client.issueKey(name, days)"
+        >
+          <label class="workspace-field"
+            >名称<ElInput v-model="name" maxlength="80" required /></label
+          ><label class="workspace-field"
+            >有效期（天）<ElInputNumber
+              v-model="days"
+              :min="1"
+              :max="365" /></label
+          ><ElButton native-type="submit" type="primary" :disabled="state.busy"
+            >签发密钥</ElButton
+          >
+        </form>
+        <div v-if="state.issuedToken" role="status">
+          <p>完整令牌只显示一次，请保存后关闭。</p>
+          <code data-issued-token class="workspace-token">{{
+            state.issuedToken
+          }}</code
+          ><ElButton @click="client.closeToken()">已保存，关闭</ElButton>
+        </div>
+        <ElTable class="workspace-list" :data="keyRows"
+          ><ElTableColumn prop="name" label="名称" /><ElTableColumn
+            prop="prefix"
+            label="前缀"
+          /><ElTableColumn label="状态"
+            ><template #default="{ row }">{{
+              row.revokedAt
+                ? '已撤销'
+                : Date.parse(row.expiresAt) <= Date.now()
+                  ? '已过期'
+                  : '有效'
+            }}</template></ElTableColumn
+          ><ElTableColumn label="操作"
+            ><template #default="{ row }"
               ><ElButton
-                native-type="submit"
-                type="primary"
-                :disabled="
-                  state.busy || !management.capabilities.settings.manage
+                v-if="!row.revokedAt"
+                type="danger"
+                plain
+                @click="
+                  selected = row.id;
+                  confirm = true;
                 "
-                >保存设置</ElButton
-              >
-            </form>
-            <p class="muted">
-              只保存声明的非敏感字段；KV 跨区域同步可能短暂延迟。
-            </p></ElTabPane
+                >撤销</ElButton
+              ></template
+            ></ElTableColumn
+          ></ElTable
+        >
+        <div class="workspace-actions">
+          <ElButton :disabled="state.busy" @click="client.pageKeys()"
+            >首页</ElButton
+          ><ElButton
+            :disabled="state.busy || !management.keys.cursor"
+            @click="client.pageKeys(management.keys.cursor)"
+            >下一页密钥</ElButton
           >
-          <ElTabPane v-if="management.keys" label="访问密钥"
-            ><form
-              class="workspace-form"
-              @submit.prevent="client.issueKey(name, days)"
-            >
-              <label class="workspace-field"
-                >名称<ElInput v-model="name" maxlength="80" required /></label
-              ><label class="workspace-field"
-                >有效期（天）<ElInputNumber
-                  v-model="days"
-                  :min="1"
-                  :max="365" /></label
-              ><ElButton
-                native-type="submit"
-                type="primary"
-                :disabled="state.busy"
-                >签发密钥</ElButton
-              >
-            </form>
-            <div v-if="state.issuedToken" role="status">
-              <p>完整令牌只显示一次，请保存后关闭。</p>
-              <code data-issued-token class="workspace-token">{{
-                state.issuedToken
-              }}</code
-              ><ElButton @click="client.closeToken()">已保存，关闭</ElButton>
-            </div>
-            <ElTable :data="keyRows"
-              ><ElTableColumn prop="name" label="名称" /><ElTableColumn
-                prop="prefix"
-                label="前缀"
-              /><ElTableColumn label="状态"
-                ><template #default="{ row }">{{
-                  row.revokedAt
-                    ? '已撤销'
-                    : Date.parse(row.expiresAt) <= Date.now()
-                      ? '已过期'
-                      : '有效'
-                }}</template></ElTableColumn
-              ><ElTableColumn label="操作"
-                ><template #default="{ row }"
-                  ><ElButton
-                    v-if="!row.revokedAt"
-                    type="danger"
-                    plain
-                    @click="
-                      selected = row.id;
-                      confirm = true;
-                    "
-                    >撤销</ElButton
-                  ></template
-                ></ElTableColumn
-              ></ElTable
-            >
-            <div class="workspace-actions">
-              <ElButton :disabled="state.busy" @click="client.pageKeys()"
-                >首页</ElButton
-              ><ElButton
-                :disabled="state.busy || !management.keys.cursor"
-                @click="client.pageKeys(management.keys.cursor)"
-                >下一页密钥</ElButton
-              >
-            </div></ElTabPane
-          >
-          <ElTabPane v-if="management.audit" label="操作审计"
-            ><ElTable :data="management.audit.items"
-              ><ElTableColumn label="时间"
-                ><template #default="{ row }">{{
-                  formatTime(row.at)
-                }}</template></ElTableColumn
-              ><ElTableColumn prop="action" label="操作" /><ElTableColumn
-                prop="target"
-                label="对象" /><ElTableColumn
-                prop="actor"
-                label="身份" /></ElTable
-            ><ElButton
-              :disabled="state.busy || !management.audit.cursor"
-              @click="client.pageAudit(management.audit.cursor)"
-              >下一页审计</ElButton
-            ></ElTabPane
-          >
-          <ElTabPane label="API 中心" lazy
-            ><iframe
-              class="workspace-reference"
-              title="交互式 API 文档"
-              :src="client.apiUrl('/reference')"
-          /></ElTabPane> </ElTabs
-      ></ElCard>
-      <ElCard
+        </div>
+      </ElCard>
+      <ElCard v-if="section === 'audit' && management?.audit">
+        <ElTable class="workspace-list" :data="management.audit.items"
+          ><ElTableColumn label="时间"
+            ><template #default="{ row }">{{
+              formatTime(row.at)
+            }}</template></ElTableColumn
+          ><ElTableColumn prop="action" label="操作" /><ElTableColumn
+            prop="target"
+            label="对象" /><ElTableColumn prop="actor" label="身份" /></ElTable
+        ><ElButton
+          :disabled="state.busy || !management.audit.cursor"
+          @click="client.pageAudit(management.audit.cursor)"
+          >下一页审计</ElButton
+        >
+      </ElCard>
+      <ElCard v-if="section === 'api' && management">
+        <iframe
+          class="workspace-reference"
+          title="交互式 API 文档"
+          :src="client.apiUrl('/reference')"
+        />
+      </ElCard>
+      <ElCard v-if="section === 'workspace'">
+        <template #header>工作台概览</template>
+        <ElDescriptions :column="1">
+          <ElDescriptionsItem label="运行检查">{{
+            state.data.runtime.checks.length
+          }}</ElDescriptionsItem>
+          <ElDescriptionsItem label="任务调度">{{
+            state.data.plans.length
+          }}</ElDescriptionsItem>
+          <ElDescriptionsItem label="近期运行">{{
+            state.data.runs.length
+          }}</ElDescriptionsItem>
+        </ElDescriptions>
+      </ElCard>
+      <ElCard v-if="section === 'overview'"
         ><template #header>运行诊断</template>
         <div
           v-for="check in state.data.runtime.checks"
@@ -199,7 +215,7 @@ const keyRows = computed(() => management.value?.keys?.items || []);
           ><span>{{ check.status }} · {{ check.durationMs }} ms</span>
         </div></ElCard
       >
-      <ElCard v-if="manageTasks"
+      <ElCard v-if="manageTasks && section === 'tasks'"
         ><template #header>创建任务计划</template>
         <form
           class="workspace-form"
@@ -232,7 +248,7 @@ const keyRows = computed(() => management.value?.keys?.items || []);
           >
         </form></ElCard
       >
-      <ElCard
+      <ElCard v-if="section === 'tasks'"
         ><template #header>任务计划</template
         ><ElEmpty v-if="!state.data.plans.length" description="暂无计划" />
         <div
@@ -265,7 +281,7 @@ const keyRows = computed(() => management.value?.keys?.items || []);
           </div>
         </div></ElCard
       >
-      <ElCard
+      <ElCard v-if="section === 'runs'"
         ><template #header>运行记录与日志</template
         ><ElEmpty v-if="!state.data.runs.length" description="暂无运行记录" />
         <article

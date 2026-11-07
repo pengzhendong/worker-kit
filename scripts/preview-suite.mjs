@@ -3,6 +3,7 @@ import { stat, readFile, realpath } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { frontendViews } from '../examples/ui-suite/catalog.js';
 const root = fileURLToPath(new URL('../', import.meta.url));
 if (!process.argv.includes('--no-build')) {
   await new Promise((resolve, reject) => {
@@ -17,12 +18,12 @@ const server = http.createServer(async (request, response) => {
     if (!['GET', 'HEAD'].includes(request.method)) { response.writeHead(405); return response.end(); }
     const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
     const mount = pathname.split('/')[1];
-    if (['nuxt', 'prime', 'element', 'naive', 'shadcn', 'vuetify', 'quasar', 'mui', 'mantine', 'pure', 'soybean', 'vben', 'pro', 'refine', 'tabler', 'adminlte', 'docs'].includes(mount) && pathname === `/${mount}`) { response.writeHead(302, { Location: `/${mount}/` }); return response.end(); }
+    if (frontendViews.includes(mount) && pathname === `/${mount}`) { response.writeHead(302, { Location: `/${mount}/` }); return response.end(); }
     let file = path.resolve(directory, `.${pathname}`);
     if (!file.startsWith(`${directory}/`) && file !== directory) { response.writeHead(403); return response.end(); }
     try { if ((await stat(file)).isDirectory()) file = path.join(file, 'index.html'); }
     catch {
-      if (['nuxt', 'prime', 'element', 'naive', 'shadcn', 'vuetify', 'quasar', 'mui', 'mantine', 'pure', 'soybean', 'vben', 'pro', 'refine', 'tabler', 'adminlte'].includes(mount) && !path.extname(pathname)) file = path.join(directory, mount, 'index.html');
+      if (frontendViews.includes(mount) && mount !== 'docs' && !path.extname(pathname)) file = path.join(directory, mount, 'index.html');
       else if (mount === 'docs' && !path.extname(pathname)) file += '.html';
       else { response.writeHead(404); return response.end('Not found'); }
     }

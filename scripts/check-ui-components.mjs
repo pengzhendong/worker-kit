@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 
-export async function checkComponents(browser, base, screenshots, views = ['nuxt', 'prime', 'vben', 'pro', 'refine', 'tabler', 'adminlte']) {
+export async function checkComponents(browser, base, screenshots, views = ['nuxt', 'prime', 'primevue', 'vben', 'pro', 'refine', 'tabler', 'adminlte']) {
   for (const view of views) {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     const errors = [];
@@ -25,7 +25,7 @@ export async function checkComponents(browser, base, screenshots, views = ['nuxt
     await page.getByRole('button', { name: '打开确认弹窗', exact: true }).click();
     await page.getByRole('button', { name: '确认操作', exact: true }).click();
     await expect(page.getByRole('status').filter({ hasText: '已确认演示操作' })).toBeVisible();
-    for (const [route, title] of [['table', '表格'], ['form', '表单'], ['preview', '文件预览'], ['layout', '布局'], ['theme', '主题']]) {
+    for (const [route, title] of [['table', '表格'], ['form', '表单'], ['preview', '文件'], ['layout', '布局'], ['theme', '主题']]) {
       await page.goto(`${base}/${view}/components/${route}`);
       await expect(page.getByRole('heading', { name: title, exact: true }).last()).toBeVisible();
       if (route === 'table') {
@@ -34,7 +34,7 @@ export async function checkComponents(browser, base, screenshots, views = ['nuxt
       } else if (route === 'form') {
         await page.getByLabel('工作空间名称', { exact: true }).fill('');
         await page.getByRole('button', { name: '保存设置', exact: true }).click();
-        if (!['prime', 'tabler', 'adminlte'].includes(view)) await expect(page.getByText('请输入工作空间名称', { exact: true })).toBeVisible();
+        if (!['prime', 'primevue', 'tabler', 'adminlte'].includes(view)) await expect(page.getByText('请输入工作空间名称', { exact: true })).toBeVisible();
         else expect(await page.getByLabel('工作空间名称', { exact: true }).evaluate(el => el.validity.valueMissing)).toBe(true);
       } else if (route === 'preview') {
         await page.getByRole('button', { name: '预览周末片段.mp4', exact: true }).click();

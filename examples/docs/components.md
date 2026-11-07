@@ -1,22 +1,34 @@
 # 组件体验
 
-七套后台采用相同的六类体验入口，方便比较各框架的原生交互与视觉。菜单和示例场景由 WorkerKit 编排；组件来自各自上游，不代表上游模板的默认业务功能。
+17 套界面采用相同的六类体验入口，方便比较各框架的原生交互与视觉。WorkerKit 统一菜单和示例场景，各套沿用自己的组件和样式。
 
 | 入口 | 可以试什么 | 路径 |
 | --- | --- | --- |
-| 表格 | 搜索、状态筛选、行操作；部分方案另有分页和列设置 | `/components/table` |
+| 表格 | 搜索任务或应用、按启用状态筛选、分页、切换启用状态、模拟运行 | `/components/table` |
 | 表单 | 必填校验、选择、数字输入、开关、保存后刷新 | `/components/form` |
 | 弹窗 | 普通弹窗、确认与取消、Escape 关闭、焦点 | `/components/dialogs` |
-| 文件预览 | 图片、视频、音频、文件分类及添加本地文件 | `/components/preview` |
 | 布局 | 宽屏与手机布局、填充 36 张卡片、侧栏及内容滚动 | `/components/layout` |
 | 主题 | 明暗切换、按钮层级、禁用态、状态色 | `/components/theme` |
+| 文件 | 预览同一组图片、视频和音频样本，也可以选择本地文件 | `/components/preview` |
 
-表格、表单和文件预览复用任务、设置及资源页的真实演示交互，以便用同一组数据比较。保存仅影响当前浏览器，任务和文件操作仅影响本地示例。
+表格默认展示三条任务，每页两条。表单共用六项字段，设置按界面保存在当前浏览器。部分界面提供列设置、文件搜索及分类等额外交互。演示数据与本地文件都在当前浏览器中处理。
 
-## 打开后台
+## 组件目录
 
-<a href="/nuxt/components/table" target="_top">Nuxt UI</a> · <a href="/prime/components/table" target="_top">PrimeVue / Sakai</a> · <a href="/vben/components/table" target="_top">Vben Admin</a> · <a href="/pro/components/table" target="_top">Ant Design Pro</a> · <a href="/refine/components/table" target="_top">Refine</a> · <a href="/tabler/components/table" target="_top">Tabler</a> · <a href="/adminlte/components/table" target="_top">AdminLTE</a>
+在预览中心选择组件库，左侧的「组件目录」可以直接打开。下方的「对比示例」用相同的操作比较各套界面，预览默认打开表格。目录支持按名称和用途筛选，每一项都能直接在右侧体验。基础示例参考各库的官方用法，随 WorkerKit 一起提供。每个示例右上角都有对应的官方文档链接。
 
-也可在<a href="/" target="_top">统一预览中心</a>切换方案与手机宽度。
+接入的官方示例随构建发布为 Worker 静态资源，选中时按需加载。源码清单记录上游提交、文件和许可证。需要文档站专用插件或远程资源的示例，先完成适配再加入目录。
 
-VitePress 这一页提供索引和说明；它的核心用途是文档站。后台组件示例分别运行在上面的七套应用中。
+一个组件有多个用法时，在右侧「示例」中切换。Vuetify 的数据表格提供基础、多列排序、虚拟滚动和模拟服务端分页，日期选择器提供按月选择。shadcn-vue 数据表格使用 TanStack Table 处理筛选、排序和分页，MUI 数字输入使用 Base UI 处理键盘输入和数值边界。视频和图片示例使用同一 Worker 的演示素材，Quasar 上传器用当前浏览器里的文件演示待上传队列。
+
+Nuxt UI 的内容导航、站内搜索和对话使用本地示例数据。富文本编辑器支持插入表情和调整格式。Vuetify 的 SVG 地图可选择区域和缩放，表格总览可以切换三种实现。shadcn-vue 表单可以体验校验和提交。Mantine 的应用布局可以收起导航，工具栏可以更改预览文字的格式。
+
+Vuetify 和 Quasar 的 No SSR 示例并排展示构建时生成的服务端 HTML 和浏览器中挂载的组件。MUI 的初始配色示例在独立预览中运行初始化脚本，可以切换浅色和深色启动。
+
+<a href="/primevue/components/gallery" target="_top">打开 PrimeVue 组件目录</a>
+
+## 打开界面
+
+<a href="/" target="_top">打开统一预览中心</a>，选择组件库、后台模板或切换到手机宽度。右上角的「官方演示」会打开对应项目的上游示例。
+
+VitePress 提供文档与索引，17 套组件演示各自运行在独立页面。

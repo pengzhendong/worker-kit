@@ -1,0 +1,158 @@
+@reference "../../../../vue-components/src/shadcn.css";
+
+#demo {
+  /* MARK: Attachment */
+  .cn-attachment {
+    @apply rounded-xl w-fit focus-within:ring-1 focus-within:ring-ring/50;
+  }
+
+  .cn-attachment-orientation-horizontal {
+    @apply min-w-40;
+  }
+
+  .cn-attachment-orientation-vertical {
+    @apply w-24 has-data-[slot=attachment-content]:w-30;
+  }
+
+  .cn-attachment-size-default {
+    @apply gap-2 has-data-[slot=attachment-content]:px-2.5 has-data-[slot=attachment-content]:py-2 has-data-[slot=attachment-media]:p-2 text-sm;
+  }
+
+  .cn-attachment-size-sm {
+    @apply gap-2.5 has-data-[slot=attachment-content]:px-2 has-data-[slot=attachment-content]:py-1.5 has-data-[slot=attachment-media]:p-1.5 text-xs;
+  }
+
+  .cn-attachment-size-xs {
+    @apply gap-1.5 has-data-[slot=attachment-content]:px-1.5 has-data-[slot=attachment-content]:py-1 has-data-[slot=attachment-media]:p-1 text-xs rounded-lg;
+  }
+
+  .cn-attachment-media {
+    @apply bg-muted text-foreground w-10 rounded-lg group-data-[size=sm]/attachment:w-8 group-data-[size=xs]/attachment:w-7 group-data-[size=xs]/attachment:rounded-md [&_svg:not([class*='size-'])]:size-4 group-data-[size=xs]/attachment:[&_svg:not([class*='size-'])]:size-3.5 group-data-[orientation=vertical]/attachment:w-full group-data-[orientation=vertical]/attachment:[&_svg:not([class*='size-'])]:size-6 group-data-[orientation=vertical]/attachment:*:data-[slot=spinner]:size-6!;
+  }
+
+  .cn-attachment-media-variant-image {
+    @apply opacity-60 group-data-[state=idle]/attachment:opacity-100 group-data-[state=done]/attachment:opacity-100;
+  }
+
+  .cn-attachment-content {
+    @apply leading-tight group-data-[orientation=vertical]/attachment:px-1;
+  }
+
+  .cn-attachment-title {
+    @apply font-medium;
+  }
+
+  .cn-attachment-description {
+    @apply mt-0.5 text-xs;
+  }
+
+  .cn-attachment-actions {
+    @apply group-data-[orientation=vertical]/attachment:absolute group-data-[orientation=vertical]/attachment:top-3 group-data-[orientation=vertical]/attachment:right-3 relative z-20 group-data-[orientation=vertical]/attachment:gap-1;
+  }
+
+  .cn-attachment-group {
+    @apply gap-3 scroll-px-1 py-1;
+  }
+
+  .cn-attachment-trigger {
+    @apply absolute inset-0 z-10 outline-none;
+  }
+
+   /* MARK: Marker */
+  .cn-marker {
+    @apply gap-2 text-sm text-muted-foreground [a]:hover:text-foreground [a]:underline-offset-3 [a]:underline [&_svg:not([class*='size-'])]:size-4 min-h-4 text-left;
+  }
+
+  .cn-marker-variant-separator {
+    @apply before:h-px before:min-w-0 before:flex-1 before:bg-border after:h-px after:min-w-0 after:flex-1 after:bg-border before:mr-1 after:ml-1;
+  }
+
+  .cn-marker-variant-border {
+    @apply border-b border-border pb-2;
+  }
+
+  .cn-marker-icon {
+    @apply size-4 [&_svg:not([class*='size-'])]:size-4;
+  }
+
+  .cn-marker-content {
+    @apply group-data-[variant=separator]/marker:flex-none group-data-[variant=separator]/marker:text-center *:[a]:hover:text-foreground *:[a]:underline *:[a]:underline-offset-3;
+  }
+
+  /* MARK: Trace */
+  .cn-trace {
+    @apply gap-2 *:has-[>[data-slot=trace-line]]:rounded-md *:has-[>[data-slot=trace-line]]:focus-visible:ring-3 *:has-[>[data-slot=trace-line]]:focus-visible:ring-ring/50;
+  }
+
+  .cn-trace-collapsible-trigger {
+    @apply gap-1 rounded-md focus-visible:ring-3 focus-visible:ring-ring/50;
+  }
+
+  .cn-trace-line {
+    @apply gap-2 text-sm;
+  }
+
+  .cn-trace-icon {
+    @apply size-4 [&_svg:not([class*='size-'])]:size-4 [[data-slot=trace-title]~&]:-ml-1;
+  }
+
+  .cn-trace-collapsible-content {
+    @apply duration-200;
+  }
+
+  .cn-trace-collapsible-content-inner {
+    @apply mt-2 mb-1 ml-[calc(--spacing(2)-1px)] border-l pr-1 pl-4 leading-relaxed;
+  }
+
+  /* MARK: Code Block */
+  .cn-code-block {
+    @apply rounded-lg text-sm data-[size=sm]:text-xs has-[>[data-slot=code-block-content]:focus-visible]:ring-3 has-[>[data-slot=code-block-content]:focus-visible]:ring-ring/50;
+  }
+
+  .cn-code-block-variant-default {
+    @apply border border-input text-foreground dark:bg-input/30 has-[>[data-slot=code-block-content]:focus-visible]:border-ring;
+  }
+
+  .cn-code-block-variant-destructive {
+    @apply border border-destructive/30 text-destructive dark:border-destructive/40;
+  }
+
+  .cn-code-block-header {
+    @apply gap-2 px-3 pt-3 text-muted-foreground group-data-[variant=destructive]/code-block:text-destructive group-data-[size=sm]/code-block:px-2.5 group-data-[size=sm]/code-block:pt-2.5;
+  }
+
+  .cn-code-block-footer {
+    @apply gap-2 px-3 pb-3 text-muted-foreground group-data-[size=sm]/code-block:px-2.5 group-data-[size=sm]/code-block:pb-2.5;
+  }
+
+  .cn-code-block-title {
+    @apply font-sans text-sm font-medium text-foreground group-data-[variant=destructive]/code-block:text-destructive *:[svg]:me-1.5 [&_svg:not([class*='size-'])]:size-3.5 group-data-[size=sm]/code-block:text-xs;
+  }
+
+  .cn-code-block-actions {
+    @apply -my-1 -me-1.5 gap-1 [[data-slot=code-block]>&]:m-0 [[data-slot=code-block]>&]:top-2 [[data-slot=code-block]>&]:end-2 group-data-[size=sm]/code-block:[[data-slot=code-block]>&]:top-1.5 group-data-[size=sm]/code-block:[[data-slot=code-block]>&]:end-1.5 [[data-slot=code-block]>&]:*:[button]:bg-background [[data-slot=code-block]>&]:*:[button]:ring-1 [[data-slot=code-block]>&]:*:[button]:ring-foreground/10;
+  }
+
+  .cn-code-block-copy-button {
+  }
+
+  .cn-code-block-content {
+    @apply px-3 py-3 leading-relaxed group-has-data-[slot=code-block-header]/code-block:pt-2 group-has-data-[slot=code-block-footer]/code-block:pb-2 group-data-[size=sm]/code-block:px-2.5 group-data-[size=sm]/code-block:py-2.5 group-data-[size=sm]/code-block:group-has-data-[slot=code-block-header]/code-block:pt-1.5;
+  }
+
+  .cn-code-block-line {
+    @apply -mx-3 px-3 in-data-numbered:gap-x-3 before:min-w-6 before:text-end before:text-muted-foreground after:start-1 after:text-muted-foreground group-data-[size=sm]/code-block:-mx-2.5 group-data-[size=sm]/code-block:px-2.5;
+  }
+
+  .cn-code-block-line-variant-highlighted {
+    @apply bg-muted;
+  }
+
+  .cn-code-block-line-variant-added {
+    @apply bg-muted after:content-['+'];
+  }
+
+  .cn-code-block-line-variant-removed {
+    @apply bg-destructive/10 after:text-destructive after:content-['−'];
+  }
+}

@@ -5,7 +5,7 @@ import {
   runLabel,
 } from '../../ui-demo/operations';
 export { formatTime, runLabel };
-export function useWorkspace() {
+export function useWorkspace(load = true) {
   const client = useRef<ReturnType<typeof createOperationsClient> | null>(null);
   if (!client.current) client.current = createOperationsClient();
   const api = client.current;
@@ -15,12 +15,12 @@ export function useWorkspace() {
   >({});
   useEffect(() => {
     const unsubscribe = api.subscribe(() => setState(api.snapshot()));
-    void api.refresh();
+    if (load) void api.refresh();
     return () => {
       unsubscribe();
       api.dispose();
     };
-  }, [api]);
+  }, [api, load]);
   useEffect(() => {
     setValues(state.data?.management?.settings?.values || {});
   }, [state.data?.management?.settings]);

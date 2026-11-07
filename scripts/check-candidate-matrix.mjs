@@ -77,11 +77,14 @@ try {
     }
   }
   await page.goto(base + '/?view=payload&preload=off');
-  await page.getByLabel('选择后端').selectOption('standard');
-  await expect(
-    page.frameLocator('#preview').locator('[data-workspace]'),
-  ).toContainText('依赖正常', { timeout: 25000 });
-  assert.equal(new URL(page.url()).searchParams.get('backend'), 'standard');
+  await page
+    .getByRole('tab', { name: 'Hono + Better Auth', exact: true })
+    .click();
+  await expect(page.locator('#preview')).toHaveAttribute(
+    'src',
+    base + '/standard/',
+  );
+  assert.equal(new URL(page.url()).searchParams.get('view'), 'standard');
   assert.deepEqual(errors, []);
   await mkdir('test-results/candidate-matrix', { recursive: true });
   await writeFile(

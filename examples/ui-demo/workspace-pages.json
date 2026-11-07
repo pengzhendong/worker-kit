@@ -1,0 +1,32 @@
+[
+  {
+    "id": "workspace",
+    "label": "业务工作台",
+    "path": "/workspace",
+    "icon": "activity"
+  },
+  {
+    "id": "overview",
+    "label": "运行概览",
+    "path": "/",
+    "icon": "layout-dashboard"
+  },
+  {
+    "id": "tasks",
+    "label": "任务调度",
+    "path": "/tasks",
+    "icon": "calendar-clock"
+  },
+  {
+    "id": "runs",
+    "label": "运行日志",
+    "path": "/logs",
+    "icon": "clipboard-list"
+  },
+  {
+    "id": "settings",
+    "label": "应用设置",
+    "path": "/settings",
+    "icon": "settings-2"
+  }
+]

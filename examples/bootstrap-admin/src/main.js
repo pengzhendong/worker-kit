@@ -16,6 +16,8 @@ import { LineChart } from 'echarts/charts';
 import { GridComponent, TooltipComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 import componentPages from '../../ui-demo/component-pages.json';
+import { demoTimezones, readDemoSettings } from '../../ui-demo/demo-settings';
+import workspacePages from '../../ui-demo/workspace-pages.json';
 import 'primeicons/primeicons.css';
 import './style.css';
 import { operations, workspace } from './workspace';
@@ -32,14 +34,12 @@ const escape = (value) =>
         char
       ],
   );
-const pages = [
-  { path: '/workspace', title: '业务工作台', icon: 'ϟ' },
-  { path: '/', title: '运行概览', icon: '▦' },
-  { path: '/tasks', title: '任务调度', icon: '◷' },
-  { path: '/resources', title: '资源管理', icon: '▱' },
-  { path: '/logs', title: '运行日志', icon: '≡' },
-  { path: '/settings', title: '应用设置', icon: '⚙' },
-];
+const componentPreview = componentPages.some(page => location.pathname.endsWith(page.path));
+const homePath = componentPreview ? '/components/table' : '/';
+const workspaceIcons = ['ϟ', '▦', '◷', '≡', '⚙'];
+const pages = workspacePages.filter(page => !componentPreview && (page.id !== 'workspace' || location.pathname.endsWith('/workspace'))).map((page) => ({
+  path: page.path, title: page.label, icon: workspaceIcons[workspacePages.indexOf(page)],
+}));
 const componentIcons = {
   table: 'pi-table',
   form: 'pi-pencil',
@@ -62,6 +62,7 @@ const getPath = () =>
 let path = getPath();
 let query = '';
 let filter = 'all';
+let taskPage = 1;
 let period = '7';
 let chart;
 let observer;
@@ -80,8 +81,8 @@ const button = (text, action, cls = 'btn-outline-secondary') =>
   `<button type="button" class="btn ${cls}" data-action="${action}">${text}</button>`;
 const nav = pages
   .map(
-    (page, index) =>
-      `${index === 6 ? '<li class="nav-item px-3 pt-4 pb-2 text-secondary small">组件体验</li>' : ''}<li class="nav-item"><a class="nav-link" href="${href(page.path)}" data-go="${page.path}" aria-label="${page.title}"><span class="nav-link-icon" aria-hidden="true">${page.icon}</span><${kind === 'tabler' ? 'span' : 'p'}>${page.title}</${kind === 'tabler' ? 'span' : 'p'}></a></li>`,
+    (page) =>
+      `${page.key === componentPages[0].key ? '<li class="nav-item px-3 pt-4 pb-2 text-secondary small">对比示例</li>' : ''}<li class="nav-item"><a class="nav-link" href="${href(page.path)}" data-go="${page.path}" aria-label="${page.title}"><span class="nav-link-icon" aria-hidden="true">${page.icon}</span><${kind === 'tabler' ? 'span' : 'p'}>${page.title}</${kind === 'tabler' ? 'span' : 'p'}></a></li>`,
   )
   .join('');
 document.body.className =
@@ -94,10 +95,10 @@ document.documentElement.dataset.bsTheme = dark ? 'dark' : 'light';
 const topActions = `<span class="badge ${kind === 'tabler' ? 'bg-blue-lt' : 'text-bg-primary'}">${kind === 'tabler' ? 'Tabler' : 'AdminLTE'}</span><button class="btn btn-sm btn-outline-secondary" data-action="theme" aria-label="切换明暗主题">${dark ? '☀' : '☾'}</button><span class="demo-user">Demo User</span>`;
 if (kind === 'tabler')
   document.getElementById('app').innerHTML =
-    `<div class="page"><aside class="navbar navbar-vertical navbar-expand-lg"><div class="container-fluid"><button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu" aria-controls="sidebar-menu" aria-expanded="false" aria-label="打开导航"><span class="navbar-toggler-icon"></span></button><a class="navbar-brand" href="${base}" data-go="/"><img src="${base}favicon.svg" alt="" width="32" height="32">WorkerKit</a><div class="collapse navbar-collapse" id="sidebar-menu"><ul class="navbar-nav pt-lg-3">${nav}</ul><div class="demo-sidebar-note text-secondary" data-demo-note></div></div></div></aside><div class="page-wrapper"><header class="navbar demo-topbar"><div class="container-fluid"><span id="breadcrumb">运行概览</span><div class="d-flex align-items-center gap-3">${topActions}</div></div></header><main class="demo-main-scroll"><div class="container-xl"><div class="page-header"><div class="row align-items-center"><div class="col"><div class="page-pretitle">示例工作空间</div><h1 class="page-title" id="page-title"></h1><p class="text-secondary mt-2" id="page-description"></p></div><div class="col-auto" id="page-action"></div></div></div><div class="page-body" id="content"></div><footer class="demo-footer text-secondary">WorkerKit · Tabler · 演示数据</footer></div></main></div></div>`;
+    `<div class="page"><aside class="navbar navbar-vertical navbar-expand-lg"><div class="container-fluid"><button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu" aria-controls="sidebar-menu" aria-expanded="false" aria-label="打开导航"><span class="navbar-toggler-icon"></span></button><a class="navbar-brand" href="${href(homePath)}" data-go="${homePath}"><img src="${base}favicon.svg" alt="" width="32" height="32">WorkerKit</a><div class="collapse navbar-collapse" id="sidebar-menu"><ul class="navbar-nav pt-lg-3">${nav}</ul><div class="demo-sidebar-note text-secondary" data-demo-note></div></div></div></aside><div class="page-wrapper"><header class="navbar demo-topbar"><div class="container-fluid"><span id="breadcrumb">运行概览</span><div class="d-flex align-items-center gap-3">${topActions}</div></div></header><main class="demo-main-scroll"><div class="container-xl"><div class="page-header"><div class="row align-items-center"><div class="col"><div class="page-pretitle">${componentPreview ? '对比示例' : '示例工作空间'}</div><h1 class="page-title" id="page-title"></h1><p class="text-secondary mt-2" id="page-description"></p></div><div class="col-auto" id="page-action"></div></div></div><div class="page-body" id="content"></div><footer class="demo-footer text-secondary">WorkerKit · Tabler · 演示数据</footer></div></main></div></div>`;
 else
   document.getElementById('app').innerHTML =
-    `<div class="app-wrapper"><header class="app-header navbar navbar-expand bg-body"><div class="container-fluid"><ul class="navbar-nav"><li class="nav-item"><button class="nav-link" data-lte-toggle="sidebar" aria-label="打开导航"><span aria-hidden="true">☰</span></button></li><li class="nav-item d-none d-sm-block"><span class="nav-link" id="breadcrumb">运行概览</span></li></ul><div class="d-flex align-items-center gap-3">${topActions}</div></div></header><aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark"><div class="sidebar-brand"><a href="${base}" data-go="/" class="brand-link"><img src="${base}favicon.svg" alt="" width="32" height="32"><span class="brand-text fw-semibold">WorkerKit</span></a></div><div class="sidebar-wrapper"><nav><ul class="nav sidebar-menu flex-column" role="menu">${nav}</ul></nav><div class="demo-sidebar-note text-secondary" data-demo-note></div></div></aside><main class="app-main demo-main-scroll"><div class="app-content-header"><div class="container-fluid d-flex justify-content-between align-items-center gap-3"><div><h1 class="fs-3 mb-2" id="page-title"></h1><p class="text-secondary mb-0" id="page-description"></p></div><div id="page-action"></div></div></div><div class="app-content"><div class="container-fluid" id="content"></div><footer class="demo-footer text-secondary">WorkerKit · AdminLTE · 演示数据</footer></div></main></div>`;
+    `<div class="app-wrapper"><header class="app-header navbar navbar-expand bg-body"><div class="container-fluid"><ul class="navbar-nav"><li class="nav-item"><button class="nav-link" data-lte-toggle="sidebar" aria-label="打开导航"><span aria-hidden="true">☰</span></button></li><li class="nav-item d-none d-sm-block"><span class="nav-link" id="breadcrumb">运行概览</span></li></ul><div class="d-flex align-items-center gap-3">${topActions}</div></div></header><aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark"><div class="sidebar-brand"><a href="${href(homePath)}" data-go="${homePath}" class="brand-link"><img src="${base}favicon.svg" alt="" width="32" height="32"><span class="brand-text fw-semibold">WorkerKit</span></a></div><div class="sidebar-wrapper"><nav><ul class="nav sidebar-menu flex-column" role="menu">${nav}</ul></nav><div class="demo-sidebar-note text-secondary" data-demo-note></div></div></aside><main class="app-main demo-main-scroll"><div class="app-content-header"><div class="container-fluid d-flex justify-content-between align-items-center gap-3"><div><h1 class="fs-3 mb-2" id="page-title"></h1><p class="text-secondary mb-0" id="page-description"></p></div><div id="page-action"></div></div></div><div class="app-content"><div class="container-fluid" id="content"></div><footer class="demo-footer text-secondary">WorkerKit · AdminLTE · 演示数据</footer></div></main></div>`;
 
 // Load AdminLTE after its shell exists so the native sidebar lifecycle initializes.
 if (kind === 'adminlte')
@@ -180,17 +181,20 @@ function tasks() {
       `${task.name} ${task.app}`.toLowerCase().includes(query.toLowerCase()) &&
       (filter === 'all' || task.enabled === (filter === 'enabled')),
   );
+  const pageSize = 2;
+  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
+  taskPage = Math.min(taskPage, pageCount);
   return `<div class="card">${toolbar('搜索任务', [
     ['all', '全部计划'],
     ['enabled', '已启用'],
     ['paused', '已暂停'],
   ])}${table(
     ['任务名称', '应用', '执行计划', '最近结果', '上次执行', '启用', '操作'],
-    rows.map(
+    rows.slice((taskPage - 1) * pageSize, taskPage * pageSize).map(
       (task) =>
         `<tr><td><strong>${escape(task.name)}</strong><div class="text-secondary small mt-1">${escape(task.description)}</div></td><td>${escape(task.app)}</td><td>${escape(task.schedule)}</td><td>${badge(task.status)}</td><td class="text-secondary small">${escape(task.lastRun)}</td><td><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" data-toggle-task="${task.id}" aria-label="启用${escape(task.name)}" ${task.enabled ? 'checked' : ''}></div></td><td><button class="btn btn-sm btn-outline-primary" data-run="${task.id}" aria-label="运行${escape(task.name)}" ${task.status === 'running' ? 'disabled' : ''}>${task.status === 'running' ? '运行中…' : '运行'}</button></td></tr>`,
     ),
-  )}<div class="card-footer text-secondary small">显示 ${rows.length} / ${state.tasks.length} 个任务 · 时间按 Asia/Shanghai 展示</div></div><div class="alert alert-info mt-4">本页只模拟任务状态，执行结果会出现在运行日志中；刷新后恢复初始示例。</div>`;
+  )}<div class="card-footer text-secondary small"><div class="d-flex flex-wrap align-items-center justify-content-between gap-2"><span>共 ${rows.length} 个任务 · 时间按 Asia/Shanghai 展示</span>${pageCount > 1 ? `<div class="d-flex align-items-center gap-2" aria-label="任务分页"><button class="btn btn-sm btn-outline-secondary" data-task-page="${taskPage - 1}" ${taskPage === 1 ? 'disabled' : ''}>上一页</button><span>第 ${taskPage} / ${pageCount} 页</span><button class="btn btn-sm btn-outline-secondary" data-task-page="${taskPage + 1}" ${taskPage === pageCount ? 'disabled' : ''}>下一页</button></div>` : ''}</div></div></div><div class="alert alert-info mt-4">本页只模拟任务状态，执行结果会出现在运行日志中；刷新后恢复初始示例。</div>`;
 }
 const types = { image: '图片', video: '视频', audio: '音频', document: '文档' };
 function resources() {
@@ -231,21 +235,8 @@ function logs() {
   )}</div>`;
 }
 function settings() {
-  let value = {
-    name: 'WorkerKit 工作空间',
-    description: '通用后台界面示例',
-    timezone: 'Asia/Shanghai',
-    retention: 30,
-    failureNotice: true,
-    dailyDigest: false,
-  };
-  try {
-    value = {
-      ...value,
-      ...JSON.parse(localStorage.getItem(`workerkit-${kind}-settings`) || '{}'),
-    };
-  } catch {}
-  return `<form id="settings-form" class="demo-settings"><div class="card mb-4"><div class="card-header"><h2 class="card-title">基本信息</h2></div><div class="card-body">${field('工作空间名称', 'setting-name', `<input id="setting-name" class="form-control" name="name" required value="${escape(value.name)}">`)}${field('说明', 'setting-description', `<textarea id="setting-description" class="form-control" name="description" rows="2">${escape(value.description)}</textarea>`)}<div class="row"><div class="col-sm-6">${field('显示时区', 'setting-timezone', `<select id="setting-timezone" class="form-select" name="timezone">${['Asia/Shanghai', 'Asia/Hong_Kong', 'UTC'].map((zone) => `<option ${value.timezone === zone ? 'selected' : ''}>${zone}</option>`).join('')}</select>`)}</div><div class="col-sm-6">${field('日志保留天数', 'setting-retention', `<input id="setting-retention" class="form-control" type="number" name="retention" min="1" max="90" required value="${escape(value.retention)}">`)}</div></div></div></div><div class="card mb-4"><div class="card-header"><h2 class="card-title">通知偏好</h2></div><div class="card-body"><p class="text-secondary small">演示表单，尚未连接消息发送服务</p>${[
+  const value = readDemoSettings(`workerkit-${kind}-settings`);
+  return `<form id="settings-form" class="demo-settings"><div class="card mb-4"><div class="card-header"><h2 class="card-title">基本信息</h2></div><div class="card-body">${field('工作空间名称', 'setting-name', `<input id="setting-name" class="form-control" name="name" required value="${escape(value.name)}">`)}${field('说明', 'setting-description', `<textarea id="setting-description" class="form-control" name="description" rows="2">${escape(value.description)}</textarea>`)}<div class="row"><div class="col-sm-6">${field('显示时区', 'setting-timezone', `<select id="setting-timezone" class="form-select" name="timezone">${demoTimezones.map((zone) => `<option ${value.timezone === zone ? 'selected' : ''}>${zone}</option>`).join('')}</select>`)}</div><div class="col-sm-6">${field('日志保留天数', 'setting-retention', `<input id="setting-retention" class="form-control" type="number" name="retention" min="1" max="90" required value="${escape(value.retention)}">`)}</div></div></div></div><div class="card mb-4"><div class="card-header"><h2 class="card-title">通知偏好</h2></div><div class="card-body"><p class="text-secondary small">演示表单，尚未连接消息发送服务</p>${[
     ['failureNotice', '任务失败提醒'],
     ['dailyDigest', '每日运行摘要'],
   ]
@@ -277,7 +268,7 @@ function componentExperience(key) {
     return `<div class="card"><div class="card-body"><h2 class="card-title mb-3">弹窗交互</h2><p class="text-secondary">比较遮罩、焦点、取消、确认以及 Escape 关闭。</p><div class="d-flex flex-wrap gap-3">${button('打开示例弹窗', 'example-dialog', 'btn-primary')}${button('打开确认弹窗', 'confirm-dialog')}</div><p id="component-result" class="text-success mt-4" role="status">${escape(dialogResult)}</p></div></div>`;
   if (key === 'layout')
     return `<div class="card mb-4"><div class="card-body"><h2 class="card-title mb-3">响应式布局</h2><p class="text-secondary">调整窗口宽度或切换手机预览；填充长内容后比较侧栏、顶栏与页面滚动。</p>${button(longContent ? '收起长内容' : '填充长内容', 'long-content', 'btn-primary')}</div></div><div class="row g-3">${Array.from({ length: longContent ? 36 : 6 }, (_, i) => `<div class="col-12 col-md-6 col-xl-4"><div class="card h-100"><div class="card-body"><h2 class="card-title mb-3">布局卡片 ${i + 1}</h2><p class="text-secondary mb-0">相同内容在不同宽度下自动排列，可以观察间距和滚动表现。</p></div></div></div>`).join('')}</div>`;
-  return `<div class="card"><div class="card-body"><h2 class="card-title mb-3">主题与状态</h2><p class="text-secondary">使用框架原生主题，比较文字、背景、边框与状态颜色。</p><button class="btn btn-primary mb-4" data-action="theme" aria-label="切换示例主题">切换明暗主题</button><div class="d-flex flex-wrap gap-3 mb-4"><button class="btn btn-primary">主要按钮</button><button class="btn btn-outline-primary">描边按钮</button><button class="btn btn-secondary">次要按钮</button><button class="btn btn-primary" disabled>禁用按钮</button></div><div class="d-flex gap-3"><span class="badge text-bg-success">成功</span><span class="badge text-bg-warning">注意</span><span class="badge text-bg-danger">错误</span></div></div></div>`;
+  return `<div class="card"><div class="card-body"><h2 class="card-title mb-3">主题与状态</h2><p class="text-secondary">使用框架原生主题，比较文字、背景、边框与状态颜色。</p><button class="btn btn-primary mb-4" data-action="theme" aria-label="切换示例主题">切换明暗主题</button><div class="d-flex flex-wrap gap-3 mb-4"><button class="btn btn-primary">主要按钮</button><button class="btn btn-outline-primary">描边按钮</button><button class="btn btn-secondary">次要按钮</button><button class="btn btn-primary" disabled>禁用按钮</button></div><div class="d-flex gap-3"><span class="badge text-bg-success">成功</span><span class="badge text-bg-warning">警告</span><span class="badge text-bg-danger">错误</span></div></div></div>`;
 }
 
 function render() {
@@ -312,7 +303,7 @@ function render() {
   document.getElementById('page-action').innerHTML =
     activePath === '/tasks'
       ? button('＋ 新建任务', 'new', 'btn-primary')
-      : activePath === '/resources'
+      : activePath === '/components/preview'
         ? button('添加文件', 'upload', 'btn-primary')
         : activePath === '/logs'
           ? button('导出日志', 'export')
@@ -322,13 +313,13 @@ function render() {
   content.innerHTML =
     path === '/workspace'
       ? workspace()
-      : componentPage && !componentPage.example
+      : componentPage && !componentPage.example && componentPage.key !== 'preview'
         ? `<div class="component-experience">${componentExperience(componentPage.key)}</div>`
         : activePath === '/'
           ? overview()
           : activePath === '/tasks'
             ? tasks()
-            : activePath === '/resources'
+            : activePath === '/components/preview'
               ? resources()
               : activePath === '/logs'
                 ? logs()
@@ -384,6 +375,7 @@ function navigate(next) {
   path = next;
   query = '';
   filter = 'all';
+  taskPage = 1;
   history.pushState(null, '', href(path));
   render();
   document.querySelector('.demo-main-scroll').scrollTo({ top: 0 });
@@ -407,6 +399,12 @@ document.addEventListener('click', async (event) => {
   if (link) {
     event.preventDefault();
     navigate(link.dataset.go);
+    return;
+  }
+  const taskPageButton = event.target.closest('[data-task-page]');
+  if (taskPageButton) {
+    taskPage = Number(taskPageButton.dataset.taskPage);
+    render();
     return;
   }
   const action = event.target.closest('[data-action]')?.dataset.action;
@@ -475,12 +473,14 @@ document.addEventListener('click', async (event) => {
 document.addEventListener('input', (event) => {
   if (event.target.id === 'search') {
     query = event.target.value;
+    taskPage = 1;
     render();
   }
 });
 document.addEventListener('change', (event) => {
   if (event.target.id === 'filter') {
     filter = event.target.value;
+    taskPage = 1;
     render();
   }
   if (event.target.id === 'period') {
