@@ -58,7 +58,7 @@ export function managementPanel(state, client) {
     )}<div class="d-flex flex-wrap gap-2 mt-3">${button('audit-first', '返回首页', state.busy)}${button('audit-next', '下一页审计', state.busy || !data.audit.cursor)}</div>`;
   if (section === 'api')
     content = `<h3>API 中心</h3><p>使用当前后端的原生登录，调试写接口会修改真实数据。</p><a target="_blank" rel="noopener" href="${escape(client.apiUrl('/reference'))}">打开交互式 API 文档 ↗</a><p><a target="_blank" rel="noopener" href="${escape(client.apiUrl('/openapi.json'))}">查看 OpenAPI 声明</a></p>`;
-  return `<section data-management class="card mb-4"><div class="card-header"><h2 class="card-title">管理功能</h2></div><div class="card-body"><p>与当前后端共用登录；配置、密钥和审计按后端隔离。</p><nav aria-label="管理功能" class="d-flex flex-wrap gap-2 my-3">${tabs.map(([key, label]) => button('section', label, false, `data-section="${key}"`)).join('')}</nav>${content}</div></section>`;
+  return `<section data-management class="card mb-4"><div class="card-header"><h2 class="card-title">管理功能</h2></div><div class="card-body"><p>与当前后端共用登录；配置、密钥和审计按后端隔离。</p><nav aria-label="管理功能" class="d-flex flex-wrap gap-2 my-3">${tabs.map(([key, label]) => button('section', label, state.busy, `data-section="${key}"`)).join('')}</nav>${content}</div></section>`;
 }
 export function installManagement(client, render) {
   document.body.insertAdjacentHTML(
