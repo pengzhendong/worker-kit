@@ -62,10 +62,15 @@ export class TaskManager {
     return this.definitions[id];
   }
 
-  private plan(id: string) {
+  private findPlan(id: string): TaskPlan | undefined {
     const row = this.sql.exec<{ value: string }>('SELECT value FROM wk_plans WHERE id = ?', id).toArray()[0];
-    if (!row) throw new TaskInputError('计划不存在');
-    return JSON.parse(row.value) as TaskPlan;
+    return row ? JSON.parse(row.value) as TaskPlan : undefined;
+  }
+
+  private plan(id: string) {
+    const plan = this.findPlan(id);
+    if (!plan) throw new TaskInputError('计划不存在');
+    return plan;
   }
 
   private save(plan: TaskPlan) {
@@ -93,8 +98,8 @@ export class TaskManager {
   }
 
   private async scheduledPlan(planId: string, occurrence: { id: string }) {
-    const plan = this.plan(planId);
-    if (occurrence.id !== plan.scheduleId) return;
+    const plan = this.findPlan(planId);
+    if (!plan || occurrence.id !== plan.scheduleId) return;
     const schedule = planSchedule(plan);
     if (schedule.kind !== 'interval' && schedule.timeZone) {
       // A dated alarm runs once. Arm the next occurrence before executing the task.
@@ -108,7 +113,7 @@ export class TaskManager {
     const plan = occurrence ? await this.enqueue(() => this.scheduledPlan(planId, occurrence)) : this.plan(planId);
     if (!plan) return;
     const id = occurrence ? plan.id + ':' + occurrence.time : crypto.randomUUID();
-    const run: TaskRun = { id, planId, task: plan.task, startedAt: Date.now(), status: 'running' };
+    const run: TaskRun = { id, planId, task: plan.task, planName: plan.inputs.name, startedAt: Date.now(), status: 'running' };
     const claimed = this.sql.exec('INSERT OR IGNORE INTO wk_runs VALUES (?, ?, ?) RETURNING id', id, run.startedAt, JSON.stringify(run)).toArray();
     if (!claimed.length) return;
     try {
@@ -212,6 +217,17 @@ export class TaskManager {
         this.save(plan);
         if (previous?.scheduleId && previous.scheduleId !== plan.scheduleId) await this.clock.cancel(previous.scheduleId);
         return Response.json(plan, { status: previous ? 200 : 201 });
+      }
+      if (path === '/api/managed-tasks/delete') {
+        if (typeof body.id !== 'string' || !body.id) throw new TaskInputError('计划不存在');
+        const plan = this.findPlan(body.id);
+        if (plan?.scheduleId) await this.clock.cancel(plan.scheduleId);
+        if (plan?.inputs.name) {
+          this.sql.exec(`UPDATE wk_runs SET value = json_set(value, '$.planName', ?)
+            WHERE json_extract(value, '$.planId') = ? AND json_type(value, '$.planName') IS NULL`, plan.inputs.name, plan.id);
+        }
+        if (plan) this.sql.exec('DELETE FROM wk_plans WHERE id = ?', plan.id);
+        return Response.json({ ok: true });
       }
       const plan = this.plan(body.id);
       if (path === '/api/managed-tasks/run') return Response.json(await this.execute(plan.id));

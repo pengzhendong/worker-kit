@@ -6,6 +6,7 @@ export type TaskStatus = 'running' | 'succeeded' | 'failed' | 'submitted' | 'unk
 export interface TaskRun {
   id: string;
   planId: string;
+  planName?: string;
   task: string;
   startedAt: number;
   finishedAt?: number;
