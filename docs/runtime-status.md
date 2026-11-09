@@ -60,7 +60,9 @@ UI 父项目显式声明可选 peer `@ant-design/icons`（本例固定 6.3.4）�
 }
 ```
 
-将 Token 放入该项目 Secret：
+多个 Worker 可在同一账号的 [Cloudflare Secrets Store](https://developers.cloudflare.com/secrets-store/integrations/workers/) 共用一份 Token。每个消费项目配置自己的 `secrets_store_secrets` 绑定，将该绑定对象传给 `readCloudflareMetrics` 的 `apiToken`。WorkerKit 在查询时调用绑定的 `get()`，各项目继续使用自己的 Worker 名称。给使用 Wrangler 部署这些绑定的 CI 配置账号的 Secrets Store Edit 权限。
+
+单个项目也可将 Token 放入该项目 Secret，并将字符串传给 `apiToken`：
 
 ```sh
 npx wrangler secret put CLOUDFLARE_METRICS_API_TOKEN
