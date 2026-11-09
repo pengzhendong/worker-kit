@@ -42,6 +42,7 @@ test('desktop preference leaves mobile drawer expanded and survives resizing', a
   test.skip(info.project.name.startsWith('mobile'), 'Starts at desktop breakpoint');
   await openDashboard(page);
   await page.getByRole('button', { name: '收起侧栏', exact: true }).click();
+  await expect.poll(async () => (await page.locator(sidebar).boundingBox())?.width).toBe(72);
   const header = page.locator('[data-workerkit-region="header"]');
   const before = await header.boundingBox();
   const content = page.locator('[data-workerkit-region="content"]');
