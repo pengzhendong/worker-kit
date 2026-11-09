@@ -31,7 +31,7 @@ export default function Workspace() {
   return (
     <div data-workspace>
       <div className="workspace-toolbar">
-        <Button loading={state.busy} onClick={client.refresh}>
+        <Button aria-label="刷新" loading={state.busy} onClick={client.refresh}>
           刷新
         </Button>
         {data && (
