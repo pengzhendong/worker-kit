@@ -51,6 +51,20 @@ it('distinguishes no requests, missing percentile data and provider failures', a
   const aborted = await readCloudflareMetrics(config, { fetcher: (async () => { throw new DOMException(config.apiToken, 'AbortError'); }) as typeof fetch });
   expect(aborted.status).toBe('error'); expect(JSON.stringify(aborted)).not.toContain(config.apiToken);
 });
+it('reads a shared secret and keeps binding errors out of the response', async () => {
+  let requests = 0;
+  const fetcher = (async (_url: string, init: RequestInit) => {
+    requests++;
+    expect(new Headers(init.headers).get('Authorization')).toBe(`Bearer ${config.apiToken}`);
+    return analytics([]);
+  }) as typeof fetch;
+  const result = await readCloudflareMetrics({ ...config, apiToken: { get: async () => config.apiToken } }, { fetcher });
+  expect(result).toMatchObject({ status: 'ok', requests: 0 });
+  const failure = await readCloudflareMetrics({ ...config, apiToken: { get: async () => { throw new Error(config.apiToken); } } }, { fetcher });
+  expect(failure).toMatchObject({ status: 'error', requests: null });
+  expect(JSON.stringify(failure)).not.toContain(config.apiToken);
+  expect(requests).toBe(1);
+});
 it('keeps runtime reports behind browser authentication and the runtime permission', async () => {
   const bindings = env as unknown as Bindings;
   const origin = 'https://runtime.example';

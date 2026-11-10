@@ -23,7 +23,8 @@ export async function inspectRuntime(options: RuntimeStatusOptions): Promise<Run
   };
 }
 
-export interface CloudflareMetricsOptions { accountId?: string; scriptName?: string; apiToken?: string }
+export interface CloudflareMetricsSecret { get(): Promise<string> }
+export interface CloudflareMetricsOptions { accountId?: string; scriptName?: string; apiToken?: string | CloudflareMetricsSecret }
 const query = `query WorkerKitRuntime($account: string, $script: string, $from: string, $to: string) {
   viewer { accounts(filter: {accountTag: $account}) {
     workersInvocationsAdaptive(limit: 1, filter: {scriptName: $script, datetime_geq: $from, datetime_lt: $to}) {
@@ -41,7 +42,8 @@ export async function readCloudflareMetrics(config: CloudflareMetricsOptions, op
     requests: null, errors: null, cpuMsP50: null, cpuMsP99: null, wallMsP50: null, wallMsP99: null, memoryBytesP50: null, memoryBytesP99: null,
   };
   if (!config.accountId && !config.scriptName && !config.apiToken) return result;
-  if (!config.accountId || !/^[a-f0-9]{32}$/i.test(config.accountId) || !config.scriptName || !/^[a-z0-9][a-z0-9_-]{0,62}$/i.test(config.scriptName) || !config.apiToken?.trim()) {
+  const tokenSource = typeof config.apiToken === 'string' ? config.apiToken.trim() : config.apiToken;
+  if (!config.accountId || !/^[a-f0-9]{32}$/i.test(config.accountId) || !config.scriptName || !/^[a-z0-9][a-z0-9_-]{0,62}$/i.test(config.scriptName) || !tokenSource) {
     return { ...result, status: 'error', message: 'Cloudflare 指标配置不完整或无效' };
   }
   const controller = new AbortController();
@@ -49,9 +51,12 @@ export async function readCloudflareMetrics(config: CloudflareMetricsOptions, op
   const signal = options.signal ? AbortSignal.any([options.signal, controller.signal]) : controller.signal;
   try {
     signal.throwIfAborted();
+    const apiToken = typeof tokenSource === 'string' ? tokenSource : (await tokenSource.get()).trim();
+    if (!apiToken) throw new Error('Analytics token unavailable');
+    signal.throwIfAborted();
     const response = await (options.fetcher ?? fetch)('https://api.cloudflare.com/client/v4/graphql', {
       method: 'POST', redirect: 'error', signal,
-      headers: { Authorization: `Bearer ${config.apiToken}`, 'Content-Type': 'application/json', Accept: 'application/json' },
+      headers: { Authorization: `Bearer ${apiToken}`, 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({ query, variables: { account: config.accountId, script: config.scriptName, from: result.from, to: result.to } }),
     });
     if (!response.ok) throw new Error('Upstream unavailable');

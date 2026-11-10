@@ -48,6 +48,10 @@
     "./web/virtual-grid": "./src/web/virtual-grid.tsx",
     "./native": "./src/server/native-admin.ts",
     "./vue": "./src/vue/index.ts",
+    "./vue/runtime-overview": "./src/vue/RuntimeOverview.vue",
+    "./vue/console-login": "./src/vue/ConsoleLogin.vue",
+
+    "./vue/console.css": "./src/vue/console.css",
     "./management": "./src/server/management.ts",
     "./task-worker": "./src/server/task-worker.ts"
   },
