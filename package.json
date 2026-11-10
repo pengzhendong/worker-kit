@@ -20,6 +20,8 @@
     "examples/react-components"
   ],
   "exports": {
+    "./data-source": "./src/data-source.mjs",
+    "./task-notifications": "./src/task-notifications.mjs",
     "./client": "./src/client/index.ts",
     "./operations": "./src/server/operations.ts",
     "./modules": "./src/modules/index.ts",
