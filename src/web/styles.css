@@ -68,3 +68,10 @@ body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sa
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Keep the old palette from animating over the new page background. */
+.wk-theme-switching *,
+.wk-theme-switching *::before,
+.wk-theme-switching *::after {
+  transition: none !important;
+}

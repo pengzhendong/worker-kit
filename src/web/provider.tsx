@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { App, ConfigProvider, theme } from 'antd';
 import type { ConfigProviderProps, ThemeConfig } from 'antd';
@@ -39,6 +39,21 @@ export function WorkerKitProvider({ children, storageKey = 'workerkit.theme', th
     try { return typeof window !== 'undefined' && localStorage.getItem(storageKey) === 'dark'; }
     catch { return false; }
   });
+  const previousDark = useRef(dark);
+  useLayoutEffect(() => {
+    if (previousDark.current === dark) return;
+    previousDark.current = dark;
+    // Repaint the palette together before restoring regular component transitions.
+    const root = document.documentElement;
+    root.classList.add('wk-theme-switching');
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => root.classList.remove('wk-theme-switching'));
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+      root.classList.remove('wk-theme-switching');
+    };
+  }, [dark]);
   useEffect(() => {
     try { localStorage.setItem(storageKey, dark ? 'dark' : 'light'); }
     catch { /* Storage may be disabled; theme switching still works. */ }
