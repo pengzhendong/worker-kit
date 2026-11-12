@@ -54,4 +54,4 @@ DO 是 Cloudflare 原生绑定，仍属于同一个 Worker 的代码与部署；
 
 演示账户 `admin / password`。CMS 身份相互独立，同一后端切换前端可复用身份。比较站的写操作会写入真实演示存储。正式项目使用自己的 Secret、初始凭据、绑定和迁移。
 
-[项目调研](./alternatives) · [功能矩阵](./features) · [升级维护](./upgrades)
+[功能矩阵](./features) · [升级维护](./upgrades)

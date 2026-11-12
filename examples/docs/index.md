@@ -5,14 +5,14 @@ hero:
   image:
     src: /favicon.svg
     alt: WorkerKit
-  text: 从技术选型到业务接入
-  tagline: 选择 Hono、CMS 或 Nuxt 全栈，使用原生组件并保留业务所有权。
+  text: Cloudflare Workers 共享基础库
+  tagline: 通过 Git submodule 接入共享后台布局、认证和运行工具。
   actions:
     - theme: brand
-      text: 技术地图与选型
-      link: /architecture
+      text: 接入指南
+      link: /guide
     - theme: alt
-      text: 比较 18 套界面
+      text: 打开界面示例
       link: ../?view=nuxt
       target: _top
 features:

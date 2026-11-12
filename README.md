@@ -6,7 +6,7 @@
 
 ## 创建与选型
 
-推荐 **Nuxt UI + Vue/Vite + Hono + Better Auth + D1/KV/SQLite DO**。Better Auth 负责密码、用户、角色与会话，WorkerKit 只做绑定与业务能力组合。完整 Nuxt / Nitro、Next / Payload，以及 SvelteKit、Astro、React Router 的官方 Workers 适配也已接入比较站。[项目清单、star 与取舍](examples/docs/alternatives.md) · [全栈验证](examples/docs/frameworks.md) · [发布验证记录](docs/verification-2026-11-07.md)。
+管理后台使用 React、Ant Design 和 WorkerKit 共用布局。新项目可用 Hono 与 Better Auth；已有 Worker 可以通过 submodule 按需接入。
 
 ```sh
 npm run create -- ../my-worker --frontend nuxt --backend hono
@@ -39,7 +39,6 @@ npm run dev
 
 创建命令只使用 Node 内置模块，不需要先安装整套预览依赖。打开 http://localhost:8787/ 。前端范围见上面的 17 套清单，后端可选 `payload / sonic`。生成的项目只安装选中的后端，前端源码、业务任务、集合配置和迁移属于新项目；源码、安装、升级和兼容边界见[开发底座](docs/application-starter.md)。VitePress 提供文档中的轻量工作台，适合的业务复杂度与完整管理模板不同。
 
-功能边界与后续取舍见[功能回顾](docs/feature-review.md)和[开源复用检查](docs/architecture-review.md)。
 
 ## 已包含
 
@@ -291,7 +290,7 @@ npm ci
 npm run check
 ```
 
-这会使用父项目记录的提交。仓库根 overrides 固定了开发工具链的兼容安全补丁；npm 不会把 submodule 中的 overrides 应用到父项目，沿用这些工具版本时需在父项目同步，见功能回顾。CI 不应执行 `git submodule update --remote`，以免构建时浮动升级。
+这会使用父项目记录的提交。仓库根 overrides 固定了开发工具链的兼容安全补丁；npm 不会把 submodule 中的 overrides 应用到父项目，沿用这些工具版本时需在父项目同步。CI 不应执行 `git submodule update --remote`，以免构建时浮动升级。
 
 WorkerKit 自身还运行 `npm run test:ui`：使用固定 Linux/Chromium 容器检查滚动、图标对齐、上传区域、移动导航、主题持久化，并比较关键页面与状态的截图。需要本地 Docker；CI 使用相同镜像。基准必须人工查看后更新，不能自动接受差异。详见[界面回归检查](docs/visual-testing.md)。消费项目可沿用该测试方式，选择自己的业务页面与固定数据建立基准。
 

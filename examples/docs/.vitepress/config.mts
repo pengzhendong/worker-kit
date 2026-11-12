@@ -6,7 +6,7 @@ export default defineConfig({
   themeConfig: {
     logo: '/favicon.svg',
     nav: [{ text: '技术地图', link: '/architecture' }, { text: '指南', link: '/guide' }, { text: '升级维护', link: '/upgrades' }, { text: '预览中心', link: '../?view=nuxt', target: '_top' }],
-    sidebar: [{ text: 'WorkerKit', items: [{ text: '技术地图与选型', link: '/architecture' }, { text: '现有 Worker 接入', link: '/migration' }, { text: '快速了解', link: '/guide' }, { text: '界面与功能', link: '/features' }, { text: '组件体验', link: '/components' }, { text: '升级维护', link: '/upgrades' }, { text: '高 star 项目与接入结论', link: '/alternatives' }, { text: '全栈框架验证', link: '/frameworks' }] }],
+    sidebar: [{ text: 'WorkerKit', items: [{ text: '技术地图', link: '/architecture' }, { text: '现有 Worker 接入', link: '/migration' }, { text: '快速了解', link: '/guide' }, { text: '界面与功能', link: '/features' }, { text: '组件体验', link: '/components' }, { text: '升级维护', link: '/upgrades' }, { text: '全栈示例', link: '/frameworks' }] }],
     outline: { label: '本页内容' }, search: { provider: 'local' },
     footer: { message: 'WorkerKit · 开发与界面示例' },
   },

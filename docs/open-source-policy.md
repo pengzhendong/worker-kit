@@ -151,7 +151,6 @@ NuxtHub 0.10.12 在模块 setup 中强制打开 Nitro deployConfig。自有 Work
 
 SvelteKit/Astro 使用官方 Cloudflare adapter；React Router 使用原生 SSR、资源路由和 Context Provider；产物通过模块在同一 Worker 显式组合。共享代码仅有业务状态、接口契约、认证/绑定接线和真实测试，不创建跨框架 UI DSL。
 
-详细清单与未采用项目的明确理由见 [项目调研](../examples/docs/alternatives.md)。原有兼容 SDK 在消费项目迁移前保留，旧 KV 认证不再作为新应用首选。
 
 
 组件目录以各项目的官方文档清单为索引，构建时读取仓库内的目录数据。站内演示使用锁定版本的原生组件和本地示例数据，目录只列可在站内运行的示例，每一项附上对应的官方页面链接。shadcn-vue 的补充组件使用同一上游提交，许可证和逐文件 Git blob 记录随示例保存。目录只构建到比较站。

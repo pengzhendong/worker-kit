@@ -1,6 +1,5 @@
 # 可选择前后端的开发底座
 
-> 0.5.0：新的管理应用优先使用 `--frontend nuxt --backend hono`；17 套界面与全栈创建组合见[功能矩阵](../examples/docs/features.md)和[全栈入口](../examples/docs/frameworks.md)。下文保留此前 CMS 与轻量模板的实测记录。
 
 WorkerKit 提供 Cloudflare 适配、任务运行和跨前端的 HTTP 契约。前端使用上游原生布局与组件；后端使用 Payload 或 SonicJS 的原生认证、内容和媒体。每个业务项目选择一套前端和一个后端，最终构建为一个 Worker，包括 SQLite Durable Object；无需另起代理 Worker。
 

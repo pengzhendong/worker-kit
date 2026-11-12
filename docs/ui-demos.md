@@ -16,6 +16,6 @@
 
 「后端」为 Payload 和 SonicJS 各提供一个入口。登录后，从各自后台的「应用运维」进入任务、设置、密钥和审计。离开后端时移除对应页面，返回时重新读取当前会话。开发和验收用的本地示例可直接打开，例如 `/quasar/components/table` 和 `/nuxt/workspace`。
 
-[技术地图](../examples/docs/architecture.md)说明组件库、模板、全栈框架、后端各负责什么；[调研表](../examples/docs/alternatives.md)包含 star、接入边界和未采用原因；[升级说明](../examples/docs/upgrades.md)记录 npm 包与源码模板的不同维护方式。真实业务模板由 `workerkit create` 生成，可用 `--frontend primevue` 选组件库起点，或用 `--frontend sakai` 选 Sakai 模板，不需要部署整套比较站。
+[技术地图](../examples/docs/architecture.md)说明组件库、模板、全栈框架、后端各负责什么；[升级说明](../examples/docs/upgrades.md)记录 npm 包与源码模板的不同维护方式。真实业务模板由 `workerkit create` 生成，可用 `--frontend primevue` 选组件库起点，或用 `--frontend sakai` 选 Sakai 模板，不需要部署整套比较站。
 
 `npm run test:matrix` 验证 18 × 3 个后端组合。`npm run test:preview-preloading` 和 `npm run test:preview-switching` 验证本地演示、官方跳转、预加载、页面复用和后端会话。`npm run test:component-libraries` 检查真实设置、密钥、审计和布局。`npm run test:frameworks` 检查原生 SSR、会话与 KV。

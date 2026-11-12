@@ -106,4 +106,4 @@ Token 只在显式标记的业务接口生效：资源、文件、设置、操�
 - [Better Auth API Key](https://better-auth.com/docs/plugins/api-key/reference)：借鉴摘要存储、权限、有效期及生命周期设计，没有引入其用户/会话系统。
 - [D1 read replication](https://developers.cloudflare.com/d1/best-practices/read-replication/)：授权读取使用 primary session，避免撤销状态依赖副本同步。
 
-开发工具链的兼容安全补丁固定在根 package.json 的 overrides 中。父项目 npm 不会继承 submodule 内的 overrides；沿用本例工具版本时同步父项目的固定补丁和 lockfile，详见[功能回顾](feature-review.md)。
+开发工具链的兼容安全补丁固定在根 package.json 的 overrides 中。父项目 npm 不会继承 submodule 内的 overrides；沿用本例工具版本时同步父项目的固定补丁和 lockfile。
