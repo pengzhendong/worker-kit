@@ -1,7 +1,7 @@
-import { MoonOutlined, SunOutlined, UserOutlined } from '@ant-design/icons';
+import { UserOutlined } from '@ant-design/icons';
 import { Button, Dropdown, Flex } from 'antd';
 import type { MenuProps } from 'antd';
-import { useWorkerKitTheme } from './provider';
+import { WorkerKitThemeToggle } from './theme-toggle';
 
 export function WorkerKitProLayoutFooter({ username, menu, compact = false, loading = false }: {
   username: string;
@@ -9,7 +9,6 @@ export function WorkerKitProLayoutFooter({ username, menu, compact = false, load
   compact?: boolean;
   loading?: boolean;
 }) {
-  const { dark, toggle } = useWorkerKitTheme();
   return <Flex vertical={compact} align="center" gap={4} className="wk-pro-sidebar-footer">
     <Dropdown trigger={['click']} placement="topLeft" menu={menu}>
       <Button type="text" icon={<UserOutlined />} aria-label="账户菜单" loading={loading}
@@ -17,7 +16,6 @@ export function WorkerKitProLayoutFooter({ username, menu, compact = false, load
         {!compact && <span>{username}</span>}
       </Button>
     </Dropdown>
-    <Button type="text" icon={dark ? <SunOutlined /> : <MoonOutlined />}
-      aria-label={dark ? '浅色模式' : '深色模式'} onClick={toggle} />
+    <WorkerKitThemeToggle />
   </Flex>;
 }

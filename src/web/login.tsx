@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Alert, Button, Card, Flex, Form, Input, Typography, theme } from 'antd';
 import { ApiClientError } from './api';
+import { WorkerKitThemeToggle } from './theme-toggle';
 import { isRequestCancelled } from './session';
 
 export function LoginPage({ title, logo, description = '登录你的管理后台', onLogin }: {
@@ -23,10 +24,13 @@ export function LoginPage({ title, logo, description = '登录你的管理后台
   const { token } = theme.useToken();
   return <main style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', padding: 24, background: token.colorBgLayout }}>
     <Card style={{ width: '100%', maxWidth: 420 }}>
-      {logo ? <Flex align="center" gap={12} style={{ marginBottom: 12 }}>
-        {logo}
-        <Typography.Title level={2} style={{ margin: 0 }}>{title}</Typography.Title>
-      </Flex> : <Typography.Title level={2} style={{ marginTop: 4 }}>{title}</Typography.Title>}
+      <Flex align="start" justify="space-between" gap={8} style={{ marginBottom: 12 }}>
+        <Flex align="center" gap={12}>
+          {logo}
+          <Typography.Title level={2} style={{ margin: 0 }}>{title}</Typography.Title>
+        </Flex>
+        <WorkerKitThemeToggle />
+      </Flex>
       <Typography.Paragraph type="secondary">{description}</Typography.Paragraph>
       {(error || cooldown > 0) && <Alert type="error" title={cooldown ? `登录尝试过于频繁，请在 ${cooldown} 秒后重试。` : error} showIcon style={{ marginBottom: 20 }} />}
       <Form layout="vertical" requiredMark={false} onFinish={async (values) => {
