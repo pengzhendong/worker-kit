@@ -41,6 +41,8 @@ for (const name of frontendViews) {
     recursive: true,
   });
 }
+await rm(path.join(target, 'pro-components'), { recursive: true, force: true });
+await cp(path.join(source, 'pro-components'), path.join(target, 'pro-components'), { recursive: true });
 for (const [name, directory] of [
   ['native', path.join(root, 'examples/native-dashboard/dist/native')],
   ['hub', path.join(root, 'examples/nuxthub-dashboard/app/.output/public/hub')],

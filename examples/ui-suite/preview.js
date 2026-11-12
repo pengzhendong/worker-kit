@@ -5,6 +5,7 @@ import {
   officialDemos,
   preloadLabels,
   previewCategory,
+  proComponentsView,
 } from './catalog.js';
 
 const integrated = document.body.dataset.workerkitMode === 'integrated';
@@ -63,7 +64,7 @@ const preloadAllowed = () =>
   frontendViews.includes(active);
 let active = params.get('view') || 'nuxt';
 if (
-  !frontendViews.includes(active) &&
+  !frontendViews.includes(active) && active !== proComponentsView &&
   !(integrated && Object.hasOwn(backendViews, active))
 )
   active = 'nuxt';
@@ -214,9 +215,10 @@ function selectView(view) {
     .querySelector(`[data-view="${view}"]`)
     .scrollIntoView({ block: 'nearest', inline: 'nearest' });
   const url = viewUrl(view);
-  open.href = isUi ? officialDemos[view] : url;
-  open.textContent = isUi ? '官方演示 ↗' : '独立打开 ↗';
-  open.rel = isUi ? 'noopener noreferrer' : 'noopener';
+  const official = officialDemos[view];
+  open.href = official || url;
+  open.textContent = official ? '官方演示 ↗' : '独立打开 ↗';
+  open.rel = official ? 'noopener noreferrer' : 'noopener';
   history.replaceState(
     null,
     '',

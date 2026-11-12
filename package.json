@@ -105,6 +105,7 @@
     "test:generated": "node scripts/check-generated.mjs",
     "test:management": "node scripts/check-management-parity.mjs",
     "format:check": "prettier --check examples/ui-suite/preview.js examples/ui-suite/preview-protocol.js examples/ui-suite/frame-store.js examples/ui-demo/operations.js examples/ui-demo/operations.d.ts \"examples/ui-demo/Management*.vue\" examples/ui-demo/NuxtWorkspace.vue src/server/management.ts src/server/native-admin.ts src/server/task-worker.ts src/tooling/create.mjs src/tooling/native-template.mjs src/tooling/hub-template.mjs",
+    "build:pro-components": "node scripts/build-pro-components.mjs",
     "build:element": "WORKERKIT_DEMO_KIND=element vite build --config examples/vue-components/vite.config.ts",
     "build:naive": "WORKERKIT_DEMO_KIND=naive vite build --config examples/vue-components/vite.config.ts",
     "build:shadcn": "WORKERKIT_DEMO_KIND=shadcn vite build --config examples/vue-components/vite.config.ts",

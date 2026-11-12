@@ -90,6 +90,7 @@ for (const name of frontendViews) {
     recursive: true,
   });
 }
+await run(['run', 'build:pro-components'], '/pro-components/');
 await import('./build-component-gallery.mjs');
 await writeFile(path.join(output, 'index.html'), await renderPreviewShell());
 console.log('Built dist/ui-suite. Run npm run demo:preview');

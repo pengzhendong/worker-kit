@@ -18,6 +18,7 @@ export const officialDemos = {
   adminlte: 'https://adminlte.io/themes/v4/',
   docs: 'https://vitepress.dev/zh/guide/what-is-vitepress',
 };
+export const proComponentsView = 'pro-components';
 export const frontendViews = Object.keys(officialDemos);
 const templates = new Set([
   'prime',
@@ -30,12 +31,14 @@ const templates = new Set([
   'adminlte',
 ]);
 export function previewCategory(view) {
+  if (view === proComponentsView) return 'components';
   if (view === 'docs') return 'docs';
   if (templates.has(view)) return 'templates';
   return Object.hasOwn(officialDemos, view) ? 'components' : 'backend';
 }
 export const frontendPreviewPath = (view) =>
-  view === 'docs' ? '/docs/' : `/${view}/components/table`;
+  view === proComponentsView ? '/pro-components/index.html'
+    : view === 'docs' ? '/docs/' : `/${view}/components/table`;
 export const preloadLabels = {
   waiting: '等待预加载',
   loading: '正在准备界面',
