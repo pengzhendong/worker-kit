@@ -64,7 +64,8 @@ const preloadAllowed = () =>
   frontendViews.includes(active);
 let active = params.get('view') || 'nuxt';
 if (
-  !frontendViews.includes(active) && active !== proComponentsView &&
+  !frontendViews.includes(active) &&
+  active !== proComponentsView &&
   !(integrated && Object.hasOwn(backendViews, active))
 )
   active = 'nuxt';
