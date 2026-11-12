@@ -26,6 +26,7 @@
     "./contracts": "./src/contracts/index.ts",
     "./server": "./src/server/index.ts",
     "./web": "./src/web/index.ts",
+    "./web/console-layout": "./src/web/console-layout.tsx",
     "./web/pro-layout-footer": "./src/web/pro-layout-footer.tsx",
     "./web/api-center": "./src/web/api-center.tsx",
     "./web/scalar-reference": "./src/web/scalar-reference.tsx",
@@ -123,6 +124,7 @@
     "test:matrix": "node scripts/check-candidate-matrix.mjs"
   },
   "peerDependencies": {
+    "@ant-design/pro-components": "3.1.15-8",
     "@ant-design/icons": "^6.3.4",
     "@cloudflare/vite-plugin": "^1.65.0",
     "@scalar/api-reference-react": "^0.9.82",
@@ -145,6 +147,7 @@
     "cron-schedule": "^6.0.0"
   },
   "peerDependenciesMeta": {
+    "@ant-design/pro-components": { "optional": true },
     "react": {
       "optional": true
     },
@@ -207,6 +210,7 @@
     }
   },
   "devDependencies": {
+    "@ant-design/pro-components": "3.1.15-8",
     "@cloudflare/vite-plugin": "1.65.0",
     "@cloudflare/vitest-plugin": "1.4.7",
     "@playwright/test": "1.64.1",

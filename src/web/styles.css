@@ -49,8 +49,14 @@ body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sa
   transition-property: font-size, margin;
   font-size: var(--wk-navigation-icon-size, 20px);
 }
-.wk-pro-nav-item[aria-current="page"] {
-  font-weight: 600;
+
+.wk-pro-account-popup .ant-dropdown-menu {
+  padding-block: 4px;
+}
+
+.wk-pro-account-popup .ant-dropdown-menu-item {
+  min-height: 40px;
+  align-items: center;
 }
 
 .wk-pro-sidebar-footer {
@@ -74,4 +80,89 @@ body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sa
 .wk-theme-switching *::before,
 .wk-theme-switching *::after {
   transition: none !important;
+}
+@media (min-width: 768px) {
+  .wk-pro-continuous-header .ant-pro-sider-logo {
+    box-sizing: border-box;
+    flex-shrink: 0;
+    border-block-end-color: transparent;
+  }
+  .wk-pro-continuous-header .ant-pro-sider-logo::after {
+    position: absolute;
+    inset-inline: -8px;
+    inset-block-end: -1px;
+    border-block-end: 1px solid var(--wk-color-border);
+    content: "";
+    pointer-events: none;
+  }
+}
+
+.wk-pro-continuous-header .ant-pro-sider-logo-collapsed {
+  flex-direction: row;
+  justify-content: center;
+  padding-block: 0;
+}
+
+.wk-pro-continuous-header .ant-pro-sider-logo > a > img {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.wk-pro-continuous-header .wk-pro-nav-item svg {
+  flex: none;
+  width: 20px;
+  min-width: 20px;
+  height: 20px;
+}
+
+.wk-pro-continuous-header .wk-pro-nav-item {
+  width: 100%;
+  outline: none;
+}
+
+.wk-pro-continuous-header .wk-pro-nav-item:focus-visible {
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 2px var(--wk-color-primary-border);
+}
+
+.wk-pro-sidebar-footer > button {
+  min-height: 40px;
+}
+
+.wk-pro-sidebar-footer > button:last-child {
+  flex: none;
+  width: 40px;
+  height: 40px;
+}
+
+@media (min-width: 768px) {
+  .wk-pro-continuous-header .ant-pro-sider-fixed .ant-menu-item:has(.wk-pro-nav-item) {
+    position: relative;
+  }
+
+  .wk-pro-continuous-header .ant-pro-sider-fixed .wk-pro-nav-item .ant-pro-base-menu-inline-item-title {
+    padding-inline-start: 28px;
+  }
+
+  .wk-pro-continuous-header .ant-pro-sider-fixed .wk-pro-nav-item :is(.ant-pro-base-menu-inline-item-icon, .ant-pro-base-menu-vertical-item-icon) {
+    position: absolute;
+    inset-inline-start: 16px;
+    inset-block-start: 50%;
+    width: 20px;
+    height: 20px;
+    transform: translateY(-50%);
+    transition: inset-inline-start 200ms ease;
+  }
+
+  .wk-pro-continuous-header .ant-pro-sider-fixed.ant-layout-sider-collapsed .wk-pro-nav-item :is(.ant-pro-base-menu-inline-item-icon, .ant-pro-base-menu-vertical-item-icon) {
+    inset-inline-start: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wk-pro-continuous-header .ant-pro-sider-fixed .wk-pro-nav-item :is(.ant-pro-base-menu-inline-item-icon, .ant-pro-base-menu-vertical-item-icon) {
+    transition: none;
+  }
 }

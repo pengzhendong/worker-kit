@@ -22,14 +22,14 @@ import '@pengzhendong/worker-kit/web/styles.css';
 | 项目 | 默认约定 | 执行位置 |
 | --- | --- | --- |
 | 基础文字 | 14 px，行高 1.6，系统字体 | `workerKitTokens` |
-| 页面标题 | 28 px，标题到说明 8 px，标题区到内容 24 px | `PageHeader` |
+| 后台标题 | 顶栏内显示紧凑标题 | `WorkerKitConsoleLayout` |
 | 常用间距 | 以 4 px 为单位，优先 8 / 12 / 16 / 24 / 32 | Ant Design spacing token 与组件 |
 | 操作控件 | 默认高 32 px，小号 24 px，大号 40 px | Ant Design control token |
 | 卡片圆角 | 基础 token 10 px，由组件算法派生 | `workerKitTokens` |
 | 导航项 | 高 44 px，图标容器 20 × 20，图文间距 12 px，中心线对齐 | `AdminShell`、`IconBox` |
 | 主题切换 | 图标按钮高 32 px。后台推荐放在侧栏底部的账户入口旁，折叠后纵向排列 | `AdminShell` 的 `themeTogglePlacement="sidebar"` 或 ProLayout 侧栏页脚 |
-| 侧栏用户入口 | 固定在底部，按钮高 56 px，头像 32 px；头像、用户名和展开图标居中 | `AdminShell` 的账户菜单 |
-| 桌面折叠侧栏 | 展开 232 px，折叠 72 px；折叠时图标居中、名称通过提示显示，底部保留头像入口 | `AdminShell`、Ant Design Sider / Menu |
+| 侧栏用户入口 | 底部账户按钮高 40 px，主题按钮 40 × 40 px | `WorkerKitConsoleLayout` |
+| 桌面侧栏 | 展开 232 px，折叠 64 px，折叠后保留图标和账户入口 | `WorkerKitConsoleLayout` |
 | 页面边距 | ≥768 px 时 32 px，否则 16 px；内容最大宽 1440 px | `AdminShell` |
 | 紧凑资源列表 | `compactContent` 使用 16 px 内容边距；`PageToolbar` 到列表也为 16 px，标题与 32 px 控件垂直居中 | `AdminShell`、`PageToolbar` |
 | 紧凑混合资源 | 64 px 行高、56×40 px 缩略图；名称、作者、预览、大小和下载同行；手机使用 40×40 px 缩略图与简化操作 | `MediaList`、`MediaRow` |
@@ -47,23 +47,17 @@ import '@pengzhendong/worker-kit/web/styles.css';
 
 业务文字也使用当前主题的 `--wk-font-family`、`--wk-font-family-code`、`--wk-font-size`、`--wk-font-size-sm`、`--wk-font-size-lg`、`--wk-line-height`、`--wk-line-height-sm`。正文、表头、表单标签、操作按钮、状态和主要说明默认 14 px / 1.6；时间、地址、协议徽标及附注可用 12 px，不再用 10–11 px 压缩业务信息。不要让原生 `<small>` 的浏览器默认比例把说明缩到 11.67 px。标题保留各自层级，图标尺寸不按文字字号批量替换。变量作用于 Provider 的应用容器；原生浮层在容器之外时，应用需传递当前 token 或提供相同默认值。
 
-## 布局与滚动
+## 后台布局
 
-应用负责在自己的 HTML 配置 favicon；演示应用与 API 文档共用本地 `/favicon.svg`。`AdminShell` 可通过 `brandIcon` 传入自己的图片或 SVG；默认显示应用名称首字母，消费项目不必覆盖框架 CSS。
+`WorkerKitConsoleLayout` 负责布局，消费应用提供 Logo、标题、菜单、账户操作和业务内容。
 
-- `AdminShell` 占满 100dvh，顶栏高 64 px；页面外层不产生滚动。
-- ProLayout 的桌面侧栏模式通过 `ProLayoutSidebarHeader` 渲染顶栏。顶栏使用主题的容器背景与分隔线，内容区独立应用页面边距。
-- 顶栏使用正常行高与直接居中的 Flex 子项，避免 64 px 行高传入嵌套包装层后造成按钮基线偏移。
-- ≥1024 px 显示 232 px 侧栏。主内容独立滚动，侧栏和顶栏位置保持不变。
-- 桌面顶栏的 `SidebarToggle` 位于页面标题前，可收起或展开侧栏，提供可访问名称、`aria-expanded` 和关联的侧栏 ID。折叠后菜单保留名称与选中状态，悬停提示完整名称，用户菜单仍可用键盘打开。偏好默认保存在当前 origin 的 `workerkit.sidebar.collapsed`，消费应用可用 `sidebarStorageKey` 指定自己的键；存储受限时仍可在当前页面切换。
-- 折叠只改变桌面侧栏宽度，不卸载业务页面。手机抽屉始终显示完整菜单和用户信息，返回桌面时恢复折叠偏好。
-- 矮窗口中的侧栏导航区独立滚动，品牌和底部用户入口保持固定；滚动导航不能带动主内容。
-- 当前用户只显示在侧栏底部；点击向上展开账户菜单，支持键盘操作、Escape 和点击外部关闭。账户页面、设置与 API 中心入口由消费应用通过 `userMenuItems` 传入，退出调用 `onLogout`。不显示无操作的工作空间占位文案。
-- 侧栏标题可通过 `navigationLabel={false}` 隐藏。`items` 可传原生层级的 `children` 与 `extra`，分组默认只展开/收起，叶节点触发导航。选中的子页面会展开其祖先，顶栏显示 `activeKey` 对应的页面名称。`menuProps` 可传 Ant Design 原生 `openKeys`、`onOpenChange`、`selectedKeys`，由业务决定手风琴、展开后默认进入首项、三级分类筛选等行为。`sidebarActions` 放置导航搜索，桌面折叠时隐藏，手机抽屉中保留。折叠栏用浮出子菜单，悬停不会触发业务的自动导航；手机展开预览保留抽屉，选择叶节点后关闭。
-- 多级菜单使用 12 px 的递进缩进，二级标题与一级图标后的文字对齐，避免三级标签被挤到侧栏中央。带 `sidebarActions` 的桌面品牌区高 64 px，与顶栏对齐；搜索使用默认 32 px 控件，与内容区搜索保持相同高度。
-- <1024 px 使用 Drawer 导航，底部保留相同的用户入口。内容滚到任意位置后仍能打开；主导航或账户菜单选中页面后均关闭抽屉。
-- `activeKey` 变化后主内容回到顶部。
-- 窄屏工具栏与表单应换行。宽表格在容器内部横向滚动，不能撑宽整个页面。
+- 桌面品牌区与顶栏等高，使用同一条分隔线。顶部只显示一个紧凑标题。
+- 折叠按钮放在标题前，使用 18 px 圆角线框和一条竖线，通过可访问名称说明当前动作。
+- 展开和折叠共用 20 × 20 px 导航图标，品牌图标保持垂直居中。折叠与展开时导航图标直接移向目标位置，减少动态效果时取消图标位移动画。选中项用主题色和浅色底，文字保持常规字重。键盘导航保留焦点轮廓。
+- 账户与主题按钮固定在侧栏底部并等高，主题按钮为 40 × 40 px。
+- 账户菜单每项至少 40 px，弹层上下各留 4 px。展开时弹层与底部整行同宽，折叠时从账户图标右侧弹出。菜单项使用左侧图标。
+- 移动端使用侧栏抽屉，桌面折叠偏好由 `sidebarStorageKey` 按应用保存。
+- 背景、边框和选中色取自主题 token。登录页的主题按钮位于登录卡片右上角。
 
 ## 页面与数据状态
 

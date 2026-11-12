@@ -18,6 +18,7 @@ export function WorkerKitProLayoutFooter({ username, menu, compact = false, load
       onOpenChange={open => {
         if (open) setMenuWidth(footer.current?.getBoundingClientRect().width);
       }}
+      classNames={{ root: 'wk-pro-account-popup' }}
       styles={{ root: { width: compact ? 200 : menuWidth, maxWidth: 'calc(100vw - 24px)' } }}>
       <Button type="text" icon={<UserOutlined />} aria-label="账户菜单" loading={loading}
         className={compact ? undefined : 'wk-pro-sidebar-account'}>

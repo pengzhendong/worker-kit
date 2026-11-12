@@ -215,9 +215,9 @@ Hono 负责 Cookie 签名和凭据比较。会话默认 12 小时；更改用户
 
 ### 管理后台布局
 
-React 管理后台使用 `WorkerKitProvider` 和 `AdminShell`，业务表格可使用 Ant Design ProComponents。配置 `navigationLabel={false}` 隐藏导航区标签，配置 `themeTogglePlacement="sidebar"` 将主题入口放到账户菜单旁边。
+React 后台使用 `WorkerKitProvider` 和 `WorkerKitConsoleLayout`。组件从 `@pengzhendong/worker-kit/web/console-layout` 导入，项目需安装 Ant Design ProComponents，并在入口导入 `@pengzhendong/worker-kit/web/styles.css`。
 
-已经采用 `ProLayout` 的应用可以使用 `ProLayoutSidebarHeader` 和共享侧栏页脚。桌面顶栏使用主题容器背景，标题前放圆角线框折叠按钮。手机端使用侧栏抽屉。尺寸、颜色和可访问性见[界面约定](docs/ui-guidelines.md)。
+应用提供品牌、当前页面、菜单和账户操作。布局负责桌面顶栏、侧栏、移动抽屉、账户弹层和折叠偏好。完整尺寸、主题和可访问性约定见[界面规范](docs/ui-guidelines.md)。
 
 ## 模块与操作权限
 
