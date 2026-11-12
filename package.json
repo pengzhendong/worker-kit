@@ -26,6 +26,7 @@
     "./contracts": "./src/contracts/index.ts",
     "./server": "./src/server/index.ts",
     "./web": "./src/web/index.ts",
+    "./web/pro-layout-footer": "./src/web/pro-layout-footer.tsx",
     "./web/api-center": "./src/web/api-center.tsx",
     "./web/scalar-reference": "./src/web/scalar-reference.tsx",
     "./web/runtime-status": "./src/web/runtime-status.tsx",

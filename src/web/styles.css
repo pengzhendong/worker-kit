@@ -52,3 +52,19 @@ body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sa
 .wk-pro-nav-item[aria-current="page"] {
   font-weight: 600;
 }
+
+.wk-pro-sidebar-footer {
+  width: 100%;
+}
+
+.wk-pro-sidebar-account {
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-start;
+}
+
+.wk-pro-sidebar-account > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
