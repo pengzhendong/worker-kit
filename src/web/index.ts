@@ -1,5 +1,6 @@
 export { ApiClientError, createApiClient, getFormErrors } from './api';
 export { WorkerKitProvider, useWorkerKitTheme } from './provider';
+export { useWorkerKitProLayout } from './pro-layout';
 export { AdminShell } from './layout';
 export type { NavigationItem } from './layout';
 export { LoginPage } from './login';
