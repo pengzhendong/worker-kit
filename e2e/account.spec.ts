@@ -34,16 +34,19 @@ test('account stays at the bottom and opens an upward menu', async ({ page }, in
 test('account menu navigates and closes the mobile drawer', async ({ page }) => {
   await openDashboard(page);
   await (await userButton(page)).click();
+  await expect(page.locator('.ant-dropdown:visible')).toHaveCSS('opacity', '1');
   await page.getByRole('menuitem', { name: '当前账户', exact: true }).click();
   await expect(page.getByRole('heading', { name: '当前账户', exact: true })).toBeVisible();
   await expect(page.locator('[data-workerkit-region="header"]')).toContainText('当前账户');
   await expect(page.getByRole('dialog')).not.toBeVisible();
   await (await userButton(page)).click();
+  await expect(page.locator('.ant-dropdown:visible')).toHaveCSS('opacity', '1');
   await page.getByRole('menuitem', { name: '系统设置', exact: true }).click();
   await expect(page.getByRole('heading', { name: '系统设置', exact: true })).toBeVisible();
   await expect(page.getByRole('dialog')).not.toBeVisible();
   await expect(page.getByRole('menuitem', { name: '退出登录', exact: true })).not.toBeVisible();
   await (await userButton(page)).click();
+  await expect(page.locator('.ant-dropdown:visible')).toHaveCSS('opacity', '1');
   await page.getByRole('menuitem', { name: 'API 中心', exact: true }).click();
   await expect(page).toHaveURL(/#\/api$/);
   await expect(page.getByRole('heading', { name: 'API 中心', exact: true })).toBeVisible();

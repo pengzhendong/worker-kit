@@ -109,7 +109,12 @@ test('viewing player touch hold and swipe coexist in fullscreen', async ({ page 
 test('viewing player appearance', async ({ page }) => {
   const player = await openPlayer(page);
   await expect(player.locator('video')).toHaveAttribute('poster', '/media/landscape.svg');
-  await expect.poll(() => player.locator('video').evaluate(video => (video as HTMLVideoElement).readyState)).toBeGreaterThan(0);
+  const video = player.locator('video');
+  await video.evaluate(element => { (element as HTMLVideoElement).preload = 'auto'; });
+  await expect.poll(() => video.evaluate(element => {
+    const { buffered, duration } = element as HTMLVideoElement;
+    return buffered.length && duration > 0 ? buffered.end(buffered.length - 1) / duration : 0;
+  })).toBeGreaterThanOrEqual(0.999);
   await page.evaluate(() => document.fonts.ready);
   await expect(player).toHaveScreenshot('viewing-player.png', { animations:'disabled' });
 });
