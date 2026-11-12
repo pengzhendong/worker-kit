@@ -4,7 +4,7 @@
 
 当前版本：`0.5.0`。可以选择一套前端和一个后端，创建自己的单 Worker 应用。17 套前端的「业务工作台」已对齐真实运行检查、KV 设置、受限访问密钥、审计、任务计划和交互式 API 文档，复用原 TaskManager；原组件体验页仍使用明确标注的 fixture。Payload、SonicJS 的原生用户、内容和媒体能力继续由上游维护。旧 React/Ant Design 6 与单管理员入口保留兼容，不进入新项目默认路径。
 
-## 新的默认方案
+## 创建与选型
 
 推荐 **Nuxt UI + Vue/Vite + Hono + Better Auth + D1/KV/SQLite DO**。Better Auth 负责密码、用户、角色与会话，WorkerKit 只做绑定与业务能力组合。完整 Nuxt / Nitro、Next / Payload，以及 SvelteKit、Astro、React Router 的官方 Workers 适配也已接入比较站。[项目清单、star 与取舍](examples/docs/alternatives.md) · [全栈验证](examples/docs/frameworks.md) · [发布验证记录](docs/verification-2026-11-07.md)。
 
@@ -213,6 +213,12 @@ Hono 负责 Cookie 签名和凭据比较。会话默认 12 小时；更改用户
 
 `useApiQuery()` 在离开页面和参数变化时取消 GET 查询；`AppErrorBoundary` 提供页面与应用两层恢复入口。示例已接入会话版本隔离，退出或重新登录时清除草稿、权限与页面数据，保留主题。缓存适配、错误边界限制和升级依赖见[应用生命周期与运行检查](docs/lifecycle-and-operations.md)。
 
+### 管理后台布局
+
+React 管理后台使用 `WorkerKitProvider` 和 `AdminShell`，业务表格可使用 Ant Design ProComponents。配置 `navigationLabel={false}` 隐藏导航区标签，配置 `themeTogglePlacement="sidebar"` 将主题入口放到账户菜单旁边。
+
+已经采用 `ProLayout` 的应用可以使用 `ProLayoutSidebarHeader` 和共享侧栏页脚。桌面顶栏使用主题容器背景，标题前放圆角线框折叠按钮。手机端使用侧栏抽屉。尺寸、颜色和可访问性见[界面约定](docs/ui-guidelines.md)。
+
 ## 模块与操作权限
 
 项目用 `defineModules()` 集中声明模块 ID、名称、图标、页面路径、菜单位置与顺序、可用性和操作权限。`getModuleNavigation()` 派生菜单，`resolveModule()` 与 `canAccessModule()` 检查页面；前端通过 `ModuleAccessProvider` / `useModuleAccess` 控制操作入口，服务端通过 `createModuleAccess().require()` 校验相同的 `模块:操作` 标识。前后端分别装配普通 React 页面和 Hono 路由，公共声明不导入它们。
@@ -275,7 +281,7 @@ npm run db:remote --workspace @worker-kit/dashboard
 
 submodule 固定具体提交。准备升级时，在共享库目录检出审核过的标签或提交，然后在业务项目更新 lockfile（如依赖有变化），运行项目检查，并提交 submodule 指针及相关修改。公共修复应提交到 WorkerKit，业务差异留在业务仓库。
 
-本次前端接入增加 `react-error-boundary` peer，父项目需要显式安装。消费项目可通过 `node framework/src/tooling/doctor.mjs doctor --project .` 做离线只读预检；它不拉取 submodule、不安装、不读取 Secrets，也不能证明远程资源可用或迁移已应用。完整流程及参数见[生命周期与升级文档](docs/lifecycle-and-operations.md)。
+React 入口要求消费项目安装 `react-error-boundary`。消费项目可通过 `node framework/src/tooling/doctor.mjs doctor --project .` 做离线只读预检；它不拉取 submodule、不安装、不读取 Secrets，也不能证明远程资源可用或迁移已应用。完整流程及参数见[生命周期与升级文档](docs/lifecycle-and-operations.md)。
 
 新克隆或 CI 使用：
 
@@ -301,17 +307,3 @@ npm run deploy
 ```
 
 部署由业务应用发起，共享库本身不部署。这个仓库的 CI 仅检查和 dry-run，不自动发布。
-
-本轮功能检查、开源方案比较与已知限制见[功能回顾](docs/feature-review.md)。
-
-## 第一版边界
-
-已通过独立 submodule 消费项目验证：创建父仓库、递归克隆、`npm ci`、前后端构建、部署 dry-run 均成功。20 项 Workers 运行时测试通过，覆盖真实 D1/KV/R2 读写和认证边界；浏览器完成登录、新增资源、刷新持久化、保存设置和菜单导航验证。
-
-Honeybee 已作为第一个真实消费项目接入。Queue、Workflow 以及多用户认证应由实际接入需求推动，暂不引入通用 CRUD、插件系统或隐藏资源生命周期的抽象。
-
-## 0.4.0 收尾
-
-四条后端路线共用管理接口，展示和生成项目的支持范围见[功能矩阵](examples/docs/features.md)。预览控制拆分为选择、iframe 生命周期和消息握手；NuxtHub 拆分为会话、管理工作台和有类型的存储示例。
-
-CI 包含 `check`、格式检查、兼容 UI，以及 `test:integration` / `test:generated` 的真实本地验收。源码快照可以使用 `kit:rollback` 恢复审核过的备份；兼容导出保留，业务与存储迁移不会被 SDK 升级覆盖。

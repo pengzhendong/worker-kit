@@ -1,3 +1,4 @@
+import { SidebarToggle } from './sidebar-toggle';
 import { useEffect, useId, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { MenuProps } from 'antd';
@@ -18,7 +19,7 @@ function navigationPath(items: NavigationItem[], key: string): NavigationItem[] 
   return [];
 }
 
-export function AdminShell({ title, brandIcon, items, userMenuItems = [], activeKey, onNavigate, username = '', onLogout, headerActions, sidebarActions, sidebarFooter, menuProps, navigationLabel = '应用管理', compactContent = false, pageTitleInHeader = false, sidebarStorageKey = 'workerkit.sidebar.collapsed', children }: {
+export function AdminShell({ title, brandIcon, items, userMenuItems = [], activeKey, onNavigate, username = '', onLogout, headerActions, themeTogglePlacement = 'header', sidebarActions, sidebarFooter, menuProps, navigationLabel = '应用管理', compactContent = false, pageTitleInHeader = false, sidebarStorageKey = 'workerkit.sidebar.collapsed', children }: {
   title: string;
   brandIcon?: ReactNode;
   items: NavigationItem[];
@@ -40,6 +41,7 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
   onLogout?: () => void | Promise<void>;
   /** Application-owned global actions; keep labels compact on narrow screens. */
   headerActions?: ReactNode;
+  themeTogglePlacement?: 'header' | 'sidebar';
   /** Render one compact page heading in the fixed header; PageHeader keeps description/actions. */
   pageTitleInHeader?: boolean;
   /** Persist the desktop rail preference per origin; mobile drawers stay expanded. */
@@ -112,7 +114,10 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
   const brand = compact ? <Flex align="center" justify="center" aria-label={title} style={{ height: brandHeight }}>{logo}</Flex> : <Space size={10} style={{ height: brandHeight, padding: '0 24px' }}>{logo}<Typography.Title level={4} style={{ margin: 0, letterSpacing: '-.5px' }}>{title}</Typography.Title></Space>;
   const logoutIcon = <IconBox><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 4H4v16h5 M14 8l4 4-4 4 M9 12h12" /></svg></IconBox>;
   const avatar = <Avatar size={ui.avatarSize} style={{ flexShrink: 0, background: token.colorPrimaryBg, color: token.colorPrimaryText, fontSize: 13, fontWeight: 600 }}>{username.slice(0, 1).toUpperCase()}</Avatar>;
+  const themeToggle = <Tooltip title={themeLabel}><Button type="text" shape="circle" icon={themeIcon} onClick={toggle} aria-label={themeLabel} aria-pressed={dark} /></Tooltip>;
   const account = username ? <div data-workerkit-region="account" style={{ flexShrink: 0, padding: compact ? '12px 8px' : 12, borderTop: `1px solid ${token.colorBorderSecondary}` }}>
+    <Flex align="center" vertical={compact} gap={4}>
+    <div style={{ flex: 1, width: '100%', minWidth: 0 }}>
     <Dropdown trigger={['click']} placement="topLeft" open={userMenuOpen} onOpenChange={setUserMenuOpen} autoFocus
       styles={{ root: { width: ui.sidebarWidth - 24, maxWidth: 'calc(100vw - 24px)' } }}
       menu={{ selectable: true, selectedKeys: [activeKey], style: { boxShadow: 'none', padding: 0 }, items: [
@@ -133,7 +138,10 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
         {!compact && <Flex align="center" gap={10} style={{ width: '100%', minWidth: 0 }}>{avatar}<Typography.Text ellipsis style={{ flex: 1, textAlign: 'start' }}>{username}</Typography.Text><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0, color: token.colorTextSecondary }}><path d="m8 9 4-4 4 4 M8 15l4 4 4-4" /></svg></Flex>}
       </Button>
     </Dropdown>
-  </div> : sidebarFooter ? <div data-workerkit-region="sidebar-footer" style={{ flexShrink: 0, padding: 16, borderTop: `1px solid ${token.colorBorderSecondary}`, overflowWrap: 'anywhere' }}>{sidebarFooter}</div> : null;
+    </div>
+    {themeTogglePlacement === 'sidebar' && themeToggle}
+    </Flex>
+  </div> : (sidebarFooter || themeTogglePlacement === 'sidebar') ? <div data-workerkit-region="sidebar-footer" style={{ flexShrink: 0, padding: 16, borderTop: `1px solid ${token.colorBorderSecondary}`, overflowWrap: 'anywhere' }}>{sidebarFooter}{themeTogglePlacement === 'sidebar' && themeToggle}</div> : null;
   const navigation = <div data-workerkit-region="sidebar-navigation" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', overscrollBehavior: 'contain' }}>{nested ? <ConfigProvider theme={{ components: { Menu: { collapsedIconSize: ui.iconSize } } }}>{menu}</ConfigProvider> : menu}</div>;
   const navigationActions = sidebarActions && !compact ? <div data-workerkit-region="sidebar-actions" style={{ padding: screens.lg ? '0 16px 12px' : '12px 16px', flexShrink: 0 }}>{sidebarActions}</div> : null;
   return <Layout data-workerkit-shell style={{ height: '100dvh', minHeight: 0, overflow: 'hidden', background: token.colorBgLayout }}>
@@ -141,8 +149,8 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
       : <Drawer title={title} placement="left" open={open} onClose={() => { setOpen(false); setUserMenuOpen(false); }} styles={{ body: { padding: 0, display: 'flex', flexDirection: 'column', minHeight: 0 } }}>{navigationActions}{navigation}{account}</Drawer>}
     <Layout style={{ height: '100%', minHeight: 0, minWidth: 0, overflow: 'hidden' }}>
       <Layout.Header data-workerkit-region="header" style={{ height: ui.headerHeight, lineHeight: 'normal', flexShrink: 0, paddingInline: screens.md ? ui.pagePadding : ui.mobilePagePadding, background: token.colorBgContainer, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderBottom: `1px solid ${token.colorBorderSecondary}` }}>
-        <Flex align="center" gap={8}>{screens.lg ? <Tooltip title={compact ? '展开侧栏' : '收起侧栏'}><Button type="text" aria-label={compact ? '展开侧栏' : '收起侧栏'} aria-expanded={!compact} aria-controls={sidebarId} onClick={() => { setUserMenuOpen(false); setCollapsed((value) => !value); }} icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3" /><path d="M9 4v16" /></svg>} /></Tooltip> : <Button onClick={() => setOpen(true)} aria-label="打开导航">菜单</Button>}<Typography.Text strong role={pageTitleInHeader ? 'heading' : undefined} aria-level={pageTitleInHeader ? 1 : undefined}>{pageTitle ?? activePath.at(-1)?.label ?? userMenuItems.find(item => item.key === activeKey)?.label ?? title}</Typography.Text></Flex>
-        <Flex data-workerkit-header-actions align="center" gap={8} style={{ minWidth: 0 }}>{headerActions}<Tooltip title={themeLabel}><Button type="text" shape="circle" icon={themeIcon} onClick={toggle} aria-label={themeLabel} aria-pressed={dark} /></Tooltip></Flex>
+        <Flex align="center" gap={8}>{screens.lg ? <SidebarToggle collapsed={compact} controls={sidebarId} onToggle={() => { setUserMenuOpen(false); setCollapsed(value => !value); }} /> : <Button onClick={() => setOpen(true)} aria-label="打开导航">菜单</Button>}<Typography.Text strong role={pageTitleInHeader ? 'heading' : undefined} aria-level={pageTitleInHeader ? 1 : undefined}>{pageTitle ?? activePath.at(-1)?.label ?? userMenuItems.find(item => item.key === activeKey)?.label ?? title}</Typography.Text></Flex>
+        <Flex data-workerkit-header-actions align="center" gap={8} style={{ minWidth: 0 }}>{headerActions}{themeTogglePlacement === 'header' && themeToggle}</Flex>
       </Layout.Header>
       <Layout.Content ref={contentRef} data-workerkit-region="content" style={{ flex: 1, minHeight: 0, minWidth: 0, overflow: 'auto', overscrollBehavior: 'contain', scrollbarGutter: 'stable' }}>
         <div style={{ boxSizing: 'border-box', padding: contentPadding, paddingBlockStart: pageTitle ? ui.compactPagePadding : undefined, paddingBlockEnd: `var(--wk-content-padding-end, ${contentPadding}px)`, width: '100%', maxWidth: ui.contentMaxWidth, marginInline: 'auto' }}>
