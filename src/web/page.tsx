@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { createContext, useContext, useLayoutEffect } from 'react';
 
-export const PageTitleInHeader = createContext(false);
+export const PageTitleInHeader = createContext<boolean | string>(false);
 export const ShellPageTitle = createContext<((title: string | null) => void) | null>(null);
 import { Card, Flex, Statistic, Typography, theme } from 'antd';
 import { workerKitLayout } from './design';
@@ -9,7 +9,8 @@ import { workerKitLayout } from './design';
 export function PageHeader({ title, description, actions, placement }: {
   title: string; description?: string; actions?: ReactNode; placement?: 'header';
 }) {
-  const compact = useContext(PageTitleInHeader);
+  const shellTitle = useContext(PageTitleInHeader);
+  const compact = shellTitle === true || shellTitle === title;
   const setShellTitle = useContext(ShellPageTitle);
   const inHeader = placement === 'header' && Boolean(setShellTitle);
   useLayoutEffect(() => {
