@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useState } from 'react';
 import type { ComponentType } from 'react';
-import { Alert, Button, Card, Col, Flex, Form, Input, InputNumber, Modal, Progress, Row, Select, Space, Table, Tabs, Tag, Typography } from 'antd';
+import { Alert, Button, Card, Col, Flex, Form, Input, InputNumber, Modal, Popconfirm, Progress, Row, Select, Space, Table, Tabs, Tag, Typography } from 'antd';
 import type { TaskDefinition, TaskInputs, TaskOutput, TaskRun } from '../server/task-manager';
 import { PageHeader } from './page';
 import { scheduleForm } from '../contracts/task-schedule';
@@ -59,8 +59,8 @@ function Output({ output, error, jsonViewer: Viewer }: { output?: TaskOutput; er
   </>;
 }
 
-export function TaskManagerPanel({ endpoint = '/api/managed-tasks', example, timeZone, codeEditor: CodeEditor, jsonViewer }: {
-  endpoint?: string; example?: TaskExample; timeZone?: ScheduleTimeZone; codeEditor?: ComponentType<CodeEditorProps>; jsonViewer?: JsonViewer;
+export function TaskManagerPanel({ endpoint = '/api/managed-tasks', example, timeZone, codeEditor: CodeEditor, jsonViewer, allowDelete = false }: {
+  endpoint?: string; example?: TaskExample; timeZone?: ScheduleTimeZone; codeEditor?: ComponentType<CodeEditorProps>; jsonViewer?: JsonViewer; allowDelete?: boolean;
 }) {
   const [data, setData] = useState<Inventory>();
   const [error, setError] = useState('');
@@ -253,6 +253,10 @@ export function TaskManagerPanel({ endpoint = '/api/managed-tasks', example, tim
                       <Button size="small" disabled={saving} onClick={() => open(plan)}>编辑</Button>
                       <Button size="small" disabled={saving} onClick={() => void mutate(plan.scheduleId ? '/pause' : '/resume', { id: plan.id })}>{plan.scheduleId ? '暂停' : '启用'}</Button>
                       <Button size="small" disabled={saving} onClick={() => void mutate('/run', { id: plan.id })}>运行一次</Button>
+                      {allowDelete && <Popconfirm title="删除这个计划？" description="已有运行记录会保留。" okText="删除" cancelText="取消"
+                        onConfirm={() => mutate('/delete', { id: plan.id })}>
+                        <Button danger size="small" disabled={saving}>删除</Button>
+                      </Popconfirm>}
                     </Space> },
                   ]} />
               ) },
@@ -261,7 +265,7 @@ export function TaskManagerPanel({ endpoint = '/api/managed-tasks', example, tim
                   columns={[
                     { title: '任务', render: (_, run) => {
                       const plan = data?.plans.find(item => item.id === run.planId);
-                      return plan ? planTitle(plan) : title(run.task);
+                      return run.planName || (plan ? planTitle(plan) : title(run.task));
                     } },
                     { title: '开始时间', render: (_, run) => new Date(run.startedAt).toLocaleString(undefined, { timeZone }) },
                     { title: '状态', render: (_, run) => <Tag>{statuses[run.status]}</Tag> },
