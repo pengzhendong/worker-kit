@@ -2,7 +2,7 @@ import { SidebarToggle } from './sidebar-toggle';
 import { useEffect, useId, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { MenuProps } from 'antd';
-import { Avatar, Button, ConfigProvider, Drawer, Dropdown, Flex, Grid, Layout, Menu, Space, Tooltip, Typography, theme } from 'antd';
+import { Avatar, Button, ConfigProvider, Drawer, Dropdown, Flex, Grid, Layout, Menu, Tooltip, Typography, theme } from 'antd';
 import { useWorkerKitTheme } from './provider';
 import { workerKitLayout as ui } from './design';
 import { IconBox } from './icon';
@@ -102,7 +102,7 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
     selectedKeys={menuProps?.selectedKeys ?? [activeKey]} onClick={({ key }) => navigate(key)}
     styles={{
       root: { paddingInline: 10 },
-      item: { display: 'flex', alignItems: 'center', height: ui.navigationHeight, marginBlock: 5, ...(!compact && screens.lg ? { paddingInlineStart: 12 } : {}), ...(compact && !fixedIconRail ? { justifyContent: 'center', paddingInline: 0, marginInline: 0, width: '100%' } : {}), ...(fixedIconRail ? { position: 'relative', paddingInline: compact ? 0 : 44, marginInline: 4, width: 'calc(100% - 8px)' } : {}) },
+      item: { display: 'flex', alignItems: 'center', height: ui.navigationHeight, marginBlock: 5, ...(!compact && screens.lg ? { paddingInlineStart: 12 } : {}), ...(compact && !fixedIconRail ? { justifyContent: 'center', paddingInline: 0, marginInline: 0, width: '100%' } : {}), ...(fixedIconRail ? { position: 'relative', paddingInlineStart: 44, paddingInlineEnd: 8, marginInline: 4, width: 'calc(100% - 8px)' } : {}) },
       itemContent: { marginInlineStart: compact || fixedIconRail ? 0 : ui.iconGap, lineHeight: '20px' },
       ...(nested ? { subMenu: {
         item: { height: ui.navigationHeight, marginBlock: 5, display: 'flex', alignItems: 'center' },
@@ -117,7 +117,11 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
   </svg>;
   const logo = brandIcon ?? <span style={{ width: 30, height: 32, borderRadius: 9, display: 'grid', placeItems: 'center', background: token.colorPrimary, color: '#fff', fontWeight: 800, fontSize: 20 }}>{title.slice(0, 1).toUpperCase()}</span>;
   const brandHeight = compactContent || sidebarActions ? ui.headerHeight : 80;
-  const brand = compact ? <Flex align="center" aria-label={title} style={{ height: brandHeight, paddingInline: 20 }}>{logo}</Flex> : <Space size={10} style={{ height: brandHeight, padding: screens.lg ? '0 20px' : '0 24px' }}>{logo}<Typography.Title level={4} style={{ margin: 0, letterSpacing: '-.5px' }}>{title}</Typography.Title></Space>;
+  const brand = <Flex align="center" gap={10} aria-label={compact ? title : undefined}
+    style={{ height: brandHeight, paddingInline: 20, overflow: 'hidden' }}>
+    <span style={{ display: 'inline-flex', flexShrink: 0 }}>{logo}</span>
+    {!compact && <Typography.Title level={4} style={{ margin: 0, letterSpacing: '-.5px', whiteSpace: 'nowrap', flexShrink: 0 }}>{title}</Typography.Title>}
+  </Flex>;
   const logoutIcon = <IconBox><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 4H4v16h5 M14 8l4 4-4 4 M9 12h12" /></svg></IconBox>;
   const avatar = <Avatar size={ui.avatarSize} style={{ flexShrink: 0, background: token.colorPrimaryBg, color: token.colorPrimaryText, fontSize: 13, fontWeight: 600 }}>{username.slice(0, 1).toUpperCase()}</Avatar>;
   const themeToggle = <Tooltip title={themeLabel}><Button type="text" shape="circle" icon={themeIcon} onClick={toggle} aria-label={themeLabel} aria-pressed={dark} /></Tooltip>;
