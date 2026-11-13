@@ -5,13 +5,14 @@ import { ProLayout } from '@ant-design/pro-components';
 import { useWorkerKitProLayout } from './pro-layout';
 import { WorkerKitProLayoutFooter } from './pro-layout-footer';
 import { ProLayoutSidebarHeader } from './sidebar-toggle';
+import { WorkerKitThemeToggle } from './theme-toggle';
 import { PageTitleInHeader } from './page';
 
 export type ConsoleNavigationItem = { key: string; label: string; icon?: ReactNode };
 
 export function WorkerKitConsoleLayout({
   name, logo, pageTitle, activeKey, items, username, accountItems, onAccountAction,
-  sidebarStorageKey, onNavigate, english = false, signingOut, children,
+  sidebarStorageKey, onNavigate, english = false, signingOut, renderNavigation, themeTogglePlacement = 'sidebar', children,
 }: {
   name: string;
   logo: ReactNode;
@@ -25,6 +26,8 @@ export function WorkerKitConsoleLayout({
   onNavigate?: (key: string) => void;
   english?: boolean;
   signingOut?: boolean;
+  renderNavigation?: (options: { collapsed: boolean; expand: () => void; closeDrawer: () => void }) => ReactNode;
+  themeTogglePlacement?: 'header' | 'sidebar';
   children: ReactNode;
 }) {
   const layout = useWorkerKitProLayout();
@@ -39,7 +42,7 @@ export function WorkerKitConsoleLayout({
     try { return localStorage.getItem(sidebarStorageKey) === 'true'; }
     catch { return false; }
   });
-  useEffect(() => { setDrawerOpen(false); }, [activeKey, mobile]);
+  useEffect(() => { setDrawerOpen(false); }, [mobile, renderNavigation ? null : activeKey]);
   function collapse(value: boolean) {
     if (mobile) { setDrawerOpen(!value); return; }
     setCollapsed(value);
@@ -64,7 +67,8 @@ export function WorkerKitConsoleLayout({
         setDrawerOpen(false);
         if (onNavigate && item.path) { event.preventDefault(); onNavigate(item.path.slice(1)); }
       }}>{node}</a>}
-    menuFooterRender={() => <WorkerKitProLayoutFooter username={username} loading={signingOut}
+    menuContentRender={renderNavigation ? () => renderNavigation({ collapsed: !mobile && collapsed, expand: () => collapse(false), closeDrawer: () => setDrawerOpen(false) }) : undefined}
+    menuFooterRender={() => themeTogglePlacement === 'sidebar' && <WorkerKitProLayoutFooter username={username} loading={signingOut}
       compact={!mobile && collapsed} menu={{ items: accountMenuItems, onClick: ({ key }) => {
         setDrawerOpen(false);
         onAccountAction(key);
@@ -74,11 +78,11 @@ export function WorkerKitConsoleLayout({
     breakpoint={false}
     collapsedButtonRender={false}
     headerRender={mobile ? () => <ProLayoutSidebarHeader title={pageTitle} english={english}
-      collapsed={!drawerOpen} mobile onToggle={() => collapse(drawerOpen)} /> : undefined}
+      collapsed={!drawerOpen} mobile onToggle={() => collapse(drawerOpen)} actions={themeTogglePlacement === 'header' && <WorkerKitThemeToggle />} /> : undefined}
     contentStyle={{ minWidth: 0, ...(mobile ? {} : { padding: 0 }) }}
   >
     {!mobile && <ProLayoutSidebarHeader title={pageTitle} english={english}
-      collapsed={collapsed} onToggle={() => collapse(!collapsed)} />}
+      collapsed={collapsed} onToggle={() => collapse(!collapsed)} actions={themeTogglePlacement === 'header' && <WorkerKitThemeToggle />} />}
     <PageTitleInHeader.Provider value={true}>
       <div ref={contentRef} style={{ scrollMarginTop: layout.token.header.heightLayoutHeader, ...(mobile ? {} : { padding: 24 }) }}>{children}</div>
     </PageTitleInHeader.Provider>
