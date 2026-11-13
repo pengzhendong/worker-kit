@@ -45,7 +45,7 @@ function Console({ session, onLogout, proLayout }: ConsoleProps) {
   const module = resolveModule(modules, path, access);
   useEffect(() => { const change = () => setPath(getPage()); window.addEventListener('hashchange', change); return () => window.removeEventListener('hashchange', change); }, []);
   useEffect(() => { document.title = `${module?.label ?? '页面不存在'} · ${settings.siteName}`; }, [module, settings.siteName]);
-  const alternate = { key: 'layout', label: proLayout ? '兼容版后台' : '新版后台' };
+  const alternate = { key: 'layout', label: proLayout ? 'AdminShell 后台' : 'ProLayout 后台' };
   const demoEntries = dashboardBase ? [alternate, showcase] : [];
   function navigate(id: string) {
     if (id === 'layout') { window.location.assign(proLayout ? '/compat/' : '/pro-layout/'); return; }
@@ -132,10 +132,10 @@ function Dashboard({ proLayout = false }: { proLayout?: boolean }) {
   }
   if (error) return <Result status="warning" title="后台暂时无法访问" subTitle={error} extra={<Button onClick={() => void loadSession()}>重试</Button>} />;
   if (session === undefined) return <Flex align="center" justify="center" style={{ minHeight: '100dvh' }}><Spin size="large" /></Flex>;
-  if (!session) return <><LoginPage title={dashboardBase && !proLayout ? "WorkerKit 兼容版" : "WorkerKit"} description="登录管理你的应用、文件与配置" onLogin={async (values, signal) => {
+  if (!session) return <><LoginPage title={dashboardBase ? (proLayout ? "WorkerKit · ProLayout" : "WorkerKit · AdminShell") : "WorkerKit"} description="登录管理你的应用、文件与配置" onLogin={async (values, signal) => {
     acceptSession(await authApi<Session>('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(values), signal }));
   }} />{dashboardBase && <nav className="dashboard-demo-links" aria-label="WorkerKit 演示">
-    <a href={proLayout ? '/compat/' : '/pro-layout/'}>{proLayout ? '兼容版后台' : '新版后台'}</a>
+    <a href={proLayout ? '/compat/' : '/pro-layout/'}>{proLayout ? 'AdminShell 后台' : 'ProLayout 后台'}</a>
     <a href="/">框架演示</a>
   </nav>}</>;
   return <AuthorizedConsole key={epoch} session={session} onLogout={logout} proLayout={proLayout} />;
