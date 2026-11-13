@@ -187,3 +187,13 @@ body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sa
     line-height: 1;
   }
 }
+
+.wk-desktop-nested-menu > .ant-menu-submenu > .ant-menu-submenu-title,
+.wk-desktop-nested-menu > .ant-menu-item {
+  position: relative;
+  padding-inline-start: 44px !important;
+}
+.wk-desktop-nested-menu.ant-menu-inline-collapsed > .ant-menu-submenu > .ant-menu-submenu-title > .ant-menu-title-content,
+.wk-desktop-nested-menu.ant-menu-inline-collapsed > .ant-menu-item > .ant-menu-title-content {
+  display: none;
+}
