@@ -116,8 +116,10 @@ test('runtime tools report real endpoints, disabled retention and recover an int
 test('file downloads pass through the session client and produce the expected file', async ({ page }) => {
   await page.route('**/api/admin/files/download?*', (route) => route.fulfill({ contentType: 'text/plain', body: 'session-scoped download' }));
   await openDashboard(page, 'files');
-  const received = page.waitForEvent('download'); await page.getByRole('link', { name: '下载', exact: true }).first().click();
-  const file = await received; expect(file.suggestedFilename()).toBe('使用说明.txt'); expect(await readFile((await file.path())!, 'utf8')).toBe('session-scoped download');
+  const [file] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: '下载', exact: true }).first().click(),
+  ]); expect(file.suggestedFilename()).toBe('使用说明.txt'); expect(await readFile((await file.path())!, 'utf8')).toBe('session-scoped download');
 });
 
 test('resource export uses the session client and downloads JSON while keeping the application open', async ({ page }) => {
