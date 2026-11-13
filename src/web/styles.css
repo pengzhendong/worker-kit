@@ -87,14 +87,6 @@ body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sa
     flex-shrink: 0;
     border-block-end-color: transparent;
   }
-  .wk-pro-continuous-header .ant-pro-sider-logo::after {
-    position: absolute;
-    inset-inline: -8px;
-    inset-block-end: -1px;
-    border-block-end: 1px solid var(--wk-color-border);
-    content: "";
-    pointer-events: none;
-  }
 }
 
 .wk-pro-continuous-header .ant-pro-sider-logo-collapsed {
