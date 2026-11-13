@@ -48,8 +48,8 @@ function Console({ session, onLogout, proLayout }: ConsoleProps) {
   const alternate = { key: 'layout', label: proLayout ? '兼容版后台' : '新版后台' };
   const demoEntries = dashboardBase ? [alternate, showcase] : [];
   function navigate(id: string) {
-    if (id === 'layout') { window.location.assign(proLayout ? '/compat/' : '/'); return; }
-    if (id === 'showcase') { window.location.assign('/showcase/'); return; }
+    if (id === 'layout') { window.location.assign(proLayout ? '/compat/' : '/pro-layout/'); return; }
+    if (id === 'showcase') { window.location.assign('/'); return; }
     const next = modules.find((entry) => entry.id === id); if (next) { setPath(next.path); window.location.hash = next.path; } }
   const navigation = (placement: 'sidebar' | 'user') => getModuleNavigation(modules, placement, access).map((entry) => ({ key: entry.id, label: entry.label, icon: <Icon name={entry.icon ?? entry.id} /> }));
   // Exhaustive app-owned page composition; shared metadata imports neither React nor server handlers.
@@ -135,8 +135,8 @@ function Dashboard({ proLayout = false }: { proLayout?: boolean }) {
   if (!session) return <><LoginPage title={dashboardBase && !proLayout ? "WorkerKit 兼容版" : "WorkerKit"} description="登录管理你的应用、文件与配置" onLogin={async (values, signal) => {
     acceptSession(await authApi<Session>('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(values), signal }));
   }} />{dashboardBase && <nav className="dashboard-demo-links" aria-label="WorkerKit 演示">
-    <a href={proLayout ? '/compat/' : '/'}>{proLayout ? '兼容版后台' : '新版后台'}</a>
-    <a href="/showcase/">框架演示</a>
+    <a href={proLayout ? '/compat/' : '/pro-layout/'}>{proLayout ? '兼容版后台' : '新版后台'}</a>
+    <a href="/">框架演示</a>
   </nav>}</>;
   return <AuthorizedConsole key={epoch} session={session} onLogout={logout} proLayout={proLayout} />;
 }

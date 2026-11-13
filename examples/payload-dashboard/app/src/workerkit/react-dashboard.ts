@@ -27,12 +27,11 @@ export async function serveDashboard(request: Request, env: DashboardEnv, ctx: E
     };
     return dashboard.fetch(new Request(url, request), bindings, ctx);
   }
-  if (url.pathname === '/compat' || url.pathname === '/showcase' ||
-      (url.pathname === '/' || url.pathname === '/index.html') && url.searchParams.has('view')) {
-    url.pathname = url.pathname === '/compat' ? '/compat/' : '/showcase/';
+  if (['/compat', '/pro-layout', '/showcase', '/showcase/'].includes(url.pathname)) {
+    url.pathname = url.pathname.startsWith('/showcase') ? '/' : url.pathname + '/';
     return Response.redirect(url.href, 302);
   }
-  if (!['/', '/index.html', '/compat/'].includes(url.pathname)) return undefined;
+  if (!['/pro-layout/', '/compat/'].includes(url.pathname)) return undefined;
   if (!['GET', 'HEAD'].includes(request.method)) return new Response(null, { status: 405, headers: { Allow: 'GET, HEAD' } });
   url.pathname = url.pathname === '/compat/' ? base + '/compat/index.html' : base + '/index.html';
   if (!env.ASSETS) return new Response('Static assets unavailable', { status: 503 });

@@ -18,7 +18,7 @@ export default {
     if (url.origin === new URL(env.SONIC_ORIGIN).origin) {
       if (/^\/(native|hub|standard|sveltekit|astro|react-router)(\/|$)/.test(url.pathname)) return Response.redirect(new URL(url.pathname + url.search, env.WORKERKIT_ORIGIN).href, 302)
       if (url.pathname === '/' && url.searchParams.has('view')) {
-        const target = new URL('/showcase/' + url.search, env.WORKERKIT_ORIGIN)
+        const target = new URL('/' + url.search, env.WORKERKIT_ORIGIN)
         target.searchParams.set('backend', 'sonic')
         return Response.redirect(target.href, 302)
       }

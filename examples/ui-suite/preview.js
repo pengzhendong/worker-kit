@@ -9,6 +9,9 @@ import {
 } from './catalog.js';
 
 const integrated = document.body.dataset.workerkitMode === 'integrated';
+if (integrated)
+  for (const link of document.querySelectorAll('[data-dashboard-entry]'))
+    link.hidden = false;
 const sonicOrigin = document.body.dataset.sonicOrigin;
 const backendViews = {
   standard: '/standard/',

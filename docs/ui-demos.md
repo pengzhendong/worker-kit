@@ -1,8 +1,8 @@
 # WorkerKit 界面示例
 
-[首页](https://kit.pzd17.top/)默认打开 ProLayout 后台。[兼容版](https://kit.pzd17.top/compat/)使用 AdminShell，两版共用账户、会话和演示数据。
+[首页](https://kit.pzd17.top/)默认打开框架演示，顶部提供[新版后台](https://kit.pzd17.top/pro-layout/)和兼容版的入口。新版使用 ProLayout。[兼容版](https://kit.pzd17.top/compat/)使用 AdminShell，两版共用账户、会话和演示数据。
 
-[框架演示](https://kit.pzd17.top/showcase/)收录 9 套组件库、8 套后台模板和一套 VitePress 文档。前端演示默认打开表格。六项对比示例依次为表格、表单、弹窗、布局、主题和文件。各套使用自己的组件和样式。上游地址集中在 [演示目录](../examples/ui-suite/catalog.js)。
+[框架演示](https://kit.pzd17.top/)收录 9 套组件库、8 套后台模板和一套 VitePress 文档。前端演示默认打开表格。六项对比示例依次为表格、表单、弹窗、布局、主题和文件。各套使用自己的组件和样式。上游地址集中在 [演示目录](../examples/ui-suite/catalog.js)。
 
 - Vue 组件库：Nuxt UI、PrimeVue、Element Plus、Naive UI、shadcn-vue、Vuetify、Quasar。
 - Vue 后台模板：Sakai（PrimeVue）、Vben Admin、PureAdmin（Element Plus）、Soybean（Naive UI）。
@@ -10,7 +10,7 @@
 - Bootstrap：Tabler、AdminLTE。
 - 文档：VitePress。
 
-使用 `npm ci` 后运行 `npm run dev:payload`，打开 `http://kit.localhost:5184/`。本地首页使用 `admin` 和 `examples/payload-dashboard/app/.env` 内的 `DASHBOARD_ADMIN_PASSWORD` 登录。`/showcase/` 是框架演示。统一 Worker 提供前端演示、三套管理后端、原生 CMS 页面和全栈示例。只启动前端预览入口和本地示例可运行 `npm run demo`。
+使用 `npm ci` 后运行 `npm run dev:payload`，打开 `http://kit.localhost:5184/`。本地后台使用 `admin` 和 `examples/payload-dashboard/app/.env` 内的 `DASHBOARD_ADMIN_PASSWORD` 登录。统一 Worker 提供前端演示、三套管理后端、原生 CMS 页面和全栈示例。只启动前端预览入口和本地示例可运行 `npm run demo`。
 
 预览默认打开「组件库」。用左上方的类别选择器切换组件库、后台模板、文档或后端，各类别会记住当前选择。顶部的「官方演示」在新标签页打开当前项目的上游示例。选择任一组件库后，可以从左侧第一项打开「组件目录」，按名称和用途搜索并直接操作组件。浏览器空闲时依次载入本站演示，绿点表示页面已载入。节省流量模式跳过自动载入。
 
