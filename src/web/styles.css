@@ -2,6 +2,26 @@
 html, body, #root { min-height: 100%; margin: 0; }
 body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
 *, *::before, *::after { box-sizing: border-box; }
+.wk-app-loading {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  background: var(--wk-color-layout, Canvas);
+  color: var(--wk-color-primary, #315bd6);
+}
+.wk-app-loading::before {
+  content: "";
+  width: 32px;
+  height: 32px;
+  border: 3px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  animation: wk-app-loading-spin 800ms linear infinite;
+}
+@keyframes wk-app-loading-spin { to { transform: rotate(1turn); } }
+@media (prefers-reduced-motion: reduce) {
+  .wk-app-loading::before { animation: none; }
+}
 .wk-page-toolbar { min-width: 0; }
 .wk-page-toolbar-actions { min-width: 0; max-width: 100%; margin-inline-start: auto; }
 [data-workerkit-region="content"] > div:has(> .wk-task-editor) {
