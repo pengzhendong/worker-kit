@@ -30,3 +30,11 @@
   .upload-action { display: none; }
   .upload-copy > :first-child { font-size: 13px; }
 }
+
+.dashboard-demo-links {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  position: fixed;
+  inset: auto 16px 20px;
+}

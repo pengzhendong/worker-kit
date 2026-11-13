@@ -15,6 +15,11 @@
     "run_worker_first": [
       "/",
       "/index.html",
+      "/compat",
+      "/compat/",
+      "/showcase",
+      "/showcase/",
+      "/dashboard/api/*",
       "/nuxt",
       "/nuxt/*",
       "/prime",
@@ -90,6 +95,12 @@
   },
   "d1_databases": [
     {
+      "binding": "DASHBOARD_DB",
+      "database_id": "00000000-0000-0000-0000-000000000007",
+      "database_name": "workerkit-dashboard-local",
+      "migrations_dir": "../../dashboard/migrations"
+    },
+    {
       "binding": "D1",
       "database_id": "00000000-0000-0000-0000-000000000000",
       "database_name": "workerkit-payload-local",
@@ -115,6 +126,10 @@
     }
   ],
   "r2_buckets": [
+    {
+      "binding": "DASHBOARD_FILES",
+      "bucket_name": "workerkit-dashboard-local"
+    },
     {
       "binding": "R2",
       "bucket_name": "workerkit-payload-local"
@@ -168,6 +183,10 @@
   },
   "kv_namespaces": [
     {
+      "binding": "DASHBOARD_SETTINGS",
+      "id": "00000000000000000000000000000007"
+    },
+    {
       "binding": "SONIC_CACHE",
       "id": "00000000000000000000000000000002"
     },
@@ -188,6 +207,16 @@
     "mode": "smart"
   },
   "ratelimits": [
+    {
+      "name": "DASHBOARD_LOGIN_RATE_LIMITER",
+      "namespace_id": "2026102401",
+      "simple": { "limit": 5, "period": 60 }
+    },
+    {
+      "name": "DASHBOARD_API_KEY_RATE_LIMITER",
+      "namespace_id": "2026102403",
+      "simple": { "limit": 120, "period": 60 }
+    },
     {
       "name": "NATIVE_LOGIN_RATE_LIMITER",
       "namespace_id": "2026110606",

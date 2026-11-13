@@ -31,7 +31,7 @@ export async function serveFrontend(
       ? assets.fetch(request)
       : new Response('Assets not configured', { status: 503 });
   const mount = url.pathname.split('/')[1];
-  const shell = url.pathname === '/' || url.pathname === '/index.html';
+  const shell = url.pathname === '/showcase/' || url.pathname === '/' || url.pathname === '/index.html';
   if (!shell && !frontends.has(mount)) return undefined;
   if (!assets) return new Response('Assets not configured', { status: 503 });
   if (!['GET', 'HEAD'].includes(request.method))
@@ -119,7 +119,7 @@ export async function serveFrontend(
           );
         },
       })
-      .transform(await asset('/index.html'));
+      .transform(await asset('/showcase.html'));
   if (url.pathname.endsWith('/'))
     return decorate(await asset(url.pathname + 'index.html'));
   const response = await asset(url.pathname);

@@ -52,14 +52,15 @@ export function createAdminAuth<Bindings extends AdminBindings>(options: {
   async function settings(c: C) {
     const env = c.env;
     const url = new URL(c.req.url);
-    const localPreview = url.protocol === 'http:' && ['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname);
+    const localHost = ['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname) || url.hostname.endsWith('.localhost');
+    const localPreview = url.protocol === 'http:' && localHost;
     const minimumLength = options.allowWeakLocalPassword && localPreview ? 1 : minimumPasswordLength;
     if (!env.ADMIN_USERNAME || !env.ADMIN_PASSWORD || env.ADMIN_PASSWORD.length < minimumLength ||
         !env.ADMIN_SESSION_SECRET || env.ADMIN_SESSION_SECRET.length < 32 || !env.ADMIN_LOGIN_RATE_LIMITER) {
       throw new ApiError(503, 'auth_unconfigured', '管理员认证未配置');
     }
     const secure = url.protocol === 'https:';
-    if (!secure && !['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname)) {
+    if (!secure && !localHost) {
       throw new ApiError(503, 'https_required', '管理员认证需要 HTTPS');
     }
     // Hono performs HMAC signing. Changing either credential invalidates all old cookies.

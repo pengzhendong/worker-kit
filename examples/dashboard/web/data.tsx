@@ -2,8 +2,9 @@ import { Alert, Button } from 'antd';
 import { createApiClient, createSessionScope, useApiQuery } from '@pengzhendong/worker-kit/web';
 
 export const sessionScope = createSessionScope();
-export const api = createApiClient({ scope: sessionScope });
-export const authApi = createApiClient();
+export const dashboardBase = import.meta.env.BASE_URL.replace(/\/$/, '');
+export const api = createApiClient({ baseUrl: dashboardBase, scope: sessionScope });
+export const authApi = createApiClient({ baseUrl: dashboardBase });
 export interface Resource { id: string; name: string; kind: string; status: 'enabled' | 'disabled'; address: string; description: string; created_at: string; updated_at: string }
 export interface AuditEvent { id: string; actor: string; action: string; target: string; created_at: string }
 export interface FileItem { key: string; name: string; size: number; uploadedAt: string; contentType: string }

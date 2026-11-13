@@ -73,8 +73,15 @@ await cp(
   path.join(root, 'examples/vue-components/LICENSE.shadcn'),
   path.join(target, 'shadcn/LICENSE.txt'),
 );
+const dashboard = path.join(root, 'examples/dashboard/dist/client');
+for (const file of ['index.html', 'compat/index.html']) {
+  const html = await readFile(path.join(dashboard, file), 'utf8');
+  if (!html.includes('/dashboard/assets/')) throw new Error('Build the dashboard with --base=/dashboard/ before assembly');
+}
+await rm(path.join(target, 'dashboard'), { recursive: true, force: true });
+await cp(dashboard, path.join(target, 'dashboard'), { recursive: true });
 const shell = await renderPreviewShell({ integrated: true });
-await writeFile(path.join(target, 'index.html'), shell);
+await writeFile(path.join(target, 'showcase.html'), shell);
 await assembleSonicAssets(target);
 // Only build-generated, content-hashed bundles get immutable browser caching.
 // HTML, API responses and CMS documents retain their own freshness/auth rules.

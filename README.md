@@ -31,7 +31,7 @@ npm run create -- ../my-worker --frontend nuxt --backend hono
 
 查看 `npm run create -- --help` 获取生成器支持的组合。新项目的绑定、Secrets 和部署步骤见[首次部署指南](examples/docs/guide.md)。
 
-在 WorkerKit 仓库执行 `npm ci` 和 `npm run dev:payload` 可打开文档及示例。也可直接访问[在线文档与示例](https://kit.pzd17.top/)。
+在 WorkerKit 仓库执行 `npm ci` 和 `npm run dev:payload` 可打开文档及示例。也可直接访问[新版后台](https://kit.pzd17.top/)、[兼容版后台](https://kit.pzd17.top/compat/)及[框架演示与文档](https://kit.pzd17.top/showcase/)。
 
 ## 模块文档
 

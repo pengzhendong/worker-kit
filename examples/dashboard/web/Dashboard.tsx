@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { App as AntApp, Button, Card, Descriptions, Flex, Result, Spin, Tag } from 'antd';
 import { AdminShell, ApiClientError, AppErrorBoundary, LoginPage, ModuleAccessProvider, PageHeader, useModuleAccess } from '@pengzhendong/worker-kit/web';
 import { WorkerKitConsoleLayout } from '@pengzhendong/worker-kit/web/console-layout';
-import { api, authApi, formatTime, Icon, sessionScope, useQuery } from './data';
+import { api, authApi, dashboardBase, formatTime, Icon, sessionScope, useQuery } from './data';
 import type { Settings } from './data';
 import { defineModules, getModuleNavigation, resolveModule } from '@pengzhendong/worker-kit/modules';
 import type { AccessSnapshot } from '@pengzhendong/worker-kit/modules';
@@ -32,6 +32,7 @@ function getPage() {
   // Keep existing #resources links working; new navigation uses the declared /resources path.
   return path ? path.startsWith('/') ? path : `/${path}` : '/overview';
 }
+const showcase = { key: 'showcase', label: '框架演示' };
 const fallbackSettings: Settings = { siteName: 'WorkerKit', description: '你的应用工作台', contactEmail: '', pageSize: 20, showWelcome: true };
 
 type ConsoleProps = { session: Session; onLogout: () => Promise<void>; proLayout: boolean };
@@ -44,7 +45,12 @@ function Console({ session, onLogout, proLayout }: ConsoleProps) {
   const module = resolveModule(modules, path, access);
   useEffect(() => { const change = () => setPath(getPage()); window.addEventListener('hashchange', change); return () => window.removeEventListener('hashchange', change); }, []);
   useEffect(() => { document.title = `${module?.label ?? '页面不存在'} · ${settings.siteName}`; }, [module, settings.siteName]);
-  function navigate(id: string) { const next = modules.find((entry) => entry.id === id); if (next) { setPath(next.path); window.location.hash = next.path; } }
+  const alternate = { key: 'layout', label: proLayout ? '兼容版后台' : '新版后台' };
+  const demoEntries = dashboardBase ? [alternate, showcase] : [];
+  function navigate(id: string) {
+    if (id === 'layout') { window.location.assign(proLayout ? '/compat/' : '/'); return; }
+    if (id === 'showcase') { window.location.assign('/showcase/'); return; }
+    const next = modules.find((entry) => entry.id === id); if (next) { setPath(next.path); window.location.hash = next.path; } }
   const navigation = (placement: 'sidebar' | 'user') => getModuleNavigation(modules, placement, access).map((entry) => ({ key: entry.id, label: entry.label, icon: <Icon name={entry.icon ?? entry.id} /> }));
   // Exhaustive app-owned page composition; shared metadata imports neither React nor server handlers.
   const pages: Record<DashboardModuleId, () => ReactNode> = {
@@ -69,15 +75,15 @@ function Console({ session, onLogout, proLayout }: ConsoleProps) {
   const content = !module ? <Result status="404" title="页面不存在" subTitle="该页面不存在或模块尚未启用。" />
       : forbidden ? <Result status="403" title="无权访问此页面" subTitle="当前账户没有此模块的访问权限。" />
       : <AppErrorBoundary resetKeys={[path, sessionScope.version]}><Suspense fallback={<Flex justify="center" style={{ padding: 80 }}><Spin size="large" /></Flex>}>{renderers[module.id]?.()}</Suspense></AppErrorBoundary>;
-  if (proLayout) return <WorkerKitConsoleLayout name={settings.siteName} logo={<img src="/favicon.svg" width={32} height={32} alt="" />}
+  if (proLayout) return <WorkerKitConsoleLayout name={settings.siteName} logo={<img src={dashboardBase + "/favicon.svg"} width={32} height={32} alt="" />}
     pageTitle={module?.label ?? '页面不存在'} activeKey={module?.id ?? path} items={navigation('sidebar')}
     username={session.user} sidebarStorageKey="workerkit.pro-demo.sidebar" onNavigate={navigate}
-    accountItems={[...navigation('user'), { type: 'divider' }, { key: 'logout', label: '退出登录' }]}
+    accountItems={[...navigation('user'), ...demoEntries, { type: 'divider' }, { key: 'logout', label: '退出登录' }]}
     onAccountAction={key => { if (key === 'logout') void onLogout(); else navigate(key); }}>
     {content}
   </WorkerKitConsoleLayout>;
-  return <AdminShell brandIcon={<img src="/favicon.svg" width={32} height={32} alt="" />} title={settings.siteName} username={session.user} activeKey={module?.id ?? path} onNavigate={navigate}
-    items={navigation('sidebar')} userMenuItems={navigation('user')} onLogout={onLogout}>
+  return <AdminShell brandIcon={<img src={dashboardBase + "/favicon.svg"} width={32} height={32} alt="" />} title={settings.siteName} username={session.user} activeKey={module?.id ?? path} onNavigate={navigate}
+    items={navigation('sidebar')} userMenuItems={[...navigation('user'), ...demoEntries]} onLogout={onLogout}>
     {content}
   </AdminShell>;
 }
@@ -126,9 +132,12 @@ function Dashboard({ proLayout = false }: { proLayout?: boolean }) {
   }
   if (error) return <Result status="warning" title="后台暂时无法访问" subTitle={error} extra={<Button onClick={() => void loadSession()}>重试</Button>} />;
   if (session === undefined) return <Flex align="center" justify="center" style={{ minHeight: '100dvh' }}><Spin size="large" /></Flex>;
-  if (!session) return <LoginPage title="WorkerKit" description="登录管理你的应用、文件与配置" onLogin={async (values, signal) => {
+  if (!session) return <><LoginPage title={dashboardBase && !proLayout ? "WorkerKit 兼容版" : "WorkerKit"} description="登录管理你的应用、文件与配置" onLogin={async (values, signal) => {
     acceptSession(await authApi<Session>('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(values), signal }));
-  }} />;
+  }} />{dashboardBase && <nav className="dashboard-demo-links" aria-label="WorkerKit 演示">
+    <a href={proLayout ? '/compat/' : '/'}>{proLayout ? '兼容版后台' : '新版后台'}</a>
+    <a href="/showcase/">框架演示</a>
+  </nav>}</>;
   return <AuthorizedConsole key={epoch} session={session} onLogout={logout} proLayout={proLayout} />;
 }
 

@@ -4,6 +4,7 @@ import next from './.open-next/worker.js'
 import { runOperation } from './src/workerkit/operations'
 import { serveFrontend } from './src/workerkit/frontends'
 import { serveNative } from '../../native-dashboard/worker'
+import { serveDashboard } from './src/workerkit/react-dashboard'
 import { serveHub } from './src/workerkit/hub'
 import { serveFramework } from './src/workerkit/frameworks'
 import { serveStandard } from '../../auth-backend/worker'
@@ -17,7 +18,7 @@ export default {
     if (url.origin === new URL(env.SONIC_ORIGIN).origin) {
       if (/^\/(native|hub|standard|sveltekit|astro|react-router)(\/|$)/.test(url.pathname)) return Response.redirect(new URL(url.pathname + url.search, env.WORKERKIT_ORIGIN).href, 302)
       if (url.pathname === '/' && url.searchParams.has('view')) {
-        const target = new URL('/' + url.search, env.WORKERKIT_ORIGIN)
+        const target = new URL('/showcase/' + url.search, env.WORKERKIT_ORIGIN)
         target.searchParams.set('backend', 'sonic')
         return Response.redirect(target.href, 302)
       }
@@ -29,6 +30,8 @@ export default {
       const canonical = new URL(url.pathname + url.search, env.WORKERKIT_ORIGIN)
       return Response.redirect(canonical.href, 308)
     }
+    const dashboard = await serveDashboard(request, env, ctx)
+    if (dashboard) return dashboard
     if (url.pathname === '/hub') return Response.redirect(new URL('/hub/', url).href, 308)
     if (url.pathname.startsWith('/hub/')) return serveHub(request, env, ctx)
     const framework = await serveFramework(request,env,ctx)

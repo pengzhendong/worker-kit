@@ -19,6 +19,7 @@ type C = Context<WorkerEnv<Bindings>>;
 type Resource = { id: string; name: string; kind: string; status: 'enabled' | 'disabled'; address: string; description: string; created_at: string; updated_at: string };
 export function createDashboard(options: {
   modules?: readonly ModuleDefinition[];
+  apiBase?: string;
   resolvePermissions?: (user: string) => readonly string[] | null | Promise<readonly string[] | null>;
 } = {}) {
   const modules = options.modules ?? dashboardModules;
@@ -42,7 +43,7 @@ export function createDashboard(options: {
     // Presence of Authorization chooses this scheme. Invalid keys never fall back to a Cookie.
     if (c.req.header('Authorization') !== undefined) {
       const url = new URL(c.req.url);
-      if (url.protocol !== 'https:' && !(url.protocol === 'http:' && ['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname))) throw new ApiError(503, 'https_required', '访问令牌需要 HTTPS');
+      if (url.protocol !== 'https:' && !(url.protocol === 'http:' && (['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname) || url.hostname.endsWith('.localhost')))) throw new ApiError(503, 'https_required', '访问令牌需要 HTTPS');
       const keys = createApiKeys({ store: d1ApiKeyStore(c.env.DB) });
       const key = await keys.verify(c.req.header('Authorization'));
       if (key.owner !== c.env.ADMIN_USERNAME) throw new ApiError(401, 'invalid_api_key', '访问令牌无效或已失效');
@@ -76,7 +77,7 @@ export function createDashboard(options: {
   }, { signal: c.req.raw.signal })));
   app.get('/api/admin/openapi.json', browserOnly, requirePermission('api:read'), openAPIRouteHandler(app, {
     excludeStaticFile: false, excludeMethods: ['OPTIONS', 'HEAD'],
-    documentation: { openapi: '3.1.0', info: { title: 'WorkerKit API', version: '0.2.0', description: '当前应用的接口。Cookie 写操作要求同源 Origin；Bearer Token 仅能访问显式开放的业务接口。' }, servers: [{ url: '/' }], components: { securitySchemes: { cookieAuth: { type: 'apiKey', in: 'cookie', name: 'workerkit_session', description: '通过登录接口设置，HttpOnly；无需复制 Cookie。' }, bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'Opaque API Key' } } } },
+    documentation: { openapi: '3.1.0', info: { title: 'WorkerKit API', version: '0.2.0', description: '当前应用的接口。Cookie 写操作要求同源 Origin；Bearer Token 仅能访问显式开放的业务接口。' }, servers: [{ url: options.apiBase ?? '/' }], components: { securitySchemes: { cookieAuth: { type: 'apiKey', in: 'cookie', name: 'workerkit_session', description: '通过登录接口设置，HttpOnly；无需复制 Cookie。' }, bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'Opaque API Key' } } } },
   }));
   app.get('/api/admin/api-keys', browserOnly, requirePermission('api:tokens'), async (c) => {
     const query = readPageQuery(new URL(c.req.url).searchParams);
