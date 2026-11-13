@@ -10,7 +10,7 @@
 
 ## 演示入口
 
-在 React 后台演示中，`/` 默认使用 ProLayout，`/compat/` 使用 AdminShell。两者共用页面、登录和权限。两套布局的折叠、账户菜单和移动抽屉由 `e2e/console-shells.spec.ts` 检查。兼容布局的专属导航测试和已有截图测试从 `/compat/` 进入。
+在 Playwright 启动的独立 React 后台中，`/` 默认使用 ProLayout，`/compat/` 使用 AdminShell。线上展示站的对应路径是 `/pro-layout/` 和 `/compat/`，线上首页为框架演示。两套布局共用页面、登录和权限。两套布局的折叠、账户菜单和移动抽屉由 `e2e/console-shells.spec.ts` 检查。兼容布局的专属导航测试和已有截图测试从 `/compat/` 进入。
 
 ## 两层检查
 

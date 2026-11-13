@@ -32,6 +32,13 @@ NuxtHub 的依赖和 lockfile 在 `examples/nuxthub-dashboard/app`；使用 `npm
 
 展示站需要最后执行统一构建、部署 dry-run 和线上入口检查。免费套餐 CPU、首次加载和缓存后切换是不同指标，不能互相替代；按真实 Observability 数据评估。
 
+## 发布展示站
+
+1. 在仓库根目录运行 `npm run build:payload`。它构建文档、两套 React 后台及其他演示，并执行统一 Worker 的部署 dry-run。
+2. 使用部署机器上的生产配置发布。在 `examples/payload-dashboard/app` 执行 `npm exec -- wrangler deploy --config .wrangler/production.json --keep-vars`。生产资源配置保存在本地，签名密钥及生产凭据使用 Cloudflare Secrets。
+3. 在线确认首页加载框架演示与文档，两个后台入口 `/pro-layout/` 和 `/compat/` 均可使用演示账号登录。登录后切换布局，检查会话延续和资源加载。
+4. 检查旧的 `/showcase/?view=nuxt` 跳回首页并保留选择。发布记录保留 Git 提交和 Cloudflare 版本 ID。
+
 ## 自动回归与回滚
 
 `npm run test:integration` 启动并关闭独立的本地统一 Worker，复查原有 CMS 界面和兼容后端的真实行为；执行前先运行 `npm run build:payload`，5184 端口必须空闲。它不会接管现有预览。CI 使用固定 Playwright 容器与 Chromium，本机默认使用 Chrome。

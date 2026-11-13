@@ -6,11 +6,12 @@ WorkerKit 为 Cloudflare Workers 提供可组合的管理基础能力，支持 H
 
 ## 在线查看
 
-- [界面与 CMS 比较](/?view=nuxt&backend=payload){target="_top"}：18 套前端连接 Hono + Better Auth、Payload 或 SonicJS 的真实任务工作台。
+- [框架演示](/){target="_top"}：首页提供组件库、后台模板、文档和后端方案比较。
+- [ProLayout 后台](/pro-layout/){target="_top"}与 [AdminShell 后台](/compat/){target="_top"}：同一组业务页面、会话、API 与数据，两种管理布局。后端分类可体验 Hono + Better Auth、Payload、SonicJS 等服务端方案。
 - 单管理员模板使用 Nuxt UI 和 Hono，KV 保存会话与配置，另带受限密钥、审计和 API 文档。[Hono + KV 登录](/native/){target="_top"}
 - [NuxtHub 全栈](/hub/){target="_top"}：Nuxt UI、Nitro API 与真实 SQL / KV / Blob / Cache SDK。
 
-当前均由同一个展示 Worker 提供。各后端的登录、数据范围独立，演示账号为 `admin / password`。
+当前均由同一个展示 Worker 提供。后端示例按方案配置会话与数据范围，线上演示账号为 `admin / password`。
 
 ## 本地运行
 

@@ -96,7 +96,7 @@ npm run check
 
 展示入口为 https://kit.pzd17.top ，SonicJS 使用 https://kit-sonic.pzd17.top 。两者指向同一个 `worker-kit` Worker，使用独立新建的 D1、R2 与 KV，不复用其他项目的数据。框架演示中的 CMS 账号沿用 `admin / password`；通过显式 `WORKERKIT_DEMO=1` 开启演示提示与 SonicJS 用户名别名，密码和会话仍由原生认证校验。WorkerKit 的 ProLayout 和 AdminShell 演示后台共用 `DASHBOARD_ADMIN_PASSWORD` 和 `DASHBOARD_SESSION_SECRET`，部署时通过 Worker Secrets 配置。公开演示站使用 `admin / password`。
 
-生产配置在 `examples/payload-dashboard/app/.wrangler/production.json`，签名密钥通过 Wrangler Secrets 设置；这些本机文件不进入 Git。部署命令为在该 app 目录执行 `npm exec --workspaces=false -- wrangler deploy --config .wrangler/production.json`。
+构建、生产配置和线上验收步骤见[发布展示站](../examples/docs/upgrades.md#发布展示站)。
 
 本次线上验证通过原生登录、16 种工作台组合、文档预览入口、无 localhost 导航、Vben 工作台正文边距，以及两套后端的任务创建、执行和记录持久化。任务日志默认显示最近 5 条，历史记录继续保留。
 

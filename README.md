@@ -1,4 +1,9 @@
-# WorkerKit
+<div align="center">
+  <img src="examples/docs/public/favicon.svg" width="112" height="112" alt="WorkerKit 图标">
+  <h1>WorkerKit</h1>
+  <p><strong>适用于 Cloudflare Workers 的共享后台布局、认证与运行工具。</strong></p>
+  <p><a href="https://kit.pzd17.top/">在线演示</a> · <a href="#接入现有-worker">现有 Worker 接入</a> · <a href="#模块文档">模块文档</a></p>
+</div>
 
 Cloudflare Workers 的共享基础库。通过 Git submodule 引入后台布局、认证与运行工具。路由、业务页面、数据和部署配置由应用管理。
 
@@ -23,15 +28,19 @@ import '@pengzhendong/worker-kit/web/styles.css';
 
 应用提供品牌、当前页面、菜单和账户操作。布局负责顶栏、侧栏、手机抽屉、账户弹层和折叠偏好。样式与交互见[界面规范](docs/ui-guidelines.md)。
 
-## 创建与本地预览
+## 新建应用
 
 ```sh
 npm run create -- ../my-worker --frontend nuxt --backend hono
 ```
 
-查看 `npm run create -- --help` 获取生成器支持的组合。新项目的绑定、Secrets 和部署步骤见[首次部署指南](examples/docs/guide.md)。
+这是 Nuxt UI + Hono + Better Auth 的脚手架示例。生成项目通过 `kit:sync` 升级内置的 WorkerKit 源码快照；已有 submodule 项目通过 Git 更新指针。其他组合见 `npm run create -- --help`，安装与部署见[首次部署指南](examples/docs/guide.md)。
 
-在 WorkerKit 仓库执行 `npm ci` 和 `npm run dev:payload` 可打开文档及示例。也可直接访问[ProLayout 后台](https://kit.pzd17.top/pro-layout/)、[AdminShell 后台](https://kit.pzd17.top/compat/)及[框架演示与文档](https://kit.pzd17.top/)。
+## 浏览演示
+
+[线上首页](https://kit.pzd17.top/)默认打开框架演示。[ProLayout 后台](https://kit.pzd17.top/pro-layout/)和 [AdminShell 后台](https://kit.pzd17.top/compat/)共用会话、API 和数据。演示账号为 `admin / password`。
+
+在仓库根目录执行 `npm ci` 和 `npm run dev:payload` 可运行本地展示站。入口与发布步骤见[界面演示](docs/ui-demos.md)和[升级维护](examples/docs/upgrades.md)。
 
 ## 模块文档
 

@@ -8,6 +8,18 @@
 4. 在隔离的本地存储验证未登录/错误密码、登录、注销、写操作来源、取消旧请求、原有业务协议和手机交互。
 5. 构建、绑定类型检查和 dry-run 后部署，再检查线上真实入口。只有消费项目不再引用旧接口，才能删除兼容实现。
 
+## 接入现有 React 后台
+
+从业务仓库固定 WorkerKit submodule 提交，在父项目安装依赖。保留应用自己的认证与 API，按需接入公共布局。
+
+```tsx
+import { WorkerKitProvider } from '@pengzhendong/worker-kit/web';
+import { WorkerKitConsoleLayout } from '@pengzhendong/worker-kit/web/console-layout';
+import '@pengzhendong/worker-kit/web/styles.css';
+```
+
+应用仍负责路由、菜单数据、账户操作及业务页面。新应用使用脚手架时，按[快速了解](./guide#创建自己的应用)选择组合。
+
 ## 可复用入口
 
 | 入口 | 用途 |
