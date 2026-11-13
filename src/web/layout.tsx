@@ -1,3 +1,4 @@
+import { SearchOutlined } from '@ant-design/icons';
 import { SidebarToggle } from './sidebar-toggle';
 import { useEffect, useId, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
@@ -19,7 +20,7 @@ function navigationPath(items: NavigationItem[], key: string): NavigationItem[] 
   return [];
 }
 
-export function AdminShell({ title, brandIcon, items, userMenuItems = [], activeKey, onNavigate, username = '', onLogout, headerActions, themeTogglePlacement = 'header', sidebarActions, sidebarFooter, menuProps, navigationLabel = '应用管理', compactContent = false, pageTitleInHeader = false, sidebarStorageKey = 'workerkit.sidebar.collapsed', children }: {
+export function AdminShell({ title, brandIcon, items, userMenuItems = [], activeKey, onNavigate, username = '', onLogout, headerActions, themeTogglePlacement = 'header', sidebarActions, sidebarSearchLabel, sidebarFooter, menuProps, navigationLabel = '应用管理', compactContent = false, pageTitleInHeader = false, sidebarStorageKey = 'workerkit.sidebar.collapsed', children }: {
   title: string;
   brandIcon?: ReactNode;
   items: NavigationItem[];
@@ -31,6 +32,8 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
   sidebarFooter?: ReactNode;
   /** Navigation search/filter controls. Hidden in the collapsed desktop rail. */
   sidebarActions?: ReactNode;
+  /** Show a search button when collapsed and focus the search input on expansion. */
+  sidebarSearchLabel?: string;
   /** Native Ant Design control for application-owned selection and accordion behavior. */
   menuProps?: Pick<MenuProps, 'openKeys' | 'onOpenChange' | 'selectedKeys'>;
   /** Optional sidebar caption; false hides it without leaving an empty row. */
@@ -60,6 +63,16 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
     catch { /* Storage may be unavailable; the control still works for this visit. */ }
   }, [collapsed, sidebarStorageKey]);
   const sidebarId = useId();
+  const sidebarActionsRef = useRef<HTMLDivElement>(null);
+  const [focusSidebarSearch, setFocusSidebarSearch] = useState(false);
+  useEffect(() => {
+    if (collapsed || !focusSidebarSearch) return;
+    const timer = window.setTimeout(() => {
+      sidebarActionsRef.current?.querySelector('input')?.focus({ preventScroll: true });
+      setFocusSidebarSearch(false);
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [collapsed, focusSidebarSearch]);
   const contentRef = useRef<HTMLElement>(null);
   const [pageTitle, setPageTitle] = useState<string | null>(null);
   useEffect(() => { contentRef.current?.scrollTo({ top: 0, left: 0 }); }, [activeKey, pageTitle]);
@@ -92,13 +105,16 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
         label: hideLabel ? null : nested ? item.children?.length ? <Flex component="span" align="center" justify="space-between" gap={8}
           style={{ paddingInlineStart: depth > 0 ? 18 : 0 }}>{item.label}{item.extra}</Flex> : item.label
           : <span style={{ lineHeight: '20px' }}>{item.label}</span>,
-        ...(item.children?.length ? { children: menuItems(item.children, depth + 1) } : { extra: item.extra }),
+        ...(item.children?.length ? {
+          children: menuItems(item.children, depth + 1),
+          onTitleClick: compact ? () => setCollapsed(false) : undefined,
+        } : { extra: item.extra }),
       };
     });
   }
   const menu = <Menu mode={compact || nested ? 'inline' : 'vertical'} inlineIndent={nested ? 12 : undefined} className={screens.lg ? 'wk-desktop-menu' + (nested ? ' wk-desktop-nested-menu' : '') + (compact ? ' wk-desktop-menu-collapsed' : '') : undefined} inlineCollapsed={compact || undefined} items={menuItems(items)}
-    {...(nested ? { openKeys: compact ? openKeys : menuProps?.openKeys ?? openKeys,
-      onOpenChange: compact ? setOpenKeys : menuProps?.onOpenChange ?? setOpenKeys } : {})}
+    {...(nested ? { openKeys: compact ? [] : menuProps?.openKeys ?? openKeys,
+      onOpenChange: compact ? undefined : menuProps?.onOpenChange ?? setOpenKeys } : {})}
     selectedKeys={menuProps?.selectedKeys ?? [activeKey]} onClick={({ key }) => navigate(key)}
     styles={{
       root: { paddingInline: 10 },
@@ -151,9 +167,16 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
     </div>
     {themeTogglePlacement === 'sidebar' && themeToggle}
     </Flex>
-  </div> : (sidebarFooter || themeTogglePlacement === 'sidebar') ? <div data-workerkit-region="sidebar-footer" style={{ flexShrink: 0, padding: 16, borderTop: `1px solid ${token.colorBorderSecondary}`, overflowWrap: 'anywhere' }}>{sidebarFooter}{themeTogglePlacement === 'sidebar' && themeToggle}</div> : null;
-  const navigation = <div data-workerkit-region="sidebar-navigation" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', overscrollBehavior: 'contain' }}>{nested ? <ConfigProvider theme={{ components: { Menu: { collapsedIconSize: ui.iconSize } } }}>{menu}</ConfigProvider> : menu}</div>;
-  const navigationActions = sidebarActions && !compact ? <div data-workerkit-region="sidebar-actions" style={{ padding: screens.lg ? '0 16px 12px' : '12px 16px', flexShrink: 0 }}>{sidebarActions}</div> : null;
+  </div> : (sidebarFooter || themeTogglePlacement === 'sidebar') ? <div data-workerkit-region="sidebar-footer" style={{ flexShrink: 0, padding: 16, borderTop: `1px solid ${token.colorBorderSecondary}`, overflowWrap: 'anywhere' }}>{sidebarFooter}{themeTogglePlacement === 'sidebar' && <Flex justify={compact ? 'center' : 'flex-end'}>{themeToggle}</Flex>}</div> : null;
+  const navigation = <div data-workerkit-region="sidebar-navigation" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', overscrollBehavior: 'contain' }}><ConfigProvider theme={{ components: { Menu: { itemColor: token.colorTextSecondary, collapsedIconSize: ui.iconSize } } }}>{menu}</ConfigProvider></div>;
+  const navigationActions = sidebarActions ? <div style={{ position: 'relative', flexShrink: 0 }}>
+    <div ref={sidebarActionsRef} data-workerkit-region="sidebar-actions" inert={compact || undefined}
+      style={{ padding: screens.lg ? '0 16px 12px' : '12px 16px', visibility: compact ? 'hidden' : undefined }}>{sidebarActions}</div>
+    {compact && sidebarSearchLabel && <div style={{ position: 'absolute', inset: '0 0 12px', display: 'grid', placeItems: 'center' }}>
+      <Tooltip title={sidebarSearchLabel} placement="right"><Button type="text" icon={<SearchOutlined />}
+        aria-label={sidebarSearchLabel} onClick={() => { setFocusSidebarSearch(true); setCollapsed(false); }} /></Tooltip>
+    </div>}
+  </div> : null;
   return <Layout data-workerkit-shell style={{ height: '100dvh', minHeight: 0, overflow: 'hidden', background: token.colorBgLayout }}>
     {screens.lg ? <Layout.Sider id={sidebarId} data-workerkit-region="sidebar" width={ui.sidebarWidth} collapsedWidth={ui.sidebarCollapsedWidth} collapsed={compact} trigger={null} style={{ height: '100%', overflow: 'hidden', background: token.colorBgContainer, borderInlineEnd: `1px solid ${token.colorBorderSecondary}` }}><Flex vertical style={{ height: '100%' }}><div style={{ flexShrink: 0 }}>{brand}{!compact && navigationLabel && <Typography.Text type="secondary" style={{ display: 'block', margin: '8px 24px 14px', fontSize: 11, letterSpacing: 2 }}>{navigationLabel}</Typography.Text>}</div>{navigationActions}{navigation}{account}</Flex></Layout.Sider>
       : <Drawer title={title} placement="left" open={open} onClose={() => { setOpen(false); setUserMenuOpen(false); }} styles={{ body: { padding: 0, display: 'flex', flexDirection: 'column', minHeight: 0 } }}>{navigationActions}{navigation}{account}</Drawer>}
