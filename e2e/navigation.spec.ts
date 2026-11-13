@@ -4,8 +4,8 @@ test('nested navigation follows deep links, preserves groups and works in the ra
   await page.route('**/Dashboard.tsx', async route => {
     const response = await route.fetch();
     const original = await response.text();
-    const body = original.replace(/items: navigation\(["']sidebar["']\)/,
-      'items: [{key:"library",label:"资源库",children:[{key:"files",label:"文件管理"},{key:"resources",label:"资源管理",extra:"4"}]},{key:"overview",label:"工作台"}]')
+    const body = original.replace(/(\bAdminShell, \{[\s\S]*?\bitems: )navigation\(["']sidebar["']\)/,
+      '$1[{key:"library",label:"资源库",children:[{key:"files",label:"文件管理"},{key:"resources",label:"资源管理",extra:"4"}]},{key:"overview",label:"工作台"}]')
       .replace(/(\w*jsxDEV)\(AdminShell, \{/, '$1(AdminShell, { navigationLabel: false, pageTitleInHeader: true,');
     expect(body).not.toBe(original);
     await route.fulfill({ response, body });

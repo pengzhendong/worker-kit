@@ -11,7 +11,8 @@ test('desktop rail keeps navigation and account actions and remembers its width'
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   const item = page.locator(sidebar).getByRole('menuitem', { name: '资源管理', exact: true });
   const bounds = await item.locator('[data-workerkit-icon]').boundingBox();
-  expect(bounds!.x + bounds!.width / 2).toBeCloseTo(35.5, 0);
+  const rail = await page.locator(sidebar).boundingBox();
+  expect(Math.abs(bounds!.x + bounds!.width / 2 - (rail!.x + rail!.width / 2))).toBeLessThanOrEqual(1);
   await item.hover();
   await expect(page.getByRole('tooltip', { name: '资源管理', exact: true })).toBeVisible();
   await page.mouse.move(1100, 780);

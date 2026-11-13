@@ -1,6 +1,6 @@
 import { LogoutOutlined } from '@ant-design/icons';
-import { useEffect, useState, type ReactNode } from 'react';
-import { Grid, Typography, type MenuProps } from 'antd';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Grid, type MenuProps } from 'antd';
 import { ProLayout } from '@ant-design/pro-components';
 import { useWorkerKitProLayout } from './pro-layout';
 import { WorkerKitProLayoutFooter } from './pro-layout-footer';
@@ -29,6 +29,11 @@ export function WorkerKitConsoleLayout({
 }) {
   const layout = useWorkerKitProLayout();
   const mobile = Grid.useBreakpoint().md === false;
+  const contentRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const content = contentRef.current;
+    if (content) content.scrollIntoView({ block: 'start' });
+  }, [activeKey]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => {
     try { return localStorage.getItem(sidebarStorageKey) === 'true'; }
@@ -68,13 +73,14 @@ export function WorkerKitConsoleLayout({
     onCollapse={collapse}
     breakpoint={false}
     collapsedButtonRender={false}
-    headerContentRender={() => <Typography.Text strong role="heading" aria-level={1}>{pageTitle}</Typography.Text>}
+    headerRender={mobile ? () => <ProLayoutSidebarHeader title={pageTitle} english={english}
+      collapsed={!drawerOpen} mobile onToggle={() => collapse(drawerOpen)} /> : undefined}
     contentStyle={{ minWidth: 0, ...(mobile ? {} : { padding: 0 }) }}
   >
     {!mobile && <ProLayoutSidebarHeader title={pageTitle} english={english}
       collapsed={collapsed} onToggle={() => collapse(!collapsed)} />}
     <PageTitleInHeader.Provider value={true}>
-      <div style={mobile ? undefined : { padding: 24 }}>{children}</div>
+      <div ref={contentRef} style={{ scrollMarginTop: layout.token.header.heightLayoutHeader, ...(mobile ? {} : { padding: 24 }) }}>{children}</div>
     </PageTitleInHeader.Provider>
   </ProLayout>;
 }

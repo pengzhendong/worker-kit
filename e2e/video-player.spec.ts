@@ -111,8 +111,10 @@ test('viewing player appearance', async ({ page }) => {
   await expect(player.locator('video')).toHaveAttribute('poster', '/media/landscape.svg');
   await expect.poll(() => player.locator('video').evaluate(video => (video as HTMLVideoElement).readyState)).toBeGreaterThan(0);
   await page.evaluate(() => document.fonts.ready);
-  await expect(player).toHaveScreenshot('viewing-player.png', {
-    animations: 'disabled',
-    style: '.wk-view-buffer { width: 100% !important; }',
-  });
+  const bufferStyle = await page.addStyleTag({ content: '.wk-view-buffer { width: 100% !important; }' });
+  try {
+    await expect(player).toHaveScreenshot('viewing-player.png', { animations: 'disabled' });
+  } finally {
+    await bufferStyle.evaluate(node => node.parentNode?.removeChild(node));
+  }
 });

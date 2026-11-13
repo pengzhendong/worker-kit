@@ -55,11 +55,11 @@ for (const layout of ['list', 'grid'] as const) test(`automatic ${layout} pagina
   await expect.poll(capacity).toBe(48);
   await page.setViewportSize({ width: viewport.width, height: 320 });
   const columns = () => demo.locator('.wk-media-list').evaluate(e => getComputedStyle(e).display === 'grid' ? getComputedStyle(e).gridTemplateColumns.split(' ').length : 1);
-  await expect.poll(capacity).toBe(await columns());
+  await expect.poll(async () => (await capacity()) - (await columns())).toBe(0);
   await page.locator('[data-workerkit-region="content"]').evaluate(element => { element.scrollTop = 100; });
   expect(await page.locator('[data-workerkit-region="content"]').evaluate(element => element.scrollTop)).toBeGreaterThan(0);
   await page.setViewportSize({ width: viewport.width - 1, height: 320 });
-  await expect.poll(capacity).toBe(await columns());
+  await expect.poll(async () => (await capacity()) - (await columns())).toBe(0);
   if (layout === 'grid') {
     await page.setViewportSize({ width: 1920, height: 900 });
     await expect.poll(columns).toBeGreaterThan(1);

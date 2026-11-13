@@ -65,7 +65,10 @@ test('account menu supports keyboard opening, Escape and outside dismissal', asy
   await expect(trigger).toBeFocused();
   await trigger.click();
   await expect(logout).toBeVisible();
-  await page.locator('[data-workerkit-region="sidebar-navigation"]').click({ position: { x: 20, y: 360 } });
+  const header = page.locator('[data-workerkit-region="header"]');
+  const bounds = await header.boundingBox();
+  expect(bounds).not.toBeNull();
+  await page.mouse.click(bounds!.x + bounds!.width / 2, bounds!.y + bounds!.height / 2);
   await expect(logout).not.toBeVisible();
   await expect(trigger).toHaveAttribute('aria-expanded', 'false');
 });

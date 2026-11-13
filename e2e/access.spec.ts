@@ -30,7 +30,7 @@ test.describe('read-only access', () => {
     await expect(page.locator('input[type=file]')).toHaveCount(0);
     await expect(page.getByRole('link', { name: '下载', exact: true })).toHaveCount(0);
     await expect(page.getByRole('button', { name: '删除', exact: true })).toHaveCount(0);
-    await page.goto('/#/settings');
+    await page.goto('/compat/#/settings');
     await expect(page.getByLabel('应用名称', { exact: true })).toBeDisabled();
     await expect(page.getByRole('button', { name: '保存设置', exact: true })).toHaveCount(0);
     await openNavigation(page);
@@ -41,11 +41,11 @@ test.describe('read-only access', () => {
   test('direct unauthorized and unknown routes never render protected pages or fetch their data', async ({ page }) => {
     const requests: string[] = [];
     page.on('request', (request) => { if (new URL(request.url()).pathname === '/api/admin/audit') requests.push(request.url()); });
-    await page.goto('/#/audit');
+    await page.goto('/compat/#/audit');
     await expect(page.getByText('无权访问此页面', { exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: '操作日志', exact: true })).toHaveCount(0);
     await screenshot(page, 'module-forbidden.png');
-    await page.goto('/#/unknown');
+    await page.goto('/compat/#/unknown');
     await expect(page.getByText('页面不存在', { exact: true })).toBeVisible();
     expect(requests).toEqual([]);
   });
@@ -57,7 +57,7 @@ test('access loading failures fail closed and support retry without mounting bus
     ? route.fulfill({ status: 503, json: { error: { code: 'unavailable', message: '权限服务暂时不可用' } } })
     : route.fulfill({ json: { permissions: grants } }));
   page.on('request', (request) => { if (/\/api\/admin\/(resources|settings)$/.test(new URL(request.url()).pathname)) business.push(request.url()); });
-  await page.goto('/#/resources');
+  await page.goto('/compat/#/resources');
   await expect(page.getByText('无法加载访问权限', { exact: true })).toBeVisible();
   await expect(page.locator('[data-workerkit-shell]')).toHaveCount(0);
   expect(business).toEqual([]);

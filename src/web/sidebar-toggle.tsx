@@ -1,13 +1,16 @@
 import { Button, Flex, Tooltip, Typography, theme } from 'antd';
 import { workerKitLayout } from './design';
 
-export function SidebarToggle({ collapsed, controls, english, onToggle }: {
+export function SidebarToggle({ collapsed, controls, english, mobile, onToggle }: {
   collapsed: boolean;
   controls?: string;
   english?: boolean;
+  mobile?: boolean;
   onToggle: () => void;
 }) {
-  const labels = english ? ['Expand sidebar', 'Collapse sidebar'] : ['展开侧栏', '收起侧栏'];
+  const labels = mobile
+    ? english ? ['Open navigation', 'Close navigation'] : ['打开导航', '关闭导航']
+    : english ? ['Expand sidebar', 'Collapse sidebar'] : ['展开侧栏', '收起侧栏'];
   const label = labels[collapsed ? 0 : 1];
   return <Tooltip title={label}><Button type="text" aria-label={label} aria-expanded={!collapsed}
     aria-controls={controls} onClick={onToggle}

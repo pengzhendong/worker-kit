@@ -4,7 +4,7 @@ for (const scenario of ['empty', 'error', 'loading'] as const) {
   test.describe(scenario, () => {
     test.use({ scenario });
     test(`resources shows the ${scenario} state`, async ({ page }) => {
-      await page.goto('/#resources');
+      await page.goto('/compat/#resources');
       await expect(page.getByRole('heading', { name: '资源管理', exact: true })).toBeVisible();
       if (scenario === 'empty') await expect(page.locator('.ant-empty-description')).toHaveText('暂无数据');
       if (scenario === 'error') {
@@ -23,7 +23,7 @@ for (const scenario of ['empty', 'error', 'loading'] as const) {
 test.describe('login', () => {
   test.use({ scenario: 'logged-out' });
   test('login form is usable without horizontal overflow', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/compat/');
     await expect(page.getByRole('button', { name: /^登\s*录$/ })).toBeVisible();
     await expect(page.getByLabel('用户名')).toBeVisible();
     await expect(page.getByLabel('密码', { exact: true })).toBeVisible();

@@ -21,7 +21,7 @@ test.describe('login handling', () => {
       if (calls === 3) return route.abort('failed');
       return route.fulfill({ json: session });
     });
-    await page.goto('/#/resources');
+    await page.goto('/compat/#/resources');
     await page.getByLabel('用户名', { exact: true }).fill('admin'); await page.getByLabel('密码', { exact: true }).fill('wrong');
     await page.getByLabel('密码', { exact: true }).press('Enter'); await expect.poll(() => calls).toBe(1);
     await page.getByLabel('密码', { exact: true }).press('Enter'); expect(calls).toBe(1); release();
@@ -64,7 +64,7 @@ test('leaving a loading page cancels its request before it can update another pa
   let aborted = false;
   page.on('requestfailed', (request) => { if (new URL(request.url()).pathname === '/api/admin/resources') aborted = true; });
   await page.route('**/api/admin/resources?*', async () => { began(); });
-  await page.goto('/#/resources'); await started;
+  await page.goto('/compat/#/resources'); await started;
   await expect(page.getByRole('heading', { name: '资源管理', exact: true })).toBeVisible();
   await navigate(page, '文件管理'); await expect(page.getByText('使用说明.txt', { exact: true })).toBeVisible();
   await expect.poll(() => aborted).toBe(true);
@@ -85,7 +85,7 @@ test('403, service failures and network errors keep the current identity and all
 
 test('page rendering failures show a boundary while navigation continues working', async ({ page }) => {
   await page.route('**/web/OverviewPage.tsx*', (route) => route.fulfill({ contentType: 'application/javascript', body: 'export function OverviewPage(){ throw new Error("deliberate page render failure"); }' }));
-  await page.goto('/#/overview'); await expect(page.getByRole('alert', { name: '页面错误', exact: true })).toBeVisible();
+  await page.goto('/compat/#/overview'); await expect(page.getByRole('alert', { name: '页面错误', exact: true })).toBeVisible();
   await expect(page.getByText('deliberate page render failure', { exact: true })).toHaveCount(0);
   await screenshot(page, 'page-error-boundary.png');
   await navigate(page, '资源管理'); await expect(page.getByRole('heading', { name: '资源管理', exact: true })).toBeVisible();
@@ -94,7 +94,7 @@ test('page rendering failures show a boundary while navigation continues working
 
 test('application failures also have a safe fallback outside the application provider', async ({ page }) => {
   await page.route('**/web/Dashboard.tsx*', (route) => route.fulfill({ contentType: 'application/javascript', body: 'export default function Dashboard(){ throw new Error("deliberate application render failure"); }' }));
-  await page.goto('/#/resources');
+  await page.goto('/compat/#/resources');
   await expect(page.getByRole('alert', { name: '应用错误', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: '重新加载应用', exact: true })).toBeVisible();
 });

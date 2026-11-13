@@ -84,6 +84,8 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
   const activePath = navigationPath(items, activeKey);
   const parentKeys = JSON.stringify(activePath.slice(0, -1).map(item => item.key));
   const [openKeys, setOpenKeys] = useState<string[]>([]);
+  const [popupKeys, setPopupKeys] = useState<string[]>([]);
+  useEffect(() => { if (!compact) setPopupKeys([]); }, [compact]);
   useEffect(() => {
     const parents = JSON.parse(parentKeys) as string[];
     setOpenKeys(keys => compact ? [] : [...new Set([...keys, ...parents])]);
@@ -92,7 +94,7 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
   const { dark, toggle } = useWorkerKitTheme();
   useEffect(() => { setUserMenuOpen(false); setOpen(false); }, [screens.lg]);
   useEffect(() => { setUserMenuOpen(false); }, [activeKey]);
-  function navigate(key: string) { onNavigate(key); setUserMenuOpen(false); setOpen(false); }
+  function navigate(key: string) { setPopupKeys([]); onNavigate(key); setUserMenuOpen(false); setOpen(false); }
   function menuItems(entries: NavigationItem[], depth = 0): MenuProps['items'] {
     return entries.map(item => {
       const fixedNestedIcon = !!screens.lg && nested && depth === 0;
@@ -107,14 +109,13 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
           : <span style={{ lineHeight: '20px' }}>{item.label}</span>,
         ...(item.children?.length ? {
           children: menuItems(item.children, depth + 1),
-          onTitleClick: compact ? () => setCollapsed(false) : undefined,
         } : { extra: item.extra }),
       };
     });
   }
   const menu = <Menu mode={compact || nested ? 'inline' : 'vertical'} inlineIndent={nested ? 12 : undefined} className={screens.lg ? 'wk-desktop-menu' + (nested ? ' wk-desktop-nested-menu' : '') + (compact ? ' wk-desktop-menu-collapsed' : '') : undefined} inlineCollapsed={compact || undefined} items={menuItems(items)}
-    {...(nested ? { openKeys: compact ? [] : menuProps?.openKeys ?? openKeys,
-      onOpenChange: compact ? undefined : menuProps?.onOpenChange ?? setOpenKeys } : {})}
+    {...(nested ? { openKeys: compact ? popupKeys : menuProps?.openKeys ?? openKeys,
+      onOpenChange: compact ? setPopupKeys : menuProps?.onOpenChange ?? setOpenKeys } : {})}
     selectedKeys={menuProps?.selectedKeys ?? [activeKey]} onClick={({ key }) => navigate(key)}
     styles={{
       root: { paddingInline: 10 },

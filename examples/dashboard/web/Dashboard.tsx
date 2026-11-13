@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { App as AntApp, Button, Card, Descriptions, Flex, Result, Spin, Tag } from 'antd';
 import { AdminShell, ApiClientError, AppErrorBoundary, LoginPage, ModuleAccessProvider, PageHeader, useModuleAccess } from '@pengzhendong/worker-kit/web';
+import { WorkerKitConsoleLayout } from '@pengzhendong/worker-kit/web/console-layout';
 import { api, authApi, formatTime, Icon, sessionScope, useQuery } from './data';
 import type { Settings } from './data';
 import { defineModules, getModuleNavigation, resolveModule } from '@pengzhendong/worker-kit/modules';
@@ -23,7 +24,7 @@ const modules = defineModules([
   ...dashboardModules,
   ...(import.meta.env.DEV ? [
     { id: 'media', label: '媒体预览', path: '/media', icon: 'files', navigation: { placement: 'sidebar', order: 50 }, actions: {}, developmentOnly: true } as const,
-    { id: 'tools', label: '开发工具', path: '/tools', icon: 'tools', navigation: { placement: 'sidebar', order: 60 }, actions: {}, developmentOnly: true } as const,
+    { id: 'tools', label: '开发工具', path: '/tools', icon: 'tools', navigation: { placement: 'user', order: 50 }, actions: {}, developmentOnly: true } as const,
   ] : []),
 ]);
 function getPage() {
@@ -33,7 +34,9 @@ function getPage() {
 }
 const fallbackSettings: Settings = { siteName: 'WorkerKit', description: '你的应用工作台', contactEmail: '', pageSize: 20, showWelcome: true };
 
-function Console({ session, onLogout }: { session: Session; onLogout: () => Promise<void> }) {
+type ConsoleProps = { session: Session; onLogout: () => Promise<void>; proLayout: boolean };
+
+function Console({ session, onLogout, proLayout }: ConsoleProps) {
   const [path, setPath] = useState(getPage); const [savedSettings, setSavedSettings] = useState<Settings>();
   const { access, can, canOpen } = useModuleAccess();
   const { data } = useQuery<{ values: Settings }>(can('settings:read') ? '/api/admin/settings' : null);
@@ -63,24 +66,32 @@ function Console({ session, onLogout }: { session: Session; onLogout: () => Prom
     ...(ToolsPage ? { tools: () => <ToolsPage onNavigate={navigate} /> } : {}),
   };
   const forbidden = module && !canOpen(module.id);
+  const content = !module ? <Result status="404" title="页面不存在" subTitle="该页面不存在或模块尚未启用。" />
+      : forbidden ? <Result status="403" title="无权访问此页面" subTitle="当前账户没有此模块的访问权限。" />
+      : <AppErrorBoundary resetKeys={[path, sessionScope.version]}><Suspense fallback={<Flex justify="center" style={{ padding: 80 }}><Spin size="large" /></Flex>}>{renderers[module.id]?.()}</Suspense></AppErrorBoundary>;
+  if (proLayout) return <WorkerKitConsoleLayout name={settings.siteName} logo={<img src="/favicon.svg" width={32} height={32} alt="" />}
+    pageTitle={module?.label ?? '页面不存在'} activeKey={module?.id ?? path} items={navigation('sidebar')}
+    username={session.user} sidebarStorageKey="workerkit.pro-demo.sidebar" onNavigate={navigate}
+    accountItems={[...navigation('user'), { type: 'divider' }, { key: 'logout', label: '退出登录' }]}
+    onAccountAction={key => { if (key === 'logout') void onLogout(); else navigate(key); }}>
+    {content}
+  </WorkerKitConsoleLayout>;
   return <AdminShell brandIcon={<img src="/favicon.svg" width={32} height={32} alt="" />} title={settings.siteName} username={session.user} activeKey={module?.id ?? path} onNavigate={navigate}
     items={navigation('sidebar')} userMenuItems={navigation('user')} onLogout={onLogout}>
-    {!module ? <Result status="404" title="页面不存在" subTitle="该页面不存在或模块尚未启用。" />
-      : forbidden ? <Result status="403" title="无权访问此页面" subTitle="当前账户没有此模块的访问权限。" />
-      : <AppErrorBoundary resetKeys={[path, sessionScope.version]}><Suspense fallback={<Flex justify="center" style={{ padding: 80 }}><Spin size="large" /></Flex>}>{renderers[module.id]?.()}</Suspense></AppErrorBoundary>}
+    {content}
   </AdminShell>;
 }
 
-function AuthorizedConsole({ session, onLogout }: { session: Session; onLogout: () => Promise<void> }) {
+function AuthorizedConsole({ session, onLogout, proLayout }: ConsoleProps) {
   const { data, error, loading, refresh } = useQuery<AccessSnapshot>('/api/admin/access');
   if (loading) return <Flex align="center" justify="center" style={{ minHeight: '100dvh' }}><Spin size="large" /></Flex>;
   if (error || !data || !Array.isArray(data.permissions) || data.permissions.some((permission) => typeof permission !== 'string')) {
     return <Result status="warning" title="无法加载访问权限" subTitle={error || '权限信息无效'} extra={<Button onClick={refresh}>重试</Button>} />;
   }
-  return <ModuleAccessProvider modules={modules} access={{ authenticated: true, permissions: data.permissions, development: import.meta.env.DEV }}><Console session={session} onLogout={onLogout} /></ModuleAccessProvider>;
+  return <ModuleAccessProvider modules={modules} access={{ authenticated: true, permissions: data.permissions, development: import.meta.env.DEV }}><Console session={session} onLogout={onLogout} proLayout={proLayout} /></ModuleAccessProvider>;
 }
 
-function Dashboard() {
+function Dashboard({ proLayout = false }: { proLayout?: boolean }) {
   const [session, setSession] = useState<Session | null>(); const [error, setError] = useState(''); const [epoch, setEpoch] = useState(sessionScope.version); const { message, notification } = AntApp.useApp();
   useEffect(() => sessionScope.subscribe((event) => {
     setEpoch(event.version);
@@ -118,7 +129,7 @@ function Dashboard() {
   if (!session) return <LoginPage title="WorkerKit" description="登录管理你的应用、文件与配置" onLogin={async (values, signal) => {
     acceptSession(await authApi<Session>('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(values), signal }));
   }} />;
-  return <AuthorizedConsole key={epoch} session={session} onLogout={logout} />;
+  return <AuthorizedConsole key={epoch} session={session} onLogout={logout} proLayout={proLayout} />;
 }
 
 export default Dashboard;

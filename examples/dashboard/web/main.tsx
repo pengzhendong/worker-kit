@@ -5,4 +5,6 @@ import Dashboard from './Dashboard';
 import '@pengzhendong/worker-kit/web/styles.css';
 import './style.css';
 
-createRoot(document.getElementById('root')!).render(<StrictMode><AppErrorBoundary scope="application"><WorkerKitProvider><Dashboard /></WorkerKitProvider></AppErrorBoundary></StrictMode>);
+const proLayout = !/^\/compat(?:\/|$)/.test(location.pathname);
+
+createRoot(document.getElementById('root')!).render(<StrictMode><AppErrorBoundary scope="application"><WorkerKitProvider><Dashboard proLayout={proLayout} /></WorkerKitProvider></AppErrorBoundary></StrictMode>);

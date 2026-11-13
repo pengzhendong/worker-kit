@@ -50,8 +50,8 @@ test('API tokens validate drafts, show the secret once and revoke with confirmat
   await expect(page.getByText('已撤销', { exact: true })).toBeVisible();
 });
 
-test('Scalar renders real schemas locally without external requests and keeps host navigation intact', async ({ page }) => {
-  const external: string[] = []; page.on('request', (request) => { if (!request.url().startsWith('http://127.0.0.1:4174')) external.push(request.url()); });
+test('Scalar renders real schemas locally without external requests and keeps host navigation intact', async ({ page, baseURL }) => {
+  const external: string[] = []; page.on('request', (request) => { if (new URL(request.url()).origin !== new URL(baseURL!).origin) external.push(request.url()); });
   await openDashboard(page, 'api'); await page.getByRole('tab', { name: '接口文档', exact: true }).click();
   const frame = page.frameLocator('iframe[title="交互式 API 文档"]');
   await expect(frame.getByRole('heading', { name: 'WorkerKit API', exact: true })).toBeVisible();

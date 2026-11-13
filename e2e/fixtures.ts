@@ -97,7 +97,7 @@ export const test = base.extend<ConsoleOptions>({
 export { expect };
 
 export async function openDashboard(page: Page, section = 'overview') {
-  await page.goto(`/#${section}`);
+  await page.goto(`/compat/#${section}`);
   await expectDashboard(page, section);
 }
 

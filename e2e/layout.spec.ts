@@ -29,7 +29,7 @@ test('content scrolls while navigation stays in place', async ({ page }, info) =
 
 test('short desktop lets the sidebar scroll independently', async ({ page }, info) => {
   test.skip(info.project.name.startsWith('mobile'), 'Desktop sidebar contract');
-  await page.setViewportSize({ width: 1280, height: 400 });
+  await page.setViewportSize({ width: 1280, height: 340 });
   await openDashboard(page);
   const content = page.locator(region('content'));
   const sidebar = page.locator(region('sidebar'));
@@ -46,7 +46,7 @@ test('short desktop lets the sidebar scroll independently', async ({ page }, inf
   await expect(account.getByRole('button', { name: '用户菜单，admin' })).toBeInViewport();
   expect(await content.evaluate((node) => node.scrollTop)).toBe(before);
   expect(await box(page.locator(region('header')))).toEqual(header);
-  await expect(sidebar.getByRole('menuitem', { name: '开发工具', exact: true })).toBeInViewport();
+  await expect(sidebar.getByRole('menuitem', { name: '媒体预览', exact: true })).toBeInViewport();
   await info.attach('independent-scroll-positions', { body: JSON.stringify({ content: before, navigation: await navigation.evaluate((node) => node.scrollTop), account: accountBefore, header }), contentType: 'application/json' });
 });
 
