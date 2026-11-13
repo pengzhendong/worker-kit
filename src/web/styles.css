@@ -21,6 +21,9 @@ body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sa
 .wk-api-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
 .wk-runtime { display: flex; flex-direction: column; gap: 24px; }
 .wk-runtime > [data-workerkit-page-header] { margin-bottom: 0 !important; }
+.wk-runtime:has(> [data-workerkit-page-header] + *) { row-gap: 0; }
+.wk-runtime > [data-workerkit-page-header] + * { margin-block-start: var(--wk-toolbar-gap, 16px); }
+.wk-runtime > :nth-child(n + 3) { margin-block-start: 24px; }
 .wk-runtime-health { width: 56px; height: 56px; flex-shrink: 0; display: grid; place-items: center; border-radius: 16px; font-size: 28px; }
 .wk-runtime-history { min-height: 56px; margin-bottom: 16px; }
 .wk-runtime-history > span { width: 12px; height: 36px; border-radius: 4px; }

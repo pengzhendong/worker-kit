@@ -11,6 +11,7 @@ function ThemeSurface({ children }: { children: ReactNode }) {
   const { token } = theme.useToken();
   const variables = {
     '--wk-font-family': token.fontFamily,
+    '--wk-toolbar-gap': `${workerKitLayout.toolbarGap}px`,
     '--wk-navigation-icon-size': `${workerKitLayout.iconSize}px`,
     '--wk-media-row-height': `${workerKitLayout.mediaRowHeight}px`,
     '--wk-font-family-code': token.fontFamilyCode,
