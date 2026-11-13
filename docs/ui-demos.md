@@ -1,6 +1,6 @@
 # WorkerKit 界面示例
 
-[首页](https://kit.pzd17.top/)默认打开框架演示，顶部提供[ProLayout 后台](https://kit.pzd17.top/pro-layout/)和 AdminShell 的入口。[兼容版](https://kit.pzd17.top/compat/)与 ProLayout 后台共用账户、会话和演示数据。
+[首页](https://kit.pzd17.top/)默认打开框架演示，顶部提供[ProLayout 后台](https://kit.pzd17.top/pro-layout/)和 AdminShell 的入口。[兼容版](https://kit.pzd17.top/compat/)与 ProLayout 后台共用账户、会话和演示数据。线上演示账号为 `admin / password`。
 
 [框架演示](https://kit.pzd17.top/)收录 9 套组件库、8 套后台模板和一套 VitePress 文档。前端演示默认打开表格。六项对比示例依次为表格、表单、弹窗、布局、主题和文件。各套使用自己的组件和样式。上游地址集中在 [演示目录](../examples/ui-suite/catalog.js)。
 

@@ -20,6 +20,7 @@ type Resource = { id: string; name: string; kind: string; status: 'enabled' | 'd
 export function createDashboard(options: {
   modules?: readonly ModuleDefinition[];
   apiBase?: string;
+  publicDemo?: boolean;
   resolvePermissions?: (user: string) => readonly string[] | null | Promise<readonly string[] | null>;
 } = {}) {
   const modules = options.modules ?? dashboardModules;
@@ -34,7 +35,7 @@ export function createDashboard(options: {
     return ownerPermissions(user);
   } });
   const requirePermission = (permission: ModulePermission<typeof dashboardModules[number]>) => access.require(permission);
-  const auth = createAdminAuth<Bindings>({ allowWeakLocalPassword: true });
+  const auth = createAdminAuth<Bindings>({ allowWeakLocalPassword: true, minimumPasswordLength: options.publicDemo ? 8 : undefined });
   installApiDescriptions(app, listModulePermissions(modules));
   app.get('/health', (c) => { c.header('Cache-Control', 'no-store'); return c.json({ ok: true, service: 'worker-kit-dashboard' }); });
   app.route('/api/auth', auth.routes);

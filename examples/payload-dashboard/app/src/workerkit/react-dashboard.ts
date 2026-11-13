@@ -3,10 +3,12 @@ import type { Bindings } from '../../../../dashboard/server';
 
 const base = '/dashboard';
 const dashboard = createDashboard({ apiBase: base });
+const demoDashboard = createDashboard({ apiBase: base, publicDemo: true });
 
 type DashboardEnv = Pick<CloudflareEnv,
   'ASSETS' | 'DASHBOARD_DB' | 'DASHBOARD_SETTINGS' | 'DASHBOARD_FILES'
   | 'DASHBOARD_LOGIN_RATE_LIMITER' | 'DASHBOARD_API_KEY_RATE_LIMITER'> & {
+  WORKERKIT_DEMO?: string;
   DASHBOARD_ADMIN_PASSWORD?: string;
   DASHBOARD_SESSION_SECRET?: string;
 };
@@ -25,7 +27,8 @@ export async function serveDashboard(request: Request, env: DashboardEnv, ctx: E
       SETTINGS: env.DASHBOARD_SETTINGS,
       FILES: env.DASHBOARD_FILES,
     };
-    return dashboard.fetch(new Request(url, request), bindings, ctx);
+    const app = env.WORKERKIT_DEMO === '1' ? demoDashboard : dashboard;
+    return app.fetch(new Request(url, request), bindings, ctx);
   }
   if (['/compat', '/pro-layout', '/showcase', '/showcase/'].includes(url.pathname)) {
     url.pathname = url.pathname.startsWith('/showcase') ? '/' : url.pathname + '/';
