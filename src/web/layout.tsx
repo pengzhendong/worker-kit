@@ -96,7 +96,7 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
     selectedKeys={menuProps?.selectedKeys ?? [activeKey]} onClick={({ key }) => navigate(key)}
     styles={{
       root: { paddingInline: compact ? 8 : 10 },
-      item: { display: 'flex', alignItems: 'center', height: ui.navigationHeight, marginBlock: 5, ...(compact ? { justifyContent: 'center', paddingInline: 0, marginInline: 0, width: '100%' } : {}) },
+      item: { display: 'flex', alignItems: 'center', height: ui.navigationHeight, marginBlock: 5, ...(!compact && screens.lg ? { paddingInlineStart: 12 } : {}), ...(compact ? { justifyContent: 'center', paddingInline: 0, marginInline: 0, width: '100%' } : {}) },
       itemContent: { marginInlineStart: compact ? 0 : ui.iconGap, lineHeight: '20px', ...(compact ? { flex: '0 0 0', width: 0, overflow: 'hidden', opacity: 0 } : {}) },
       ...(nested ? { subMenu: {
         item: { height: ui.navigationHeight, marginBlock: 5, display: 'flex', alignItems: 'center' },
@@ -111,7 +111,7 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
   </svg>;
   const logo = brandIcon ?? <span style={{ width: 30, height: 32, borderRadius: 9, display: 'grid', placeItems: 'center', background: token.colorPrimary, color: '#fff', fontWeight: 800, fontSize: 20 }}>{title.slice(0, 1).toUpperCase()}</span>;
   const brandHeight = sidebarActions ? ui.headerHeight : 80;
-  const brand = compact ? <Flex align="center" justify="center" aria-label={title} style={{ height: brandHeight }}>{logo}</Flex> : <Space size={10} style={{ height: brandHeight, padding: '0 24px' }}>{logo}<Typography.Title level={4} style={{ margin: 0, letterSpacing: '-.5px' }}>{title}</Typography.Title></Space>;
+  const brand = compact ? <Flex align="center" justify="center" aria-label={title} style={{ height: brandHeight }}>{logo}</Flex> : <Space size={10} style={{ height: brandHeight, padding: screens.lg ? '0 20px' : '0 24px' }}>{logo}<Typography.Title level={4} style={{ margin: 0, letterSpacing: '-.5px' }}>{title}</Typography.Title></Space>;
   const logoutIcon = <IconBox><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 4H4v16h5 M14 8l4 4-4 4 M9 12h12" /></svg></IconBox>;
   const avatar = <Avatar size={ui.avatarSize} style={{ flexShrink: 0, background: token.colorPrimaryBg, color: token.colorPrimaryText, fontSize: 13, fontWeight: 600 }}>{username.slice(0, 1).toUpperCase()}</Avatar>;
   const themeToggle = <Tooltip title={themeLabel}><Button type="text" shape="circle" icon={themeIcon} onClick={toggle} aria-label={themeLabel} aria-pressed={dark} /></Tooltip>;

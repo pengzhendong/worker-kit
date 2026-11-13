@@ -86,6 +86,7 @@ body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sa
     box-sizing: border-box;
     flex-shrink: 0;
     border-block-end-color: transparent;
+    padding-inline: 8px;
   }
 }
 
@@ -140,21 +141,11 @@ body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sa
 
   .wk-pro-continuous-header .ant-pro-sider-fixed .wk-pro-nav-item :is(.ant-pro-base-menu-inline-item-icon, .ant-pro-base-menu-vertical-item-icon) {
     position: absolute;
-    inset-inline-start: 16px;
+    inset-inline-start: 12px;
     inset-block-start: 50%;
     width: 20px;
     height: 20px;
     transform: translateY(-50%);
-    transition: inset-inline-start 200ms ease;
   }
 
-  .wk-pro-continuous-header .ant-pro-sider-fixed.ant-layout-sider-collapsed .wk-pro-nav-item :is(.ant-pro-base-menu-inline-item-icon, .ant-pro-base-menu-vertical-item-icon) {
-    inset-inline-start: 12px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .wk-pro-continuous-header .ant-pro-sider-fixed .wk-pro-nav-item :is(.ant-pro-base-menu-inline-item-icon, .ant-pro-base-menu-vertical-item-icon) {
-    transition: none;
-  }
 }
