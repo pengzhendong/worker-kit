@@ -193,6 +193,10 @@ body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sa
   position: relative;
   padding-inline-start: 44px !important;
 }
+.wk-desktop-nested-menu.wk-desktop-menu-collapsed > .ant-menu-submenu > .ant-menu-submenu-title,
+.wk-desktop-nested-menu.wk-desktop-menu-collapsed > .ant-menu-item {
+  padding-inline: 0 !important;
+}
 /* Ant Menu changes the icon font size when a submenu collapses. */
 .wk-desktop-menu [data-workerkit-icon] .anticon {
   display: flex;
