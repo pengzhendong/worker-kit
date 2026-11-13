@@ -193,7 +193,42 @@ body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sa
   position: relative;
   padding-inline-start: 44px !important;
 }
-.wk-desktop-nested-menu.ant-menu-inline-collapsed > .ant-menu-submenu > .ant-menu-submenu-title > .ant-menu-title-content,
-.wk-desktop-nested-menu.ant-menu-inline-collapsed > .ant-menu-item > .ant-menu-title-content {
-  display: none;
+/* Ant Menu changes the icon font size when a submenu collapses. */
+.wk-desktop-menu [data-workerkit-icon] .anticon {
+  display: flex;
+  font-size: var(--wk-navigation-icon-size, 20px);
+  line-height: 1;
+}
+.wk-desktop-menu [data-workerkit-icon] svg {
+  width: var(--wk-navigation-icon-size, 20px);
+  height: var(--wk-navigation-icon-size, 20px);
+}
+
+@media (min-width: 768px) {
+  :is(
+    .wk-desktop-menu > .ant-menu-item > .ant-menu-title-content,
+    .wk-desktop-menu > .ant-menu-submenu > .ant-menu-submenu-title > .ant-menu-title-content,
+    .wk-pro-continuous-header .ant-pro-sider-fixed .wk-pro-nav-item [class$="-item-text"],
+    .wk-pro-continuous-header .ant-pro-sider-fixed .wk-pro-nav-item [class*="-item-text "]
+  ) {
+    white-space: nowrap;
+    animation: wk-sidebar-label-in 120ms ease 100ms both;
+  }
+  :is(
+    .wk-desktop-menu-collapsed > .ant-menu-item > .ant-menu-title-content,
+    .wk-desktop-menu-collapsed > .ant-menu-submenu > .ant-menu-submenu-title > .ant-menu-title-content,
+    .wk-pro-continuous-header .ant-pro-sider-fixed.ant-layout-sider-collapsed .wk-pro-nav-item [class*="-item-text"]
+  ) {
+    visibility: hidden;
+    opacity: 0;
+    animation: none;
+  }
+}
+
+@keyframes wk-sidebar-label-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .wk-desktop-menu .ant-menu-title-content,
+  .wk-pro-continuous-header .wk-pro-nav-item [class*="-item-text"] {
+    animation: none;
+  }
 }

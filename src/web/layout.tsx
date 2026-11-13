@@ -88,21 +88,21 @@ export function AdminShell({ title, brandIcon, items, userMenuItems = [], active
         title: item.label,
         ...(fixedIconRail || fixedNestedIcon ? { 'aria-label': item.label } : {}),
         icon: item.icon || compact && depth === 0 ? <IconBox style={fixedIconRail || fixedNestedIcon ? { position: 'absolute', insetInlineStart: 12, insetBlockStart: '50%', transform: 'translateY(-50%)' } : undefined}>{item.icon ?? <span aria-hidden="true">{item.label.slice(0, 1)}</span>}</IconBox> : undefined,
-        label: fixedNestedIcon && compact ? null : nested ? item.children?.length ? <Flex component="span" align="center" justify="space-between" gap={8}
+        label: nested ? item.children?.length ? <Flex component="span" align="center" justify="space-between" gap={8}
           style={{ paddingInlineStart: depth > 0 ? 18 : 0 }}>{item.label}{item.extra}</Flex> : item.label
-          : <span style={{ display: fixedIconRail && compact ? 'none' : 'block', lineHeight: '20px' }}>{item.label}</span>,
+          : <span style={{ lineHeight: '20px' }}>{item.label}</span>,
         ...(item.children?.length ? { children: menuItems(item.children, depth + 1) } : { extra: item.extra }),
       };
     });
   }
-  const menu = <Menu mode={compact || nested ? 'inline' : 'vertical'} inlineIndent={nested ? 12 : undefined} className={screens.lg && nested ? 'wk-desktop-nested-menu' : undefined} inlineCollapsed={compact || undefined} items={menuItems(items)}
+  const menu = <Menu mode={compact || nested ? 'inline' : 'vertical'} inlineIndent={nested ? 12 : undefined} className={screens.lg ? 'wk-desktop-menu' + (nested ? ' wk-desktop-nested-menu' : '') + (compact ? ' wk-desktop-menu-collapsed' : '') : undefined} inlineCollapsed={compact || undefined} items={menuItems(items)}
     {...(nested ? { openKeys: compact ? openKeys : menuProps?.openKeys ?? openKeys,
       onOpenChange: compact ? setOpenKeys : menuProps?.onOpenChange ?? setOpenKeys } : {})}
     selectedKeys={menuProps?.selectedKeys ?? [activeKey]} onClick={({ key }) => navigate(key)}
     styles={{
       root: { paddingInline: 10 },
-      item: { display: 'flex', alignItems: 'center', height: ui.navigationHeight, marginBlock: 5, ...(!compact && screens.lg ? { paddingInlineStart: 12 } : {}), ...(compact && !fixedIconRail ? { justifyContent: 'center', paddingInline: 0, marginInline: 0, width: '100%' } : {}), ...(fixedIconRail ? { position: 'relative', paddingInline: compact ? 0 : 44, marginInline: 4, width: 'calc(100% - 8px)' } : {}) },
-      itemContent: { marginInlineStart: compact || fixedIconRail ? 0 : ui.iconGap, lineHeight: '20px', ...(compact ? { flex: '0 0 0', width: 0, overflow: 'hidden', opacity: 0 } : {}) },
+      item: { display: 'flex', alignItems: 'center', height: ui.navigationHeight, marginBlock: 5, ...(!compact && screens.lg ? { paddingInlineStart: 12 } : {}), ...(compact && !fixedIconRail ? { justifyContent: 'center', paddingInline: 0, marginInline: 0, width: '100%' } : {}), ...(fixedIconRail ? { position: 'relative', paddingInline: 44, marginInline: 4, width: 'calc(100% - 8px)' } : {}) },
+      itemContent: { marginInlineStart: compact || fixedIconRail ? 0 : ui.iconGap, lineHeight: '20px' },
       ...(nested ? { subMenu: {
         item: { height: ui.navigationHeight, marginBlock: 5, display: 'flex', alignItems: 'center' },
         itemContent: { marginInlineStart: 18, lineHeight: '20px' },
